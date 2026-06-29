@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# scratch / scraped temp
+.source-index.html
+*.tmp
