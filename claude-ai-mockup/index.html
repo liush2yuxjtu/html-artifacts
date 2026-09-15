@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Claude.ai Mockup — Interactive Product Demo</title>
+  <style>
+    :root {
+      --bg: #f7f4ee;
+      --panel: #fbfaf7;
+      --panel-strong: #fffdfa;
+      --sidebar: #f0ece4;
+      --text: #2c2a27;
+      --muted: #7a746d;
+      --border: #ddd7ce;
+      --border-soft: #e9e4dc;
+      --accent: #c66b3d;
+      --accent-soft: #f0ded0;
+      --success: #536e54;
+      --shadow: 0 18px 50px rgba(52, 45, 37, .10);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input, textarea, select { font: inherit; }
+    button, select { color: inherit; }
+    button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(198,107,61,.24); outline-offset: 2px; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 280px 1fr; }
+    .sidebar { position: sticky; top: 0; height: 100vh; padding: 14px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 14px; }
+    .brand { display:flex; align-items:center; justify-content:space-between; gap: 10px; padding: 6px 4px 10px; }
+    .brand-left { display:flex; align-items:center; gap:10px; font-weight: 650; letter-spacing: -.01em; }
+    .mark { width: 28px; height: 28px; border-radius: 9px; display:grid; place-items:center; background: var(--accent-soft); color: var(--accent); font-size: 18px; }
+    .ghost, .nav-btn, .chip, .icon-btn, .action-btn, .history-btn { border: 0; background: transparent; cursor: pointer; }
+    .ghost { color: var(--muted); padding: 8px; border-radius: 10px; }
+    .ghost:hover, .nav-btn:hover, .history-btn:hover { background: rgba(255,255,255,.58); }
+    .new-chat { width: 100%; border: 1px solid var(--border); background: var(--panel-strong); padding: 11px 12px; border-radius: 12px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; box-shadow: 0 1px 0 rgba(0,0,0,.02); }
+    .search { background: rgba(255,255,255,.6); border:1px solid transparent; border-radius: 12px; padding: 10px 12px; color: var(--muted); display:flex; align-items:center; gap:8px; }
+    .nav { display:grid; gap:4px; }
+    .nav-btn { text-align:left; padding: 9px 10px; border-radius: 10px; color: #4f4b46; }
+    .section-label { margin: 8px 8px 2px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+    .history { display:grid; gap:3px; overflow:auto; min-height:0; }
+    .history-btn { padding: 9px 10px; border-radius:10px; text-align:left; color:#55504a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .profile { margin-top:auto; border-top:1px solid var(--border); padding-top:12px; display:flex; gap:10px; align-items:center; }
+    .avatar { width:30px; height:30px; border-radius:50%; background:#d9d1c6; display:grid; place-items:center; font-size:12px; font-weight:700; }
+    .profile-copy { font-size:12px; line-height:1.3; }
+    .profile-copy strong { display:block; font-size:13px; }
+
+    .main { min-width:0; display:flex; min-height:100vh; }
+    .chat-shell { flex:1; min-width:0; display:flex; flex-direction:column; position:relative; }
+    .topbar { height:64px; display:flex; align-items:center; justify-content:space-between; padding: 0 24px; border-bottom:1px solid transparent; }
+    .model { border:1px solid var(--border); background:rgba(255,255,255,.56); border-radius:999px; padding:8px 12px; }
+    .demo-badge { font-size:12px; color:#6b625b; background:#efe7df; border:1px solid #e3d8cf; border-radius:999px; padding:7px 10px; }
+    .conversation { flex:1; width:min(760px, calc(100% - 44px)); margin:0 auto; padding: 58px 0 230px; }
+    .welcome { text-align:center; margin-top: 7vh; }
+    .welcome-mark { width:56px; height:56px; border-radius:18px; background:#efe3d9; color:var(--accent); display:grid; place-items:center; margin:0 auto 20px; font-size:30px; }
+    h1 { font-size:38px; line-height:1.06; margin:0; letter-spacing:-.035em; font-weight:580; }
+    .sub { color:var(--muted); margin:12px auto 26px; max-width:520px; font-size:15px; line-height:1.55; }
+    .suggestions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .chip { text-align:left; padding:14px; border:1px solid var(--border); border-radius:14px; background:rgba(255,255,255,.48); min-height:86px; color:#4c4843; }
+    .chip:hover { background:rgba(255,255,255,.86); transform:translateY(-1px); }
+    .chip strong { display:block; font-size:13px; margin-bottom:7px; }
+    .chip span { font-size:12px; color:var(--muted); line-height:1.4; }
+    .thread { display:none; gap:22px; }
+    .thread.active { display:grid; }
+    .msg { display:grid; grid-template-columns:34px minmax(0,1fr); gap:12px; align-items:start; }
+    .msg .avatar { width:32px; height:32px; }
+    .bubble { padding-top:4px; line-height:1.62; font-size:15px; }
+    .bubble p { margin:0 0 12px; }
+    .assistant-block { border:1px solid var(--border-soft); background:rgba(255,255,255,.52); border-radius:16px; padding:16px; margin-top:12px; }
+    .assistant-block-head { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:10px; font-size:12px; color:var(--muted); }
+    .mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .mini-card { background:var(--panel-strong); border:1px solid var(--border-soft); border-radius:12px; padding:13px; }
+    .mini-card strong { display:block; font-size:13px; margin-bottom:5px; }
+    .mini-card span { color:var(--muted); font-size:12px; }
+    .status-line { display:flex; gap:8px; align-items:center; margin-top:12px; color:var(--success); font-size:12px; }
+    .dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+
+    .composer-wrap { position:absolute; left:0; right:0; bottom:0; padding: 36px 22px 20px; background:linear-gradient(to top, var(--bg) 68%, rgba(247,244,238,0)); }
+    .composer { width:min(780px,100%); margin:0 auto; background:var(--panel-strong); border:1px solid #d8d0c5; border-radius:22px; box-shadow:var(--shadow); overflow:hidden; }
+    textarea { width:100%; min-height:92px; max-height:200px; resize:vertical; border:0; background:transparent; color:var(--text); padding:18px 18px 10px; outline:0; line-height:1.5; }
+    textarea::placeholder { color:#9d958c; }
+    .composer-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0 12px 12px; }
+    .left-actions, .right-actions { display:flex; gap:7px; align-items:center; }
+    .icon-btn, .action-btn { border:1px solid var(--border); background:#faf7f2; border-radius:999px; padding:8px 10px; }
+    .action-btn.primary { background:#2f2b28; color:white; border-color:#2f2b28; padding:9px 14px; }
+    .hint { text-align:center; color:#938b82; font-size:11px; margin-top:10px; }
+
+    .artifact { width:0; overflow:hidden; border-left:1px solid var(--border); background:#f9f7f2; transition:width .22s ease; }
+    .artifact.open { width:min(44vw, 620px); }
+    .artifact-inner { width:min(44vw, 620px); min-width:360px; height:100vh; display:flex; flex-direction:column; }
+    .artifact-head { height:64px; display:flex; align-items:center; justify-content:space-between; padding:0 18px; border-bottom:1px solid var(--border); }
+    .artifact-title { font-weight:650; }
+    .artifact-body { padding:18px; overflow:auto; }
+    .artifact-preview { background:white; border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow:0 10px 28px rgba(52,45,37,.08); }
+    .preview-top { height:42px; background:#f6f3ee; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:6px; padding:0 12px; }
+    .preview-dot { width:8px; height:8px; border-radius:50%; background:#c8c0b6; }
+    .preview-page { padding:28px; min-height:380px; }
+    .preview-kicker { color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em; }
+    .preview-page h2 { font-size:30px; letter-spacing:-.03em; margin:8px 0 12px; }
+    .preview-page p { color:var(--muted); line-height:1.6; }
+    .preview-cards { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:22px; }
+    .preview-card { border:1px solid var(--border-soft); border-radius:12px; padding:14px; }
+    .source-note { margin-top:18px; border-top:1px solid var(--border); padding-top:14px; color:#888077; font:11px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; overflow-wrap:anywhere; }
+
+    .toast { position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-12px); background:#2e2a27; color:#fff; padding:9px 13px; border-radius:999px; font-size:12px; opacity:0; pointer-events:none; transition:.18s ease; z-index:20; }
+    .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display:none; }
+      .artifact.open { position:fixed; inset:0; width:100%; z-index:15; }
+      .artifact-inner { width:100%; min-width:0; }
+      .suggestions { grid-template-columns:1fr; }
+      .conversation { padding-top:26px; }
+      .welcome { margin-top:2vh; }
+      h1 { font-size:32px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="app">
+    <aside class="sidebar" aria-label="Mock Claude navigation">
+      <div class="brand">
+        <div class="brand-left"><div class="mark" aria-hidden="true">✦</div><span>Claude</span></div>
+        <button class="ghost" id="collapseBtn" aria-label="Collapse sidebar">⌫</button>
+      </div>
+      <button class="new-chat" id="newChatBtn"><span>New chat</span><span>⌘K</span></button>
+      <div class="search" aria-label="Search mock conversations">⌕ <span>Search</span></div>
+      <nav class="nav" aria-label="Primary">
+        <button class="nav-btn" data-toast="Projects opened in this local demo">Projects</button>
+        <button class="nav-btn" data-toast="Artifacts opened in this local demo">Artifacts</button>
+        <button class="nav-btn" data-toast="Research opened in this local demo">Research</button>
+      </nav>
+      <div class="section-label">Recents</div>
+      <div class="history">
+        <button class="history-btn" data-prompt="Summarize the product strategy memo">Product strategy memo</button>
+        <button class="history-btn" data-prompt="Draft a launch checklist for a small AI feature">Launch checklist</button>
+        <button class="history-btn" data-prompt="Turn these notes into a clear executive brief">Executive brief</button>
+        <button class="history-btn" data-prompt="Create a lightweight prototype plan">Prototype plan</button>
+      </div>
+      <div class="profile">
+        <div class="avatar">R</div>
+        <div class="profile-copy"><strong>Robin</strong><span>Local mockup</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="chat-shell" aria-label="Claude.ai mock conversation">
+        <header class="topbar">
+          <select class="model" id="modelSelect" aria-label="Model">
+            <option>Sonnet 5</option>
+            <option>Opus 5</option>
+            <option>Haiku 5</option>
+          </select>
+          <div class="demo-badge">Unofficial local product demo</div>
+        </header>
+
+        <div class="conversation">
+          <section class="welcome" id="welcome">
+            <div class="welcome-mark" aria-hidden="true">✦</div>
+            <h1>How can I help you today?</h1>
+            <p class="sub">A stateful Claude.ai-inspired mockup. Try a prompt, switch the model, and open the generated artifact.</p>
+            <div class="suggestions">
+              <button class="chip" data-prompt="Create a one-page product brief for an AI teammate that turns messy notes into clear next steps."><strong>Write a product brief</strong><span>Turn a rough idea into a concise product story.</span></button>
+              <button class="chip" data-prompt="Analyze this fictional launch plan and list the three biggest risks with mitigations."><strong>Analyze a plan</strong><span>Find risks, assumptions, and what to verify first.</span></button>
+              <button class="chip" data-prompt="Build a simple artifact that explains how a team can move from idea to validated product demo."><strong>Create an artifact</strong><span>Generate a visual result next to the conversation.</span></button>
+            </div>
+          </section>
+
+          <section class="thread" id="thread" aria-live="polite">
+            <article class="msg">
+              <div class="avatar">R</div>
+              <div class="bubble"><p id="userMessage"></p></div>
+            </article>
+            <article class="msg">
+              <div class="avatar" style="background:#efe3d9;color:#b75f36">✦</div>
+              <div class="bubble">
+                <p id="assistantLead">I can help with that. I’ll turn it into a short, decision-friendly structure and make the result visible as an artifact.</p>
+                <div class="assistant-block">
+                  <div class="assistant-block-head"><span id="runLabel">Working with Sonnet 5</span><span>local simulation</span></div>
+                  <div class="mini-grid">
+                    <div class="mini-card"><strong>1. Clarify the job</strong><span>What outcome should change for the user?</span></div>
+                    <div class="mini-card"><strong>2. Show proof</strong><span>Make one result visible and easy to judge.</span></div>
+                    <div class="mini-card"><strong>3. Test behavior</strong><span>Use clicks, choices, or task completion.</span></div>
+                    <div class="mini-card"><strong>4. Tighten scope</strong><span>Keep only what supports the core loop.</span></div>
+                  </div>
+                  <div class="status-line"><span class="dot"></span><span id="statusText">Artifact ready</span></div>
+                </div>
+                <p style="margin-top:14px">I created a small artifact so the recommendation can be judged visually instead of hiding behind a paragraph avalanche.</p>
+                <button class="action-btn" id="openArtifactBtn">Open artifact</button>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <div class="composer-wrap">
+          <div class="composer">
+            <textarea id="promptInput" aria-label="Message Claude mockup" placeholder="Message Claude..."></textarea>
+            <div class="composer-actions">
+              <div class="left-actions">
+                <button class="icon-btn" type="button" data-toast="Attachment is simulated locally">＋</button>
+                <button class="icon-btn" type="button" data-toast="Tools menu is simulated locally">Tools</button>
+              </div>
+              <div class="right-actions">
+                <button class="icon-btn" type="button" id="artifactToggle">Artifact</button>
+                <button class="action-btn primary" type="button" id="sendBtn">Send ↑</button>
+              </div>
+            </div>
+          </div>
+          <div class="hint">This page is a local mockup. No prompt is sent to Anthropic or any external API.</div>
+        </div>
+      </section>
+
+      <aside class="artifact" id="artifact" aria-label="Generated artifact">
+        <div class="artifact-inner">
+          <div class="artifact-head">
+            <div><div class="artifact-title">Product brief</div><div style="font-size:11px;color:var(--muted)">Generated artifact · local</div></div>
+            <button class="ghost" id="closeArtifactBtn" aria-label="Close artifact">✕</button>
+          </div>
+          <div class="artifact-body">
+            <div class="artifact-preview">
+              <div class="preview-top"><span class="preview-dot"></span><span class="preview-dot"></span><span class="preview-dot"></span></div>
+              <div class="preview-page">
+                <div class="preview-kicker">Prototype loop</div>
+                <h2 id="artifactHeading">From idea to visible proof</h2>
+                <p id="artifactCopy">Start with one user job, make the assistant’s work visible, and end with a result that can be judged in seconds.</p>
+                <div class="preview-cards">
+                  <div class="preview-card"><strong>Input</strong><br><span style="color:var(--muted);font-size:12px">One clear task</span></div>
+                  <div class="preview-card"><strong>Action</strong><br><span style="color:var(--muted);font-size:12px">One visible state change</span></div>
+                  <div class="preview-card"><strong>Proof</strong><br><span style="color:var(--muted);font-size:12px">A result users can inspect</span></div>
+                  <div class="preview-card"><strong>Decision</strong><br><span style="color:var(--muted);font-size:12px">Keep, change, or discard</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="source-note">
+              Source project absolute path: unavailable in ChatGPT remote connector; repository: liush2yuxjtu/html-artifacts/claude-ai-mockup/index.html<br>
+              Pi session ID: unavailable via shell<br>
+              Original interactive mockup inspired by the Claude.ai chat product pattern. Not affiliated with Anthropic.
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    const welcome = document.getElementById('welcome');
+    const thread = document.getElementById('thread');
+    const userMessage = document.getElementById('userMessage');
+    const promptInput = document.getElementById('promptInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const modelSelect = document.getElementById('modelSelect');
+    const runLabel = document.getElementById('runLabel');
+    const statusText = document.getElementById('statusText');
+    const artifact = document.getElementById('artifact');
+    const artifactHeading = document.getElementById('artifactHeading');
+    const artifactCopy = document.getElementById('artifactCopy');
+    const toast = document.getElementById('toast');
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add('show');
+      clearTimeout(showToast.t);
+      showToast.t = setTimeout(() => toast.classList.remove('show'), 1700);
+    }
+
+    function responseFor(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('risk') || lower.includes('launch')) {
+        return {
+          heading: 'Launch risk snapshot',
+          copy: 'Separate adoption risk, execution risk, and measurement risk so each one has an observable mitigation.',
+          status: 'Risk artifact ready'
+        };
+      }
+      if (lower.includes('brief') || lower.includes('product')) {
+        return {
+          heading: 'A product story people can judge',
+          copy: 'Lead with the user job, show the core interaction, then expose the proof that makes the promise credible.',
+          status: 'Product brief ready'
+        };
+      }
+      return {
+        heading: 'From idea to visible proof',
+        copy: 'Start with one user job, make the assistant’s work visible, and end with a result that can be judged in seconds.',
+        status: 'Artifact ready'
+      };
+    }
+
+    function runPrompt(text) {
+      const clean = text.trim();
+      if (!clean) { showToast('Type a prompt first'); return; }
+      welcome.style.display = 'none';
+      thread.classList.add('active');
+      userMessage.textContent = clean;
+      runLabel.textContent = `Working with ${modelSelect.value}`;
+      const result = responseFor(clean);
+      artifactHeading.textContent = result.heading;
+      artifactCopy.textContent = result.copy;
+      statusText.textContent = result.status;
+      promptInput.value = '';
+      thread.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    }
+
+    sendBtn.addEventListener('click', () => runPrompt(promptInput.value));
+    promptInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        runPrompt(promptInput.value);
+      }
+    });
+    document.querySelectorAll('[data-prompt]').forEach(btn => btn.addEventListener('click', () => {
+      const text = btn.getAttribute('data-prompt');
+      promptInput.value = text;
+      runPrompt(text);
+    }));
+    document.querySelectorAll('[data-toast]').forEach(btn => btn.addEventListener('click', () => showToast(btn.getAttribute('data-toast'))));
+    modelSelect.addEventListener('change', () => {
+      runLabel.textContent = `Working with ${modelSelect.value}`;
+      showToast(`Model switched to ${modelSelect.value} · simulated locally`);
+    });
+    function openArtifact() { artifact.classList.add('open'); }
+    function closeArtifact() { artifact.classList.remove('open'); }
+    document.getElementById('openArtifactBtn').addEventListener('click', openArtifact);
+    document.getElementById('artifactToggle').addEventListener('click', () => artifact.classList.toggle('open'));
+    document.getElementById('closeArtifactBtn').addEventListener('click', closeArtifact);
+    document.getElementById('newChatBtn').addEventListener('click', () => {
+      thread.classList.remove('active');
+      welcome.style.display = '';
+      artifact.classList.remove('open');
+      promptInput.value = '';
+      showToast('Started a fresh local mock conversation');
+    });
+    document.getElementById('collapseBtn').addEventListener('click', () => showToast('Sidebar collapse is visual-only in this demo'));
+  </script>
+</body>
+</html>
