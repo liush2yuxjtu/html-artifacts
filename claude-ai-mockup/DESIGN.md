@@ -1,6 +1,6 @@
 # Claude-inspired Demo 设计系统
 
-版本：`triage-20260915-r2`。本文件约束 `claude-ai-mockup/`，不是 Anthropic 官方设计系统。页面是独立的本地交互研究，不接入模型 API，不提供登录或收费功能。
+版本：`triage-20260915-r3`。本文件约束 `claude-ai-mockup/`，不是 Anthropic 官方设计系统。页面是独立的本地交互研究，不接入模型 API，不提供登录或收费功能。
 
 ## 1. 目标与第一眼
 
@@ -74,7 +74,7 @@
 
 ## 8. 验证与迁移
 
-入口仍为`index.html`，链接不变；样式与脚本仍独立，统一使用`?v=triage-20260915-r2`缓存键。SVG字典属于静态文档结构，不是分散重复资产。
+入口仍为`index.html`，链接不变；样式与脚本仍独立，统一使用`?v=triage-20260915-r3`缓存键。SVG字典属于静态文档结构，不是分散重复资产。
 
 可执行验收为`tests/verify.py`。`--url`用于真实托管地址；默认使用回环HTTP。受限沙箱可用`--memory`运行真实Chromium中的源码交互，但必须明确这不是HTTP、GitHub Pages或实体手机验收。
 

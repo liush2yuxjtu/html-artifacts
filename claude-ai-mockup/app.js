@@ -74,7 +74,11 @@
     const label = `${state.model} · simulated`;
     ui.modelLabel.textContent = label;
     ui.artifactModel.textContent = label;
-    if (state.current) state.current.model = state.model;
+    if (state.current) {
+      state.current.model = state.model;
+      const saved = state.sessions.find((record) => record.id === state.current.id);
+      if (saved) saved.model = state.model;
+    }
   }
   function syncSend() {
     ui.sendButton.disabled = !state.busy && !ui.composerInput.value.trim();

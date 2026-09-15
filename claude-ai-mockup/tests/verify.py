@@ -116,7 +116,7 @@ try:
     page.on('request', lambda r: network.append(r.url))
     response = navigate(page, url)
     check('本地源码渲染完成' if args.memory else '页面正常加载', page.title().startswith('Claude-inspired') if args.memory else response.status == 200, 'Chromium DOM, not HTTP' if args.memory else response.status)
-    check('版本标记', page.locator('html').get_attribute('data-release') == 'triage-20260915-r2')
+    check('版本标记', page.locator('html').get_attribute('data-release') == 'triage-20260915-r3')
     expect(page.locator('#welcome')).to_be_visible()
     check('唯一主任务', page.locator('#welcome .button-primary').count() == 1)
     check('移除通知型假入口', page.locator('[data-nav]').count() == 0)
@@ -155,6 +155,7 @@ try:
     page.locator('[data-history-id="session-1"]').click()
     expect(page.locator('#artifactPanel')).to_be_visible()
     check('恢复本次会话而非假历史入口', page.locator('#artifactTitle').inner_text()=='Product validation plan')
+    check('恢复会话保留修改后的模型', page.locator('#modelSelect').input_value()=='Opus' and 'Opus' in page.locator('#modelLabel').inner_text() and 'Opus' in page.locator('#artifactModel').inner_text())
     for key, title, count in [('brief','One-page product brief',4),('risks','Launch risk review',3)]:
       page.locator('#newChatBtn').click(); page.locator(f'[data-scenario="{key}"]').click()
       expect(page.locator('#artifactPanel')).to_be_visible()

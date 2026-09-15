@@ -41,7 +41,7 @@ bash verify.sh --url 'https://liush2yuxjtu.github.io/html-artifacts/claude-ai-mo
 
 若浏览器策略禁止HTTP和file导航，可以用`bash verify.sh --memory`在真实浏览器中加载本地源码验收交互。这不是路由验收，也不是不可变托管预览。
 
-测试输出`evidence/verification.json`、桌面/移动截图和实际下载文件。摘要记录验证边界；232项本地检查通过不意味着完整WCAG认证或实体手机检查。发布之后仍需独立浏览器检查真实URL与release标记。
+测试输出`evidence/verification.json`、桌面/移动截图和实际下载文件。摘要记录验证边界；233项本地检查通过不意味着完整WCAG认证或实体手机检查。发布之后仍需独立浏览器检查真实URL与release标记。
 
 ## 约束
 
