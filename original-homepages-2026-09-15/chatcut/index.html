@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Static visual reproduction of the ChatCut homepage captured 2026-09-15.">
+  <title>ChatCut original homepage reference — 2026-09-15</title>
+  <link rel="stylesheet" href="./design-system.css">
+</head>
+<body>
+  <header class="cc-nav">
+    <div class="cc-shell cc-nav-inner">
+      <a class="cc-brand" href="#top">ChatCut</a>
+      <nav class="cc-nav-links" aria-label="Primary">
+        <button class="cc-nav-action">Features</button>
+        <button class="cc-nav-action">Resources</button>
+        <button class="cc-nav-action">Plugin</button>
+        <button class="cc-nav-action">Desktop</button>
+        <a href="#pricing">Pricing</a>
+      </nav>
+      <div class="cc-nav-spacer"></div>
+      <button class="cc-nav-action">EN⌄</button>
+      <a class="cc-btn cc-btn-primary cc-btn-small" href="https://app.chatcut.io/">Try Now</a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="cc-hero cc-shell">
+      <div class="cc-eyebrow">YOUR AI VIDEO EDITOR</div>
+      <h1 class="cc-h1">Edit videos by telling AI what you want</h1>
+      <p class="cc-lede">Describe the edit in plain language. ChatCut turns the instruction into a video while keeping the timeline available for direct control.</p>
+      <div class="cc-hero-actions">
+        <a class="cc-btn cc-btn-primary" href="https://app.chatcut.io/">Enter ChatCut Editor</a>
+        <button class="cc-btn">Use it in your Agent</button>
+      </div>
+      <div class="cc-agent-switch" role="tablist" aria-label="Agent integration">
+        <button class="cc-segment agent-seg" role="tab" aria-selected="true">ChatGPT</button>
+        <button class="cc-segment agent-seg" role="tab" aria-selected="false">Claude</button>
+      </div>
+    </section>
+
+    <section class="cc-section-tight cc-shell">
+      <div class="cc-demo" id="editorDemo">
+        <div class="cc-demo-bar">
+          <span class="cc-dot"></span><span class="cc-dot"></span><span class="cc-dot"></span>
+          <span class="cc-demo-title">How do you edit a good video?</span>
+          <span class="cc-demo-spacer"></span>
+          <button class="cc-btn cc-btn-small">Export</button>
+        </div>
+        <div class="cc-editor">
+          <aside class="cc-agent-panel">
+            <div class="cc-agent-title">Agent</div>
+            <div class="cc-prompt">Please edit this video for me, give it a retro feel, and add music with suitable camera movement.</div>
+            <div class="cc-step-list">
+              <button class="cc-step is-active" data-jump="18" data-caption="Start with the strongest opening line.">Review speech · choose opening</button>
+              <button class="cc-step" data-jump="42" data-caption="Keep the talking-head cut moving.">Edit footage · arrange cut</button>
+              <button class="cc-step" data-jump="68" data-caption="Retro styling, music and camera movement.">Style, music and zooms</button>
+            </div>
+          </aside>
+          <div class="cc-stage">
+            <div class="cc-preview">
+              <div class="cc-canvas">
+                <div class="cc-person"></div>
+                <div class="cc-caption" id="heroCaption">Start with the strongest opening line.</div>
+              </div>
+            </div>
+            <div class="cc-timeline">
+              <div class="cc-ruler"><span>00:00</span><span>00:02</span><span>00:04</span><span>00:06</span><span>00:08</span><span>00:10</span></div>
+              <div class="cc-track"><span class="cc-track-label">Video</span><div class="cc-lane"><span class="cc-clip cc-clip-video">how-to-edit.mp4</span><span class="cc-playhead" id="heroPlayhead"></span></div></div>
+              <div class="cc-track"><span class="cc-track-label">Captions</span><div class="cc-lane"><span class="cc-clip cc-clip-caption">Captions</span></div></div>
+              <div class="cc-track"><span class="cc-track-label">B-roll</span><div class="cc-lane"><span class="cc-clip cc-clip-broll">B-roll</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading">
+        <div class="cc-agent-switch" role="tablist" aria-label="Audience mode">
+          <button class="cc-segment audience-seg" aria-selected="true">Creator</button>
+          <button class="cc-segment audience-seg" aria-selected="false">Business</button>
+        </div>
+        <h2 class="cc-h2" style="margin-top:22px">Edit Like an Expert Editor</h2>
+        <p class="cc-section-copy">Find the strongest moments, build the cut, and add supporting footage without leaving the editor.</p>
+      </div>
+      <div class="cc-demo">
+        <div style="padding:20px;background:#fff;border-bottom:1px solid var(--cc-border);display:flex;justify-content:space-between;gap:20px;align-items:center">
+          <strong style="font-size:14px">Best moments</strong><span style="font-size:12px;color:var(--cc-muted)">Product hook · Supporting B-roll</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px;padding:18px;background:#f8f7f5">
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#d8cbc0,#5c5a63)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#c5d1d7,#6e5261)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#d9aa82,#363c4c)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#a9b8a7,#655c52)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#ded7ca,#525f6d)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#bda9a2,#5d4c55)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#aab7c7,#515a50)"></div>
+          <div style="aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#d1b89e,#45464d)"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading">
+        <h2 class="cc-h2">AI Motion Graphics, Generated From a Sentence</h2>
+        <p class="cc-section-copy">Prompt an animation, then keep it editable inside the same project.</p>
+      </div>
+      <div style="text-align:center"><div class="cc-tabs" role="tablist">
+        <button class="cc-tab motion-tab" aria-selected="true">Editorial set</button>
+        <button class="cc-tab motion-tab" aria-selected="false">MindSpace</button>
+        <button class="cc-tab motion-tab" aria-selected="false">Data overlays</button>
+      </div></div>
+      <div class="cc-card-grid" id="motionGrid">
+        <div class="cc-card"><div class="cc-card-kicker">01</div><div class="cc-card-title">Chapter page number</div></div>
+        <div class="cc-card"><div class="cc-card-kicker">02</div><div class="cc-card-title">Bar chart growth</div></div>
+        <div class="cc-card"><div class="cc-card-kicker">03</div><div class="cc-card-title">Vertical timeline</div></div>
+        <div class="cc-card"><div class="cc-card-kicker">04</div><div class="cc-card-title">Pie chart</div></div>
+        <div class="cc-card"><div class="cc-card-kicker">05</div><div class="cc-card-title">Keyword typing</div></div>
+        <div class="cc-card"><div class="cc-card-kicker">06</div><div class="cc-card-title">Type emphasis</div></div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-split">
+        <div>
+          <h2 class="cc-h2">Text-Based Editing for Your Talking Head Content</h2>
+          <p class="cc-section-copy" style="margin-left:0">Edit the transcript and let the video cut follow the text.</p>
+          <a class="cc-btn cc-btn-primary" style="display:inline-flex;align-items:center;margin-top:22px" href="https://app.chatcut.io/">Try it in ChatCut</a>
+        </div>
+        <div class="cc-panel cc-panel-pad">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><strong>Transcript</strong><span style="font-size:12px;color:var(--cc-muted)">my-first-video.mp4</span></div>
+          <div class="cc-transcript">Today I want to talk about how to make videos look professional. <span class="cc-muted-word">Um</span> Start with good lighting, then tighten the edit by removing dead air and keeping the energy moving.</div>
+          <div style="margin-top:22px;padding:10px 12px;border:1px solid var(--cc-border);border-radius:9px;font-size:12px">Clean up filler words</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-split" style="grid-template-columns:1.1fr .9fr">
+        <div class="cc-panel" style="min-height:390px;display:grid;place-items:center;background:linear-gradient(135deg,#d7d6d1,#948979)">
+          <div style="background:rgba(0,0,0,.7);color:#fff;padding:8px 13px;border-radius:8px;font-size:24px;font-weight:760">Readable captions, styled fast.</div>
+        </div>
+        <div>
+          <h2 class="cc-h2">Auto AI Captions, in 100+ Languages</h2>
+          <p class="cc-section-copy" style="margin-left:0">Transcribe, then choose a caption treatment without leaving the edit.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:22px">
+            <button class="cc-btn cc-btn-small">Plain</button><button class="cc-btn cc-btn-small">TikTok Pop</button><button class="cc-btn cc-btn-small">French Dispatch</button><button class="cc-btn cc-btn-small">Noir Glass</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading">
+        <h2 class="cc-h2">AI Image Generation, Right Inside Your Edit</h2>
+        <p class="cc-section-copy">Generate an image and place it directly into the project timeline.</p>
+      </div>
+      <div class="cc-demo" style="padding:20px;background:#fff">
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px">
+          <div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#c4bcb4,#5f5060)"></div><div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#8ca6bf,#333b50)"></div><div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#d6b687,#5f4535)"></div><div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#aba5c1,#3e405c)"></div><div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#b5c9c0,#4a5c5e)"></div><div style="aspect-ratio:1;border-radius:8px;background:linear-gradient(135deg,#d8b7a8,#6f4c58)"></div>
+        </div>
+        <div style="margin-top:14px;border:1px solid var(--cc-border);border-radius:10px;padding:13px;color:#71717a;font-size:14px">Generate a cinematic creator portrait for this edit…</div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading">
+        <h2 class="cc-h2">AI Video Generation for the Shots You Couldn't Film</h2>
+        <p class="cc-section-copy">Use a prompt or reference frame, then cut the generated shot on the same timeline.</p>
+      </div>
+      <div class="cc-demo" style="padding:22px;background:#fff">
+        <div class="cc-split" style="grid-template-columns:.75fr 1.25fr;gap:18px">
+          <div style="aspect-ratio:4/3;border-radius:10px;background:linear-gradient(145deg,#f0b45c,#572a2a 60%,#151618)"></div>
+          <div>
+            <div style="font-size:12px;color:var(--cc-muted);margin-bottom:8px">Prompt</div>
+            <div style="border:1px solid var(--cc-border);border-radius:10px;padding:14px;min-height:90px;font-size:14px;line-height:1.5">Turn the reference into a short cinematic sequence with a controlled camera move.</div>
+            <div style="display:flex;gap:9px;margin-top:12px"><button class="cc-btn cc-btn-primary cc-btn-small">Generate</button><button class="cc-btn cc-btn-small">Reference image</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading">
+        <h2 class="cc-h2">AI Music Generator for Video, Royalty Free</h2>
+        <p class="cc-section-copy">Generate a soundtrack, preview options, and keep it under the video timeline.</p>
+      </div>
+      <div class="cc-demo" style="padding:20px;background:#fff">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+          <button class="cc-card" style="text-align:left">Electronic Modern<br><small style="color:var(--cc-muted)">120 BPM</small></button>
+          <button class="cc-card" style="text-align:left">Lo-fi Mellow<br><small style="color:var(--cc-muted)">85 BPM</small></button>
+          <button class="cc-card" style="text-align:left">Cinematic Orchestral<br><small style="color:var(--cc-muted)">90 BPM</small></button>
+          <button class="cc-card" style="text-align:left">Ambient Atmospheric<br><small style="color:var(--cc-muted)">70 BPM</small></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell" id="pricing">
+      <div class="cc-section-heading">
+        <h2 class="cc-h2">Pricing</h2>
+        <div class="cc-agent-switch" role="tablist" style="margin-top:20px"><button class="cc-segment price-seg" aria-selected="true">Monthly</button><button class="cc-segment price-seg" aria-selected="false">Annual</button></div>
+      </div>
+      <div class="cc-pricing">
+        <article class="cc-price-card"><strong>100 credits</strong><div class="cc-price">$25</div><div class="cc-price-meta">per month</div><ul class="cc-list"><li>✓ Video generation</li><li>✓ Image generation</li><li>✓ Motion graphics</li><li>✓ AI music</li></ul></article>
+        <article class="cc-price-card"><strong>200 credits</strong><div class="cc-price">$45</div><div class="cc-price-meta">per month</div><ul class="cc-list"><li>✓ More generation time</li><li>✓ Editable graphics</li><li>✓ Agent editing</li><li>✓ Full editor</li></ul></article>
+        <article class="cc-price-card featured"><strong>400 credits</strong><div class="cc-price">$88</div><div class="cc-price-meta">per month</div><ul class="cc-list"><li>✓ Higher limits</li><li>✓ Video + image models</li><li>✓ Motion export</li><li>✓ Agent capabilities</li></ul></article>
+        <article class="cc-price-card"><strong>800 credits</strong><div class="cc-price">$160</div><div class="cc-price-meta">per month</div><ul class="cc-list"><li>✓ Large monthly pool</li><li>✓ More generated clips</li><li>✓ Music generation</li><li>✓ Full agent editing</li></ul></article>
+      </div>
+    </section>
+
+    <section class="cc-section cc-shell">
+      <div class="cc-section-heading"><h2 class="cc-h2">Questions</h2></div>
+      <div class="cc-faq">
+        <div class="cc-faq-row"><span>What is ChatCut?</span><span>＋</span></div>
+        <div class="cc-faq-row"><span>How does conversational editing work?</span><span>＋</span></div>
+        <div class="cc-faq-row"><span>Who is ChatCut for?</span><span>＋</span></div>
+        <div class="cc-faq-row"><span>How long does it take to get a cut?</span><span>＋</span></div>
+        <div class="cc-faq-row"><span>Can I still edit manually?</span><span>＋</span></div>
+        <div class="cc-faq-row"><span>What's included in the free plan?</span><span>＋</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="cc-footer">
+    <div class="cc-shell">
+      <div class="cc-footer-grid">
+        <div><div class="cc-brand">ChatCut</div><p style="max-width:310px;color:var(--cc-muted);font-size:14px;line-height:1.6">AI video editing through prompts, with a timeline when you want direct control.</p></div>
+        <div><h4>Company</h4><a href="#">Careers</a><a href="#">Contact</a></div>
+        <div><h4>Product</h4><a href="#">AI Video Editor</a><a href="#">Motion Graphics</a><a href="#">Captions</a><a href="#">Music</a></div>
+        <div><h4>Resources</h4><a href="#">Blog</a><a href="#">Prompt Library</a><a href="#">Discord</a></div>
+      </div>
+      <div class="cc-copyright">© 2026 ChatCut. Reference reproduction captured 2026-09-15.</div>
+    </div>
+  </footer>
+
+  <script>
+    (() => {
+      const selectExclusive = (selector) => {
+        const items = [...document.querySelectorAll(selector)];
+        items.forEach(item => item.addEventListener('click', () => items.forEach(x => x.setAttribute('aria-selected', x === item ? 'true' : 'false'))));
+      };
+      selectExclusive('.agent-seg');
+      selectExclusive('.audience-seg');
+      selectExclusive('.motion-tab');
+      selectExclusive('.price-seg');
+
+      const steps = [...document.querySelectorAll('.cc-step')];
+      const playhead = document.getElementById('heroPlayhead');
+      const caption = document.getElementById('heroCaption');
+      steps.forEach(step => step.addEventListener('click', () => {
+        steps.forEach(x => x.classList.toggle('is-active', x === step));
+        playhead.style.left = `${Number(step.dataset.jump) || 18}%`;
+        caption.textContent = step.dataset.caption || '';
+      }));
+    })();
+  </script>
+</body>
+</html>
