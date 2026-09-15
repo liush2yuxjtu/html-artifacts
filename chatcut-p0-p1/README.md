@@ -1,28 +1,29 @@
-# ChatCut P0/P1 interaction prototype
+# ChatCut click-to-jump interaction prototype
 
-A public, static interaction prototype created from a UX audit of `chatcut.io` vs `cursor.com`.
+Minimal-delta prototype for the current ChatCut homepage.
 
-## What this prototype solves
+## Scope
 
-### P0
-- Interactive **Prompt → AI work → First cut → Ready for review** hero flow.
-- Clear split between **Edit in ChatCut** and **Use in ChatGPT / Claude**.
-- Outcome-oriented CTA: **Edit my first video**.
+The homepage positioning and core copy are intentionally left alone:
 
-### P1
-- One persistent editing session instead of disconnected feature demos.
-- Visible AI work states and concrete change metrics.
-- Caption, motion, music, B-roll, and duration all modify the same timeline.
-- Follow-up editing that visibly updates the existing session.
+- `Your AI Video Editor`
+- existing `Enter ChatCut Editor` CTA
+- existing ChatGPT / Claude agent affordance
+- existing editor-style product mock
 
-## Technical notes
+The **only product interaction being tested** is the editor mock's click-to-jump behavior.
 
-- Single self-contained `index.html`.
-- No build system or framework.
-- No tracking, network requests, uploads, or backend.
-- Responsive and keyboard-accessible.
-- Honors `prefers-reduced-motion`.
+Clicking a moment in the left rail updates, inside the same mock GUI:
 
-## Disclaimer
+1. selected row,
+2. preview scene / caption,
+3. current timecode,
+4. timeline playhead.
 
-This is an unofficial interaction prototype for product/UX review. It is not the production ChatCut site.
+This follows the useful part of Cursor's homepage demo pattern: clicking an item changes the state of a believable product mock instead of navigating the landing page.
+
+No prompt workflow, onboarding redesign, CTA rewrite, AI job-state system, persistent session model, or follow-up editing flow is part of this prototype.
+
+## Live page
+
+https://liush2yuxjtu.github.io/html-artifacts/chatcut-p0-p1/
