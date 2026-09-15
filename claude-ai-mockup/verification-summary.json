@@ -1,0 +1,34 @@
+{
+  "result": "PASS",
+  "timestamp_utc": "2026-09-15T05:49:17.030674+00:00",
+  "render_mode": "in-memory real Chromium; navigation unavailable",
+  "browser": "144.0.7559.96",
+  "accessibility_scope": "Computed text/placeholder contrast, control names, 44px targets, keyboard focus/traps, modal inert state. Not a complete WCAG or screen-reader audit; axe-core unavailable in this environment.",
+  "runtime_sha256": {
+    "index.html": "02f24b096ce8f9c049c8255116b3ecdc488f5295ae1aa584dc9c26ed7fad762f",
+    "app.js": "69cae15c30c0ea9220a03f822fbc6519252f4cbea94b96bd8bad6a1f565d26bd",
+    "styles/tokens.css": "e95260ffcda57f5af1006e9d04ce08de782d4ce8c88fb2e92368addcd1986b5a",
+    "styles/components.css": "b41e147d289ed8c884f04fa87b69bb2e7a390a9417fe5f34781bf8176dbb3932"
+  },
+  "passed_checks": 232,
+  "failed_checks": [],
+  "viewports_px": [
+    320,
+    375,
+    390,
+    768,
+    860,
+    861,
+    1024,
+    1179,
+    1180,
+    1440
+  ],
+  "small_height_check": {
+    "width": 375,
+    "height": 460,
+    "note": "浏览器缩小高度近似，不是实体手机软键盘验证"
+  },
+  "minimum_measured_text_contrast": 4.86,
+  "live_deployment": "待提交后的独立托管浏览器验收，不能用本地结果代替"
+}
