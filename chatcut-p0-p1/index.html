@@ -1,524 +1,475 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Unofficial ChatCut interaction prototype implementing P0/P1 UX recommendations: prompt-to-video demo, Editor/Agent modes, visible AI work states, persistent editing session, and follow-up editing." />
-  <meta name="theme-color" content="#0b0b0d" />
-  <title>ChatCut — P0/P1 Interaction Prototype</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Minimal ChatCut interaction prototype: keep the current homepage intent and make only the editor click-to-jump mock GUI interactive.">
+  <title>ChatCut — click-to-jump interaction prototype</title>
   <style>
-    :root {
-      color-scheme: dark;
-      --bg:#0b0b0d; --panel:#121216; --panel-2:#18181e; --line:#292932;
-      --text:#f7f7f8; --muted:#9b9ba6; --soft:#c9c9d1; --accent:#f26b3f;
-      --accent-2:#ff9c70; --green:#59d99b; --yellow:#f3c96b; --purple:#9e8cff;
-      --shadow: 0 24px 90px rgba(0,0,0,.42);
+    :root{
+      color-scheme:dark;
+      --bg:#0a0a0b;
+      --surface:#111113;
+      --surface-2:#151518;
+      --surface-3:#1b1b1f;
+      --line:#29292f;
+      --line-soft:#202026;
+      --text:#f5f5f3;
+      --muted:#9b9ba3;
+      --muted-2:#73737d;
+      --orange:#ff6a3d;
+      --orange-soft:#2a1914;
+      --green:#77d6a7;
+      --yellow:#e7bd6c;
+      --blue:#7ea8e8;
+      --purple:#a18bf4;
     }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
-    button,input,textarea { font:inherit; }
-    button { color:inherit; }
-    a { color:inherit; text-decoration:none; }
-    :focus-visible { outline:2px solid var(--accent-2); outline-offset:3px; }
-    .shell { width:min(1180px, calc(100% - 32px)); margin:auto; }
-    .nav { position:sticky; top:0; z-index:20; backdrop-filter:blur(18px); background:rgba(11,11,13,.82); border-bottom:1px solid rgba(255,255,255,.06); }
-    .nav-inner { min-height:68px; display:flex; align-items:center; gap:22px; }
-    .brand { display:flex; align-items:center; gap:10px; font-weight:800; letter-spacing:-.02em; }
-    .brand-mark { width:30px; height:30px; border-radius:9px; display:grid; place-items:center; background:linear-gradient(145deg,var(--accent),#ffb178); color:#111; font-weight:950; }
-    .nav-links { display:flex; gap:18px; margin-left:18px; color:var(--soft); font-size:14px; }
-    .nav-actions { margin-left:auto; display:flex; gap:9px; align-items:center; }
-    .btn { border:1px solid var(--line); background:#17171c; border-radius:10px; padding:10px 14px; cursor:pointer; transition:.18s ease; font-weight:700; }
-    .btn:hover { transform:translateY(-1px); border-color:#3e3e49; background:#1d1d23; }
-    .btn.primary { border-color:transparent; background:var(--text); color:#101013; }
-    .btn.primary:hover { background:#fff; }
-    .btn.accent { border-color:transparent; background:var(--accent); color:#140b08; }
-    .btn.ghost { background:transparent; }
-    .prototype-pill { font-size:12px; color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:7px 10px; white-space:nowrap; }
-
-    .hero { padding:78px 0 58px; position:relative; overflow:hidden; }
-    .hero::before { content:""; position:absolute; left:50%; top:-320px; width:820px; height:620px; transform:translateX(-50%); background:radial-gradient(circle, rgba(242,107,63,.17), transparent 66%); pointer-events:none; }
-    .eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:18px; }
-    .dot { width:7px; height:7px; border-radius:999px; background:var(--green); box-shadow:0 0 0 5px rgba(89,217,155,.1); }
-    h1 { max-width:840px; font-size:clamp(44px,7vw,82px); line-height:.98; letter-spacing:-.055em; margin:0; }
-    .lede { max-width:720px; margin:22px 0 0; font-size:clamp(18px,2.4vw,24px); line-height:1.45; color:var(--muted); }
-    .mode-switch { margin-top:34px; display:inline-flex; padding:4px; border:1px solid var(--line); border-radius:12px; background:#111115; }
-    .mode-btn { border:0; background:transparent; color:var(--muted); padding:9px 13px; border-radius:8px; cursor:pointer; font-weight:800; }
-    .mode-btn[aria-selected="true"] { background:#24242b; color:var(--text); box-shadow:inset 0 0 0 1px #34343f; }
-
-    .composer { margin-top:20px; max-width:920px; border:1px solid #303038; background:linear-gradient(180deg,#15151a,#111115); border-radius:18px; box-shadow:var(--shadow); overflow:hidden; position:relative; }
-    .composer-top { display:flex; gap:10px; padding:16px 16px 0; flex-wrap:wrap; }
-    .sample { background:#202027; border:1px solid #30303a; color:var(--soft); border-radius:999px; padding:8px 11px; cursor:pointer; font-size:13px; }
-    .sample:hover { border-color:#50505b; color:var(--text); }
-    .prompt-row { display:grid; grid-template-columns:1fr auto; gap:12px; padding:16px; align-items:end; }
-    .prompt-row textarea { width:100%; min-height:112px; resize:vertical; border:0; outline:0; color:var(--text); background:transparent; font-size:20px; line-height:1.45; padding:8px; }
-    .prompt-row textarea::placeholder { color:#656572; }
-    .run { min-width:170px; height:48px; border:0; border-radius:12px; background:var(--accent); color:#180b07; cursor:pointer; font-weight:900; }
-    .run[disabled] { opacity:.55; cursor:not-allowed; }
-    .composer-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 16px; border-top:1px solid var(--line); font-size:12px; color:var(--muted); }
-    .session-badge { display:inline-flex; gap:8px; align-items:center; }
-
-    .agent-panel { display:none; margin-top:20px; max-width:920px; border:1px solid var(--line); background:var(--panel); border-radius:18px; padding:18px; }
-    .agent-panel.active { display:block; }
-    .agent-tabs { display:flex; gap:8px; margin-bottom:14px; }
-    .agent-tab { border:1px solid var(--line); border-radius:9px; padding:8px 11px; background:#18181e; cursor:pointer; color:var(--muted); }
-    .agent-tab.active { color:var(--text); border-color:#484854; }
-    .agent-copy { background:#09090b; border:1px solid #282830; border-radius:12px; padding:14px; display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; }
-    code { color:#d9d9df; white-space:pre-wrap; overflow-wrap:anywhere; }
-
-    .workspace-wrap { padding:26px 0 90px; }
-    .workspace-head { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:16px; }
-    .workspace-head h2 { margin:0; font-size:clamp(28px,4vw,42px); letter-spacing:-.035em; }
-    .workspace-head p { color:var(--muted); max-width:560px; margin:7px 0 0; }
-    .status-chip { display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:999px; padding:8px 11px; color:var(--soft); font-size:13px; white-space:nowrap; }
-    .workspace { border:1px solid #2b2b34; border-radius:18px; overflow:hidden; background:#0e0e11; box-shadow:var(--shadow); }
-    .workbar { display:flex; align-items:center; gap:8px; padding:10px 12px; border-bottom:1px solid var(--line); background:#141419; }
-    .traffic { width:10px; height:10px; border-radius:50%; background:#34343c; }
-    .workbar-title { margin-left:7px; color:var(--muted); font-size:12px; }
-    .workbar-spacer { flex:1; }
-    .job-state { font-size:12px; color:var(--muted); }
-
-    .editor-grid { display:grid; grid-template-columns:230px minmax(0,1fr) 310px; min-height:610px; }
-    .sidebar { border-right:1px solid var(--line); background:#101014; padding:14px; }
-    .side-title { text-transform:uppercase; letter-spacing:.08em; color:#71717c; font-size:10px; font-weight:900; margin-bottom:10px; }
-    .asset { display:flex; gap:9px; align-items:center; border:1px solid transparent; border-radius:8px; padding:9px; color:#babac3; font-size:12px; }
-    .asset.active { background:#1b1b21; border-color:#2a2a33; color:var(--text); }
-    .thumb { width:38px; height:28px; border-radius:6px; background:linear-gradient(135deg,#514b72,#d77c5f); flex:0 0 auto; }
-    .thumb.t2 { background:linear-gradient(135deg,#254a62,#82bba2); }
-    .thumb.t3 { background:linear-gradient(135deg,#633640,#d5a85f); }
-    .center { min-width:0; display:grid; grid-template-rows:minmax(320px,1fr) 220px; }
-    .preview { position:relative; overflow:hidden; display:grid; place-items:center; background:#08080a; }
-    .video-frame { width:min(82%,760px); aspect-ratio:16/9; border-radius:12px; overflow:hidden; position:relative; border:1px solid #2c2c33; background:linear-gradient(135deg,#2a2e44,#69443f 48%,#d47c50); }
-    .video-frame::before { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.55)); }
-    .subject { position:absolute; left:50%; top:15%; transform:translateX(-50%); width:27%; height:58%; border-radius:46% 46% 24% 24%; background:linear-gradient(180deg,#d8b18d,#5b3431 30%,#25232a 31%); opacity:.96; }
-    .caption { position:absolute; left:50%; bottom:10%; transform:translateX(-50%); width:80%; text-align:center; font-weight:950; font-size:clamp(14px,2vw,25px); letter-spacing:-.02em; text-shadow:0 3px 12px rgba(0,0,0,.75); }
-    .caption.pop { color:#fff; text-transform:uppercase; }
-    .caption.clean { font-weight:750; background:rgba(0,0,0,.55); border-radius:7px; padding:7px 10px; width:auto; max-width:80%; }
-    .caption.editorial { font-family:Georgia,serif; font-style:italic; font-weight:600; }
-    .motion-card { position:absolute; right:7%; top:9%; width:27%; border-radius:10px; padding:11px; background:rgba(10,10,14,.78); border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(10px); transform:translateY(0); transition:.3s ease; }
-    .motion-card strong { display:block; font-size:18px; }
-    .motion-card span { color:#b9b9c4; font-size:10px; }
-    .motion-card.minimal { width:18%; background:rgba(255,255,255,.9); color:#111; }
-    .motion-card.minimal span { color:#555; }
-    .motion-card.data { background:rgba(26,26,34,.9); }
-    .bar { height:5px; background:var(--accent); border-radius:10px; margin-top:8px; width:72%; }
-    .preview-note { position:absolute; left:12px; top:12px; font-size:11px; color:#8d8d99; background:rgba(0,0,0,.5); padding:6px 8px; border-radius:7px; }
-
-    .timeline { border-top:1px solid var(--line); padding:12px; background:#0c0c0f; overflow:hidden; }
-    .time-ruler { display:grid; grid-template-columns:repeat(8,1fr); color:#656570; font-size:9px; margin:0 0 7px 88px; }
-    .track { display:grid; grid-template-columns:78px 1fr; gap:10px; align-items:center; margin-bottom:8px; }
-    .track-name { color:#858590; font-size:10px; text-align:right; }
-    .lane { height:28px; background:#141419; border-radius:5px; position:relative; overflow:hidden; }
-    .clip { height:100%; position:absolute; top:0; border-radius:5px; display:flex; align-items:center; padding:0 7px; font-size:9px; font-weight:800; color:#101014; transition:.4s ease; }
-    .clip.video { left:0; width:86%; background:#d8d8de; }
-    .clip.captions { left:7%; width:64%; background:#f1b86a; }
-    .clip.broll { left:38%; width:0; background:#79c8a0; }
-    .clip.motion { left:18%; width:0; background:#9e8cff; }
-    .clip.music { left:4%; width:0; background:#75a9e8; }
-    .playhead { position:absolute; top:0; bottom:0; left:24%; width:1px; background:#ff6e57; z-index:2; }
-    .playhead::before { content:""; width:7px; height:7px; background:#ff6e57; position:absolute; top:0; left:-3px; border-radius:2px; }
-
-    .inspector { border-left:1px solid var(--line); background:#111115; padding:14px; overflow:auto; }
-    .stage-list { display:grid; gap:8px; margin-bottom:16px; }
-    .stage { display:grid; grid-template-columns:24px 1fr auto; gap:9px; align-items:center; padding:10px; border:1px solid #24242c; border-radius:9px; background:#15151a; }
-    .stage-icon { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; background:#24242c; color:#787883; font-size:11px; }
-    .stage.active { border-color:#4d403b; background:#1d1715; }
-    .stage.active .stage-icon { background:var(--accent); color:#160b07; }
-    .stage.done .stage-icon { background:rgba(89,217,155,.18); color:var(--green); }
-    .stage strong { font-size:12px; display:block; }
-    .stage small { color:#7f7f8b; font-size:10px; }
-    .stage-state { font-size:9px; color:#73737d; }
-    .metric-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:16px; }
-    .metric { padding:11px; border:1px solid #27272f; background:#16161b; border-radius:9px; }
-    .metric b { display:block; font-size:19px; }
-    .metric span { color:#80808a; font-size:10px; }
-    .control-label { color:#8c8c98; font-size:10px; text-transform:uppercase; letter-spacing:.07em; font-weight:900; margin:14px 0 8px; }
-    .option-row { display:flex; gap:7px; flex-wrap:wrap; }
-    .option { border:1px solid #2b2b33; background:#17171c; color:#a9a9b3; padding:7px 9px; border-radius:8px; cursor:pointer; font-size:11px; }
-    .option.active { border-color:#665148; color:#fff; background:#251b18; }
-
-    .followup { border-top:1px solid var(--line); padding:16px; background:#121216; }
-    .followup-top { display:flex; justify-content:space-between; gap:12px; align-items:center; }
-    .followup-top strong { font-size:14px; }
-    .followup-top span { color:#777782; font-size:11px; }
-    .follow-chips { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
-    .follow-chip { border:1px solid #303039; background:#19191f; color:#c4c4cc; border-radius:999px; padding:8px 10px; cursor:pointer; font-size:12px; }
-    .follow-chip:hover { border-color:#50505a; }
-    .follow-row { display:grid; grid-template-columns:1fr auto; gap:8px; }
-    .follow-row input { min-width:0; border:1px solid #2f2f38; background:#0d0d10; color:var(--text); border-radius:9px; padding:11px 12px; outline:0; }
-
-    .story { padding:0 0 90px; }
-    .story h2 { font-size:clamp(32px,5vw,56px); letter-spacing:-.045em; margin:0 0 10px; }
-    .story-lede { color:var(--muted); max-width:720px; font-size:18px; margin-bottom:28px; }
-    .story-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .story-card { border:1px solid var(--line); background:var(--panel); border-radius:15px; padding:18px; min-height:185px; }
-    .story-card .n { color:var(--accent-2); font-weight:900; font-size:12px; }
-    .story-card h3 { font-size:19px; margin:28px 0 8px; letter-spacing:-.02em; }
-    .story-card p { margin:0; color:var(--muted); line-height:1.55; font-size:14px; }
-    .footer { border-top:1px solid var(--line); padding:22px 0 46px; color:#73737d; font-size:12px; display:flex; gap:12px; justify-content:space-between; flex-wrap:wrap; }
-    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-    .pulse { animation:pulse 1.2s ease-in-out infinite; }
-    @keyframes pulse { 50% { opacity:.42; } }
-    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; } }
-    @media (max-width:980px) {
-      .nav-links { display:none; }
-      .editor-grid { grid-template-columns:1fr; }
-      .sidebar { display:none; }
-      .inspector { border-left:0; border-top:1px solid var(--line); }
-      .center { min-height:550px; }
-      .story-grid { grid-template-columns:1fr 1fr; }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      -webkit-font-smoothing:antialiased;
     }
-    @media (max-width:680px) {
-      .shell { width:min(100% - 20px, 1180px); }
-      .hero { padding-top:46px; }
-      .prototype-pill { display:none; }
-      .nav-actions .btn.ghost { display:none; }
-      .prompt-row { grid-template-columns:1fr; }
-      .run { width:100%; }
-      .composer-foot { align-items:flex-start; flex-direction:column; }
-      .workspace-head { align-items:flex-start; flex-direction:column; }
-      .center { grid-template-rows:minmax(270px,1fr) 220px; }
-      .video-frame { width:94%; }
-      .motion-card { width:34%; }
-      .story-grid { grid-template-columns:1fr; }
-      .agent-copy { grid-template-columns:1fr; }
+    button,a{font:inherit;color:inherit}
+    a{text-decoration:none}
+    button{cursor:pointer}
+    :focus-visible{outline:2px solid #fff;outline-offset:3px}
+    .shell{width:min(1180px,calc(100% - 32px));margin:0 auto}
+
+    .nav{
+      height:64px;
+      display:flex;
+      align-items:center;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .nav-inner{display:flex;align-items:center;gap:22px;width:100%}
+    .brand{font-weight:800;letter-spacing:-.03em;font-size:19px}
+    .nav-links{display:flex;gap:20px;color:#c5c5ca;font-size:14px}
+    .nav-cta{
+      margin-left:auto;
+      border:1px solid #393940;
+      background:#171719;
+      border-radius:9px;
+      padding:9px 13px;
+      font-weight:650;
+      font-size:14px;
+    }
+
+    .hero{text-align:center;padding:82px 0 34px}
+    .hero h1{
+      margin:0 auto;
+      max-width:900px;
+      font-size:clamp(45px,7vw,78px);
+      line-height:1;
+      letter-spacing:-.055em;
+    }
+    .hero p{
+      margin:20px auto 0;
+      max-width:660px;
+      color:#b5b5bb;
+      font-size:clamp(17px,2vw,21px);
+      line-height:1.5;
+    }
+    .hero-actions{margin-top:30px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .primary{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:46px;padding:0 18px;border:0;border-radius:10px;
+      background:#f2f2ef;color:#111;font-weight:750;
+    }
+    .agent-inline{
+      margin:24px auto 0;
+      width:min(620px,100%);
+      padding-top:18px;
+      border-top:1px solid var(--line-soft);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .agent-inline strong{color:#d8d8dc;font-weight:650}
+    .agent-tabs{display:inline-flex;gap:4px;margin-left:8px;padding:3px;border:1px solid var(--line);border-radius:8px}
+    .agent-tab{border:0;background:transparent;padding:5px 8px;border-radius:6px;color:var(--muted);font-size:12px}
+    .agent-tab.active{background:#232328;color:var(--text)}
+
+    .demo-section{padding:28px 0 84px}
+    .section-label{
+      margin:0 0 14px;
+      text-align:center;
+      font-size:14px;
+      color:var(--muted);
+    }
+    .editor{
+      overflow:hidden;
+      border:1px solid #2b2b31;
+      border-radius:14px;
+      background:#0e0e10;
+      box-shadow:0 32px 90px rgba(0,0,0,.38);
+    }
+    .editor-top{
+      height:48px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:0 12px;
+      background:#151517;
+      border-bottom:1px solid var(--line);
+      font-size:12px;
+    }
+    .traffic{width:9px;height:9px;border-radius:50%;background:#3a3a40}
+    .project-name{margin-left:8px;color:#aaaab2}
+    .top-spacer{flex:1}
+    .agent-pill{padding:5px 8px;border:1px solid #33333a;border-radius:7px;color:#c9c9cd}
+    .export-btn{border:0;background:#eee;color:#111;padding:6px 10px;border-radius:7px;font-weight:700}
+
+    .editor-main{
+      display:grid;
+      grid-template-columns:260px minmax(0,1fr);
+      min-height:560px;
+    }
+    .moments{
+      padding:14px 10px;
+      border-right:1px solid var(--line);
+      background:#111113;
+    }
+    .panel-title{
+      padding:2px 10px 10px;
+      color:#777780;
+      font-size:10px;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      font-weight:800;
+    }
+    .moment{
+      width:100%;
+      display:grid;
+      grid-template-columns:50px minmax(0,1fr);
+      gap:10px;
+      align-items:start;
+      border:1px solid transparent;
+      background:transparent;
+      padding:9px;
+      border-radius:9px;
+      text-align:left;
+      color:#c1c1c7;
+      transition:background .14s ease,border-color .14s ease;
+    }
+    .moment + .moment{margin-top:3px}
+    .moment:hover{background:#18181c}
+    .moment[aria-selected="true"]{
+      background:#1d1d21;
+      border-color:#34343c;
+      color:#fff;
+    }
+    .moment time{
+      font-variant-numeric:tabular-nums;
+      color:#85858e;
+      font-size:11px;
+      padding-top:2px;
+    }
+    .moment strong{display:block;font-size:12px;font-weight:650;line-height:1.3}
+    .moment span{display:block;margin-top:3px;color:#767680;font-size:10px;line-height:1.35}
+    .jump-hint{
+      margin:12px 9px 0;
+      padding-top:11px;
+      border-top:1px solid #24242a;
+      color:#686872;
+      font-size:10px;
+      line-height:1.45;
+    }
+
+    .workspace{min-width:0;display:grid;grid-template-rows:minmax(340px,1fr) 185px}
+    .preview{
+      position:relative;
+      display:grid;
+      place-items:center;
+      padding:20px;
+      background:#080809;
+      overflow:hidden;
+    }
+    .video{
+      position:relative;
+      width:min(720px,92%);
+      aspect-ratio:16/9;
+      overflow:hidden;
+      border:1px solid #2b2b31;
+      border-radius:9px;
+      background:linear-gradient(135deg,#262739,#69453f 48%,#d37a4d);
+      transition:background .22s ease;
+    }
+    .video[data-scene="1"]{background:linear-gradient(135deg,#172532,#315a66 50%,#b17b55)}
+    .video[data-scene="2"]{background:linear-gradient(135deg,#322a20,#73523b 48%,#d19a5f)}
+    .video[data-scene="3"]{background:linear-gradient(135deg,#171925,#48435f 52%,#a56458)}
+    .video::after{
+      content:"";
+      position:absolute;inset:0;
+      background:linear-gradient(180deg,transparent 48%,rgba(0,0,0,.55));
+      pointer-events:none;
+    }
+    .subject{
+      position:absolute;
+      left:50%;top:13%;
+      width:25%;height:62%;
+      transform:translateX(-50%);
+      border-radius:48% 48% 25% 25%;
+      background:linear-gradient(180deg,#d9b18e 0 26%,#4c3332 27% 42%,#232329 43%);
+      opacity:.95;
+    }
+    .broll-card{
+      position:absolute;right:6%;top:8%;
+      width:27%;padding:10px 11px;
+      border:1px solid rgba(255,255,255,.17);
+      border-radius:9px;background:rgba(13,13,16,.78);
+      backdrop-filter:blur(8px);
+      z-index:2;
+      transition:transform .18s ease,opacity .18s ease;
+    }
+    .broll-card b{display:block;font-size:13px}
+    .broll-card small{display:block;margin-top:2px;color:#aaaab2;font-size:9px}
+    .mini-bars{display:flex;gap:3px;align-items:flex-end;height:20px;margin-top:7px}
+    .mini-bars i{display:block;width:12%;background:#d8d8dd;border-radius:2px 2px 0 0}
+    .mini-bars i:nth-child(1){height:45%}.mini-bars i:nth-child(2){height:80%}.mini-bars i:nth-child(3){height:60%}.mini-bars i:nth-child(4){height:95%}.mini-bars i:nth-child(5){height:72%}
+    .caption{
+      position:absolute;left:50%;bottom:8%;
+      transform:translateX(-50%);
+      z-index:3;width:82%;
+      text-align:center;
+      color:#fff;font-size:clamp(14px,2vw,24px);font-weight:850;
+      text-shadow:0 2px 14px rgba(0,0,0,.85);
+      transition:opacity .15s ease;
+    }
+    .preview-meta{
+      position:absolute;left:12px;top:12px;z-index:4;
+      display:flex;gap:7px;align-items:center;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(11,11,13,.72);
+      border-radius:7px;padding:6px 8px;
+      color:#a4a4ac;font-size:10px;
+      backdrop-filter:blur(7px);
+    }
+    .jump-flash{
+      position:absolute;inset:0;
+      pointer-events:none;
+      border:1px solid transparent;
+      border-radius:9px;
+    }
+    .jump-flash.on{animation:flash .38s ease}
+    @keyframes flash{
+      0%{box-shadow:inset 0 0 0 1px rgba(255,106,61,.0)}
+      35%{box-shadow:inset 0 0 0 2px rgba(255,106,61,.75)}
+      100%{box-shadow:inset 0 0 0 1px rgba(255,106,61,0)}
+    }
+
+    .timeline{
+      padding:10px 12px 12px;
+      border-top:1px solid var(--line);
+      background:#0d0d0f;
+      overflow:hidden;
+    }
+    .timeline-head{
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:9px;color:#7d7d86;font-size:10px;
+    }
+    .current-time{color:#d6d6da;font-variant-numeric:tabular-nums}
+    .ruler{display:grid;grid-template-columns:repeat(5,1fr);margin:0 0 5px 68px;color:#585862;font-size:8px}
+    .track{display:grid;grid-template-columns:58px 1fr;gap:8px;align-items:center;margin-bottom:6px}
+    .track-name{text-align:right;color:#696973;font-size:9px}
+    .lane{height:25px;position:relative;overflow:hidden;border-radius:4px;background:#151518}
+    .clip{position:absolute;top:0;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 6px;color:#111;font-size:8px;font-weight:750}
+    .clip.video-clip{left:0;width:92%;background:#d1d1d5}
+    .clip.caption-clip{left:4%;width:78%;background:var(--yellow)}
+    .clip.broll-clip{left:28%;width:48%;background:var(--green)}
+    .playhead{
+      position:absolute;top:0;bottom:0;left:7%;
+      width:1px;background:var(--orange);z-index:5;
+      transition:left .28s cubic-bezier(.2,.8,.2,1);
+    }
+    .playhead::before{
+      content:"";position:absolute;left:-3px;top:0;
+      width:7px;height:7px;border-radius:2px;background:var(--orange);
+    }
+
+    .footer-note{
+      padding:16px 0 40px;
+      text-align:center;
+      color:#62626b;
+      font-size:11px;
+    }
+
+    @media (max-width:760px){
+      .nav-links{display:none}
+      .hero{padding-top:58px}
+      .editor-main{grid-template-columns:1fr}
+      .moments{
+        border-right:0;border-bottom:1px solid var(--line);
+        display:flex;gap:6px;overflow-x:auto;padding:10px;
+      }
+      .panel-title,.jump-hint{display:none}
+      .moment{
+        min-width:190px;
+        grid-template-columns:42px 1fr;
+        border-color:#24242a;
+        background:#151518;
+      }
+      .workspace{grid-template-rows:minmax(300px,1fr) 175px}
+      .preview{padding:12px}
+      .video{width:100%}
+      .broll-card{width:34%}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *{scroll-behavior:auto!important;animation:none!important;transition:none!important}
     }
   </style>
 </head>
 <body>
-  <nav class="nav" aria-label="Primary">
+  <header class="nav">
     <div class="shell nav-inner">
-      <a class="brand" href="#top" aria-label="ChatCut prototype home"><span class="brand-mark">C</span><span>ChatCut</span></a>
-      <div class="nav-links" aria-hidden="true"><span>Features</span><span>Models</span><span>Plugins</span><span>Pricing</span></div>
-      <div class="nav-actions">
-        <span class="prototype-pill">Unofficial P0/P1 prototype</span>
-        <a class="btn ghost" href="https://chatcut.io/" target="_blank" rel="noreferrer">Current site ↗</a>
-        <button class="btn primary" id="navStart" type="button">Edit my first video</button>
-      </div>
+      <a class="brand" href="#top">ChatCut</a>
+      <nav class="nav-links" aria-label="Preview navigation">
+        <span>Features</span><span>Resources</span><span>Plugin</span><span>Desktop</span><span>Pricing</span>
+      </nav>
+      <a class="nav-cta" href="https://app.chatcut.io/" rel="noreferrer">Try Now</a>
     </div>
-  </nav>
+  </header>
 
   <main id="top">
-    <section class="hero">
-      <div class="shell">
-        <div class="eyebrow"><span class="dot"></span> Your AI video editor</div>
-        <h1>Tell ChatCut what you want. Watch it edit.</h1>
-        <p class="lede">Turn raw footage into a finished cut by describing the outcome. See every AI step, review the result, then keep editing with follow-ups.</p>
-
-        <div class="mode-switch" role="tablist" aria-label="Choose how to use ChatCut">
-          <button class="mode-btn" id="editorMode" role="tab" aria-selected="true" aria-controls="editorComposer" type="button">Edit in ChatCut</button>
-          <button class="mode-btn" id="agentMode" role="tab" aria-selected="false" aria-controls="agentPanel" type="button">Use in ChatGPT / Claude</button>
-        </div>
-
-        <section class="composer" id="editorComposer" aria-label="Interactive prompt to video demo">
-          <div class="composer-top">
-            <button class="sample" type="button" data-prompt="Cut this 12-minute talking-head into a sharp 45-second reel. Remove filler words, add punchy captions, three useful B-roll moments, and subtle music.">45s creator reel</button>
-            <button class="sample" type="button" data-prompt="Turn this product walkthrough into a clean 60-second launch video with chapter cards, UI callouts, and a confident music bed.">Product launch</button>
-            <button class="sample" type="button" data-prompt="Find the strongest moments, create a fast highlight edit, add clean subtitles, and make the opening 3 seconds impossible to skip.">Best moments</button>
-          </div>
-          <div class="prompt-row">
-            <label class="sr-only" for="heroPrompt">Describe your edit</label>
-            <textarea id="heroPrompt" placeholder="Example: Make this 45 seconds, remove filler words, add captions and B-roll…">Cut this 12-minute talking-head into a sharp 45-second reel. Remove filler words, add punchy captions, three useful B-roll moments, and subtle music.</textarea>
-            <button class="run" id="runDemo" type="button">Edit my first video →</button>
-          </div>
-          <div class="composer-foot">
-            <span class="session-badge"><span class="dot"></span><span>Interactive demo · no upload required</span></span>
-            <span id="composerHint">Click the button to run one complete editing session.</span>
-          </div>
-        </section>
-
-        <section class="agent-panel" id="agentPanel" role="tabpanel" aria-labelledby="agentMode">
-          <div style="display:flex;justify-content:space-between;gap:14px;align-items:start;flex-wrap:wrap">
-            <div><strong>Call ChatCut from the agent you already use</strong><div style="color:var(--muted);font-size:13px;margin-top:5px">Power-user path, separated from the default editor flow.</div></div>
-            <div class="agent-tabs" role="tablist" aria-label="Agent integration">
-              <button class="agent-tab active" type="button" data-agent="chatgpt">ChatGPT</button>
-              <button class="agent-tab" type="button" data-agent="claude">Claude</button>
-            </div>
-          </div>
-          <div class="agent-copy">
-            <code id="agentCommand">/goal Read chatcut.io/chatgpt to install the ChatCut plugin and edit my video.</code>
-            <button class="btn" id="copyCommand" type="button">Copy command</button>
-          </div>
-          <div id="copyStatus" aria-live="polite" style="font-size:12px;color:var(--muted);margin-top:9px"></div>
-        </section>
+    <section class="hero shell">
+      <h1>Your AI Video Editor</h1>
+      <p>Tell it everything you want, every thought you have<br>And ChatCut turns it all into a video.</p>
+      <div class="hero-actions">
+        <a class="primary" href="https://app.chatcut.io/" rel="noreferrer">Enter ChatCut Editor</a>
+      </div>
+      <div class="agent-inline">
+        Use it in your Agent
+        <span class="agent-tabs" aria-label="Agent examples">
+          <button class="agent-tab active" type="button">ChatGPT</button>
+          <button class="agent-tab" type="button">Claude</button>
+        </span>
       </div>
     </section>
 
-    <section class="workspace-wrap" id="workspaceSection">
-      <div class="shell">
-        <div class="workspace-head">
-          <div><h2>One session, not six disconnected demos.</h2><p>Your caption, motion, B-roll and music choices persist across the same edit. The page always shows what the AI changed and what you can do next.</p></div>
-          <div class="status-chip"><span class="dot" id="statusDot"></span><span id="globalStatus">Ready to edit</span></div>
+    <section class="demo-section shell" aria-labelledby="demo-title">
+      <p class="section-label" id="demo-title">How do you edit a good video?</p>
+
+      <div class="editor">
+        <div class="editor-top">
+          <span class="traffic"></span><span class="traffic"></span><span class="traffic"></span>
+          <span class="project-name">Mal's Davinci Edited.mov</span>
+          <span class="top-spacer"></span>
+          <span class="agent-pill">Agent</span>
+          <button class="export-btn" type="button">Export</button>
         </div>
 
-        <div class="workspace">
-          <div class="workbar">
-            <span class="traffic"></span><span class="traffic"></span><span class="traffic"></span>
-            <span class="workbar-title">creator-interview.mp4 · ChatCut session</span><span class="workbar-spacer"></span><span class="job-state" id="jobState">Idle</span>
-          </div>
-          <div class="editor-grid">
-            <aside class="sidebar" aria-label="Media assets">
-              <div class="side-title">Media</div>
-              <div class="asset active"><span class="thumb"></span><span>creator-interview.mp4<br><small style="color:#676773">12:37</small></span></div>
-              <div class="asset"><span class="thumb t2"></span><span>desk-broll.mp4<br><small style="color:#676773">00:12</small></span></div>
-              <div class="asset"><span class="thumb t3"></span><span>product-closeup.mp4<br><small style="color:#676773">00:08</small></span></div>
-              <div class="side-title" style="margin-top:20px">Session</div>
-              <div style="font-size:11px;color:#767681;line-height:1.6">Everything below belongs to the same edit. Follow-ups modify this state instead of starting over.</div>
-            </aside>
+        <div class="editor-main">
+          <aside class="moments" aria-label="Video moments">
+            <div class="panel-title">Moments</div>
 
-            <section class="center" aria-label="Video preview and timeline">
-              <div class="preview">
-                <div class="video-frame" id="videoFrame">
-                  <div class="subject"></div>
-                  <div class="preview-note" id="previewNote">Original · 12:37</div>
-                  <div class="motion-card data" id="motionCard"><span>Audience retention</span><strong>+38%</strong><div class="bar"></div></div>
-                  <div class="caption pop" id="captionPreview">BUILD THE STORY, NOT THE TIMELINE.</div>
+            <button class="moment" type="button" aria-selected="true" data-time="00:00.00" data-pos="7" data-scene="0" data-caption="The opening needs to get to the point faster.">
+              <time>0:00</time>
+              <span><strong>Opening</strong><span>Start on the strongest line</span></span>
+            </button>
+
+            <button class="moment" type="button" aria-selected="false" data-time="00:04.20" data-pos="28" data-scene="1" data-caption="Here are the standings after the latest round.">
+              <time>0:04</time>
+              <span><strong>Standings B-roll</strong><span>Cut to the supporting visual</span></span>
+            </button>
+
+            <button class="moment" type="button" aria-selected="false" data-time="00:09.65" data-pos="54" data-scene="2" data-caption="This is the moment that changes the whole story.">
+              <time>0:10</time>
+              <span><strong>Key quote</strong><span>Jump to the main point</span></span>
+            </button>
+
+            <button class="moment" type="button" aria-selected="false" data-time="00:14.80" data-pos="79" data-scene="3" data-caption="And that is why the final result matters.">
+              <time>0:15</time>
+              <span><strong>Closing</strong><span>Land the takeaway cleanly</span></span>
+            </button>
+
+            <div class="jump-hint">
+              Only interaction added in this prototype: click a moment and the mock editor jumps to it. No page navigation, no new workflow.
+            </div>
+          </aside>
+
+          <div class="workspace">
+            <div class="preview">
+              <div class="video" id="videoFrame" data-scene="0">
+                <div class="subject" aria-hidden="true"></div>
+                <div class="broll-card" id="brollCard">
+                  <b>Standings</b>
+                  <small>Supporting B-roll</small>
+                  <span class="mini-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                </div>
+                <div class="caption" id="caption">The opening needs to get to the point faster.</div>
+                <div class="preview-meta"><span id="previewTime">00:00.00</span><span> / 00:19.27</span></div>
+                <div class="jump-flash" id="jumpFlash"></div>
+              </div>
+            </div>
+
+            <div class="timeline">
+              <div class="timeline-head"><span>Timeline</span><span class="current-time" id="currentTime">00:00.00 / 00:19.27</span></div>
+              <div class="ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span><span>00:19</span></div>
+              <div class="track">
+                <span class="track-name">Video</span>
+                <div class="lane">
+                  <span class="clip video-clip">Mal's Davinci Edited.mov</span>
+                  <span class="playhead" id="playhead"></span>
                 </div>
               </div>
-              <div class="timeline" aria-label="Persistent demo timeline">
-                <div class="time-ruler"><span>0:00</span><span>0:06</span><span>0:12</span><span>0:18</span><span>0:24</span><span>0:30</span><span>0:36</span><span>0:45</span></div>
-                <div class="track"><span class="track-name">Video</span><div class="lane"><span class="playhead"></span><span class="clip video" id="videoClip">Main cut</span></div></div>
-                <div class="track"><span class="track-name">Captions</span><div class="lane"><span class="clip captions" id="captionClip">Captions</span></div></div>
-                <div class="track"><span class="track-name">B-roll</span><div class="lane"><span class="clip broll" id="brollClip">3 B-roll moments</span></div></div>
-                <div class="track"><span class="track-name">Motion</span><div class="lane"><span class="clip motion" id="motionClip">Data overlay</span></div></div>
-                <div class="track"><span class="track-name">Music</span><div class="lane"><span class="clip music" id="musicClip">Music bed</span></div></div>
+              <div class="track">
+                <span class="track-name">Captions</span>
+                <div class="lane"><span class="clip caption-clip">Auto captions</span></div>
               </div>
-            </section>
-
-            <aside class="inspector" aria-label="AI work status and edit controls">
-              <div class="side-title">AI work</div>
-              <div class="stage-list" id="stageList">
-                <div class="stage" data-stage="0"><span class="stage-icon">1</span><span><strong>Analyze footage</strong><small>Transcript + best moments</small></span><span class="stage-state">waiting</span></div>
-                <div class="stage" data-stage="1"><span class="stage-icon">2</span><span><strong>First cut</strong><small>Pacing + filler removal</small></span><span class="stage-state">waiting</span></div>
-                <div class="stage" data-stage="2"><span class="stage-icon">3</span><span><strong>Enhance</strong><small>Captions + B-roll + motion</small></span><span class="stage-state">waiting</span></div>
-                <div class="stage" data-stage="3"><span class="stage-icon">4</span><span><strong>Ready for review</strong><small>Follow up or export</small></span><span class="stage-state">waiting</span></div>
+              <div class="track">
+                <span class="track-name">B-roll</span>
+                <div class="lane"><span class="clip broll-clip">Standings B-roll</span></div>
               </div>
-
-              <div class="side-title">What changed</div>
-              <div class="metric-grid">
-                <div class="metric"><b id="metricFillers">0</b><span>filler words removed</span></div>
-                <div class="metric"><b id="metricHighlights">0</b><span>highlights found</span></div>
-                <div class="metric"><b id="metricBroll">0</b><span>B-roll moments</span></div>
-                <div class="metric"><b id="metricCaptions">0</b><span>caption beats</span></div>
-              </div>
-
-              <div class="control-label">Caption style</div>
-              <div class="option-row" id="captionOptions">
-                <button class="option active" type="button" data-caption="pop">Punchy</button>
-                <button class="option" type="button" data-caption="clean">Clean</button>
-                <button class="option" type="button" data-caption="editorial">Editorial</button>
-              </div>
-
-              <div class="control-label">Motion graphic</div>
-              <div class="option-row" id="motionOptions">
-                <button class="option active" type="button" data-motion="data">Data</button>
-                <button class="option" type="button" data-motion="minimal">Minimal</button>
-                <button class="option" type="button" data-motion="off">Off</button>
-              </div>
-
-              <div class="control-label">Music</div>
-              <div class="option-row" id="musicOptions">
-                <button class="option active" type="button" data-music="subtle">Subtle</button>
-                <button class="option" type="button" data-music="upbeat">Upbeat</button>
-                <button class="option" type="button" data-music="none">None</button>
-              </div>
-            </aside>
-          </div>
-
-          <section class="followup" aria-label="Follow-up editing">
-            <div class="followup-top"><strong>Keep editing with a follow-up</strong><span id="reviewHint">Run the demo first, then refine the same session.</span></div>
-            <div class="follow-chips">
-              <button class="follow-chip" type="button" data-follow="Make the opening faster and cut another 5 seconds.">Make the opening faster</button>
-              <button class="follow-chip" type="button" data-follow="The captions are too loud. Make them cleaner and smaller.">Make captions cleaner</button>
-              <button class="follow-chip" type="button" data-follow="Add one more cinematic B-roll moment around the product mention.">Add cinematic B-roll</button>
             </div>
-            <form class="follow-row" id="followForm">
-              <label class="sr-only" for="followInput">Follow-up instruction</label>
-              <input id="followInput" autocomplete="off" placeholder="Example: make the first 3 seconds faster…" />
-              <button class="btn primary" type="submit">Apply follow-up</button>
-            </form>
-            <div id="announce" aria-live="polite" class="sr-only"></div>
-          </section>
-        </div>
-      </div>
-    </section>
-
-    <section class="story">
-      <div class="shell">
-        <h2>The UX story is now simple.</h2>
-        <p class="story-lede">This prototype turns the audit into one coherent interaction model instead of adding more decorative motion.</p>
-        <div class="story-grid">
-          <article class="story-card"><span class="n">01 · P0</span><h3>Prompt → visible work</h3><p>A visitor can trigger the core value immediately and watch the AI move through understandable edit states.</p></article>
-          <article class="story-card"><span class="n">02 · P0</span><h3>One default path</h3><p>Regular users edit in ChatCut. ChatGPT/Claude integration exists as a clearly separate power-user mode.</p></article>
-          <article class="story-card"><span class="n">03 · P0</span><h3>Outcome CTA</h3><p>“Edit my first video” describes the task, not the destination. It also launches the demo instead of dumping users into an empty app.</p></article>
-          <article class="story-card"><span class="n">04 · P1</span><h3>Persistent session</h3><p>Captions, motion, music and B-roll all modify one timeline, so every section feels like the same editing job.</p></article>
-          <article class="story-card"><span class="n">05 · P1</span><h3>Readable AI status</h3><p>Users see exactly what changed: fillers removed, highlights found, B-roll placed and caption beats generated.</p></article>
-          <article class="story-card"><span class="n">06 · P1</span><h3>Follow-up is the product</h3><p>The result is not a dead end. Users can say “faster”, “cleaner”, or “add B-roll” and see the existing edit update.</p></article>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <footer class="shell footer"><span>Unofficial interaction prototype based on a UX review of chatcut.io. Not the production ChatCut site.</span><span>Static HTML/CSS/JS · GitHub Pages</span></footer>
+  <div class="footer-note shell">Interaction prototype only — current ChatCut copy and hierarchy preserved; only click-to-jump behavior is demonstrated.</div>
 
   <script>
     (() => {
-      const $ = (s, root=document) => root.querySelector(s);
-      const $$ = (s, root=document) => [...root.querySelectorAll(s)];
-      const editorMode = $('#editorMode');
-      const agentMode = $('#agentMode');
-      const composer = $('#editorComposer');
-      const agentPanel = $('#agentPanel');
-      const heroPrompt = $('#heroPrompt');
-      const runDemo = $('#runDemo');
-      const navStart = $('#navStart');
-      const globalStatus = $('#globalStatus');
-      const jobState = $('#jobState');
-      const previewNote = $('#previewNote');
-      const reviewHint = $('#reviewHint');
-      const announce = $('#announce');
-      const stages = $$('.stage');
-      const metrics = {
-        fillers: $('#metricFillers'), highlights: $('#metricHighlights'), broll: $('#metricBroll'), captions: $('#metricCaptions')
-      };
-      const clips = { broll: $('#brollClip'), motion: $('#motionClip'), music: $('#musicClip'), captions: $('#captionClip'), video: $('#videoClip') };
-      const captionPreview = $('#captionPreview');
-      const motionCard = $('#motionCard');
-      let isRunning = false;
-      let hasRun = false;
-      let session = { caption:'pop', motion:'data', music:'subtle', duration:45, broll:3, followers:0 };
+      const root = document;
+      const moments = [...root.querySelectorAll('.moment')];
+      const playhead = root.getElementById('playhead');
+      const currentTime = root.getElementById('currentTime');
+      const previewTime = root.getElementById('previewTime');
+      const caption = root.getElementById('caption');
+      const videoFrame = root.getElementById('videoFrame');
+      const jumpFlash = root.getElementById('jumpFlash');
+      const agentTabs = [...root.querySelectorAll('.agent-tab')];
 
-      function setMode(mode) {
-        const editor = mode === 'editor';
-        editorMode.setAttribute('aria-selected', editor ? 'true' : 'false');
-        agentMode.setAttribute('aria-selected', editor ? 'false' : 'true');
-        composer.style.display = editor ? 'block' : 'none';
-        agentPanel.classList.toggle('active', !editor);
+      function selectMoment(button) {
+        moments.forEach(item => item.setAttribute('aria-selected', item === button ? 'true' : 'false'));
+
+        const pos = Math.max(0, Math.min(100, Number(button.dataset.pos) || 0));
+        const time = button.dataset.time || '00:00.00';
+        const scene = button.dataset.scene || '0';
+        const text = button.dataset.caption || '';
+
+        playhead.style.left = pos + '%';
+        currentTime.textContent = time + ' / 00:19.27';
+        previewTime.textContent = time;
+        caption.textContent = text;
+        videoFrame.dataset.scene = scene;
+
+        jumpFlash.classList.remove('on');
+        void jumpFlash.offsetWidth;
+        jumpFlash.classList.add('on');
       }
-      editorMode.addEventListener('click', () => setMode('editor'));
-      agentMode.addEventListener('click', () => setMode('agent'));
 
-      $$('.sample').forEach(btn => btn.addEventListener('click', () => {
-        heroPrompt.value = btn.dataset.prompt;
-        heroPrompt.focus();
-      }));
+      moments.forEach(button => {
+        button.addEventListener('click', () => selectMoment(button));
+      });
 
-      const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-      function resetStages() {
-        stages.forEach(stage => {
-          stage.classList.remove('active','done');
-          $('.stage-state', stage).textContent = 'waiting';
+      agentTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          agentTabs.forEach(item => item.classList.toggle('active', item === tab));
         });
-      }
-      function setStage(index, label) {
-        stages.forEach((stage, i) => {
-          stage.classList.toggle('active', i === index);
-          if (i < index) stage.classList.add('done');
-          const state = $('.stage-state', stage);
-          if (i < index) state.textContent = 'done';
-          else if (i === index) state.textContent = label || 'working';
-          else state.textContent = 'waiting';
-        });
-      }
-      function finishStages() {
-        stages.forEach((stage, i) => {
-          stage.classList.remove('active'); stage.classList.add('done');
-          $('.stage-state', stage).textContent = i === 3 ? 'review' : 'done';
-        });
-      }
-      function syncControls() {
-        $$('#captionOptions .option').forEach(x => x.classList.toggle('active', x.dataset.caption === session.caption));
-        $$('#motionOptions .option').forEach(x => x.classList.toggle('active', x.dataset.motion === session.motion));
-        $$('#musicOptions .option').forEach(x => x.classList.toggle('active', x.dataset.music === session.music));
-        captionPreview.className = 'caption ' + session.caption;
-        captionPreview.textContent = session.caption === 'editorial' ? 'Build the story, not the timeline.' : session.caption === 'clean' ? 'Build the story, not the timeline.' : 'BUILD THE STORY, NOT THE TIMELINE.';
-        motionCard.className = 'motion-card ' + (session.motion === 'minimal' ? 'minimal' : 'data');
-        motionCard.style.display = session.motion === 'off' ? 'none' : 'block';
-        motionCard.innerHTML = session.motion === 'minimal' ? '<span>Chapter 02</span><strong>The edit</strong>' : '<span>Audience retention</span><strong>+38%</strong><div class="bar"></div>';
-        clips.music.style.width = session.music === 'none' ? '0' : '75%';
-        clips.music.textContent = session.music === 'upbeat' ? 'Upbeat music' : 'Subtle music';
-        clips.motion.style.width = session.motion === 'off' ? '0' : '28%';
-        clips.broll.style.width = session.broll ? Math.min(42, 18 + session.broll * 6) + '%' : '0';
-        clips.broll.textContent = session.broll + ' B-roll moments';
-        clips.video.style.width = Math.max(60, Math.min(90, session.duration / 55 * 86)) + '%';
-        clips.video.textContent = 'Main cut · ' + session.duration + 's';
-      }
-      syncControls();
-
-      async function runEditingDemo() {
-        if (isRunning) return;
-        if (!heroPrompt.value.trim()) { heroPrompt.focus(); return; }
-        isRunning = true; hasRun = false; runDemo.disabled = true; runDemo.textContent = 'Editing…';
-        resetStages();
-        metrics.fillers.textContent = '0'; metrics.highlights.textContent = '0'; metrics.broll.textContent = '0'; metrics.captions.textContent = '0';
-        clips.broll.style.width = '0'; clips.motion.style.width = '0'; clips.music.style.width = '0';
-        globalStatus.textContent = 'In progress'; jobState.textContent = 'Working'; previewNote.textContent = 'Analyzing 12:37 of footage…';
-        $('#workspaceSection').scrollIntoView({behavior:'smooth', block:'start'});
-        setStage(0, 'working'); announce.textContent = 'Analyzing footage';
-        await wait(750);
-        metrics.highlights.textContent = '5'; previewNote.textContent = '5 strong moments found';
-        await wait(550);
-        setStage(1, 'working'); metrics.fillers.textContent = '14'; session.duration = 45; syncControls(); previewNote.textContent = 'First cut · 0:45';
-        await wait(850);
-        setStage(2, 'working'); session.broll = 3; syncControls(); metrics.broll.textContent = '3';
-        await wait(550);
-        clips.motion.style.width = session.motion === 'off' ? '0' : '28%'; metrics.captions.textContent = '22';
-        await wait(550);
-        clips.music.style.width = session.music === 'none' ? '0' : '75%';
-        await wait(450);
-        setStage(3, 'review'); await wait(450); finishStages();
-        globalStatus.textContent = 'Ready for review'; jobState.textContent = 'Ready for review'; previewNote.textContent = 'First cut · 0:45 · Ready';
-        reviewHint.textContent = 'First cut is ready. Try a follow-up — the same timeline will update.';
-        runDemo.textContent = 'Run again'; runDemo.disabled = false; isRunning = false; hasRun = true; announce.textContent = 'Your first cut is ready for review';
-      }
-      runDemo.addEventListener('click', runEditingDemo);
-      navStart.addEventListener('click', () => { setMode('editor'); composer.scrollIntoView({behavior:'smooth',block:'center'}); heroPrompt.focus(); });
-
-      function wireOption(group, key, fn) {
-        $$(group + ' .option').forEach(btn => btn.addEventListener('click', () => {
-          session[key] = btn.dataset[key]; syncControls(); if (fn) fn(btn.dataset[key]);
-          announce.textContent = key + ' updated to ' + btn.textContent;
-        }));
-      }
-      wireOption('#captionOptions','caption');
-      wireOption('#motionOptions','motion');
-      wireOption('#musicOptions','music');
-
-      async function applyFollowUp(text) {
-        text = text.trim(); if (!text || isRunning) return;
-        if (!hasRun) { reviewHint.textContent = 'Run the first edit once before applying a follow-up.'; runDemo.scrollIntoView({behavior:'smooth',block:'center'}); return; }
-        isRunning = true; globalStatus.textContent = 'Applying follow-up'; jobState.textContent = 'Working'; previewNote.textContent = 'Applying: “' + text.slice(0,48) + (text.length>48?'…':'') + '”';
-        stages[3].classList.remove('done'); stages[3].classList.add('active'); $('.stage-state', stages[3]).textContent = 'revising';
-        announce.textContent = 'Applying follow-up instruction';
-        await wait(650);
-        const t = text.toLowerCase();
-        if (t.includes('faster') || t.includes('5 seconds') || t.includes('short')) session.duration = Math.max(25, session.duration - 5);
-        if (t.includes('caption') || t.includes('cleaner') || t.includes('smaller')) session.caption = 'clean';
-        if (t.includes('b-roll') || t.includes('broll') || t.includes('cinematic')) session.broll = Math.min(6, session.broll + 1);
-        if (t.includes('music') && t.includes('upbeat')) session.music = 'upbeat';
-        session.followers += 1; syncControls();
-        metrics.broll.textContent = String(session.broll);
-        await wait(550);
-        stages[3].classList.remove('active'); stages[3].classList.add('done'); $('.stage-state', stages[3]).textContent = 'review';
-        globalStatus.textContent = 'Ready for review'; jobState.textContent = 'Ready for review'; previewNote.textContent = 'Revision ' + session.followers + ' · ' + session.duration + 's · Ready';
-        reviewHint.textContent = 'Revision ' + session.followers + ' applied. Keep refining or export.';
-        announce.textContent = 'Follow-up applied; revision is ready'; isRunning = false;
-      }
-      $$('.follow-chip').forEach(btn => btn.addEventListener('click', () => applyFollowUp(btn.dataset.follow)));
-      $('#followForm').addEventListener('submit', e => { e.preventDefault(); const input=$('#followInput'); const value=input.value; input.value=''; applyFollowUp(value); });
-
-      const commands = {
-        chatgpt:'/goal Read chatcut.io/chatgpt to install the ChatCut plugin and edit my video.',
-        claude:'/goal Read chatcut.io/claude to install and use the ChatCut plugin to edit my video.'
-      };
-      $$('.agent-tab').forEach(btn => btn.addEventListener('click', () => {
-        $$('.agent-tab').forEach(x => x.classList.toggle('active', x === btn));
-        $('#agentCommand').textContent = commands[btn.dataset.agent];
-      }));
-      $('#copyCommand').addEventListener('click', async () => {
-        const text = $('#agentCommand').textContent;
-        try { await navigator.clipboard.writeText(text); $('#copyStatus').textContent='Copied.'; }
-        catch { $('#copyStatus').textContent='Copy unavailable in this browser. Select the command manually.'; }
       });
     })();
   </script>
