@@ -1,176 +1,146 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-release="triage-20260915-r2">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="An original, interactive Claude-inspired product demo built from a reusable design system." />
-  <title>Claude-inspired Product Demo</title>
-  <link rel="stylesheet" href="styles/tokens.css" />
-  <link rel="stylesheet" href="styles/components.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <meta name="description" content="An independent, local Claude-inspired interaction study. Turn a prompt into an inspectable artifact. No account or API required.">
+  <meta name="theme-color" content="#f5f4ed">
+  <title>Claude-inspired Demo · From idea to artifact</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles/tokens.css?v=triage-20260915-r2">
+  <link rel="stylesheet" href="styles/components.css?v=triage-20260915-r2">
+  <script src="app.js?v=triage-20260915-r2" defer></script>
 </head>
 <body>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <button class="mobile-scrim" id="mobileScrim" aria-label="Close navigation"></button>
+  <svg class="svg-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="icon-mark" viewBox="0 0 24 24"><path d="M12 3v5M12 16v5M3 12h5M16 12h5M5.6 5.6l3.5 3.5M14.9 14.9l3.5 3.5M18.4 5.6l-3.5 3.5M9.1 14.9l-3.5 3.5"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 4.5 4.5"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+      <symbol id="icon-up" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+      <symbol id="icon-chat" viewBox="0 0 24 24"><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-6 3V6a2 2 0 0 1 2-2Z"/><path d="M7 9h10M7 13h6"/></symbol>
+      <symbol id="icon-document" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6M8 13h8M8 17h6"/></symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 16v4h14v-4"/></symbol>
+      <symbol id="icon-attach" viewBox="0 0 24 24"><path d="m9 12 6-6a3 3 0 0 1 4 4l-9 9a5 5 0 0 1-7-7l9-9M7 14l8-8"/></symbol>
+    </defs>
+  </svg>
+  <a class="skip-link" href="#composerInput">Skip to message</a>
+  <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <div id="scrim" class="scrim" hidden></div>
 
-  <div class="app-shell">
+  <div class="app-shell" id="appShell">
     <aside class="sidebar" id="sidebar" aria-label="Demo navigation">
       <div class="brand-row">
         <div class="brand-lockup">
-          <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2.75v6.1M12 15.15v6.1M2.75 12h6.1M15.15 12h6.1M5.46 5.46l4.31 4.31M14.23 14.23l4.31 4.31M18.54 5.46l-4.31 4.31M9.77 14.23l-4.31 4.31" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          </span>
-          <span>Claude</span>
+          <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-mark"/></svg></span>
+          <div><span class="brand-name">Claude-inspired</span><span class="brand-caption">Interaction study</span></div>
         </div>
-        <button class="icon-button" type="button" aria-label="Sidebar options" data-nav="options">···</button>
+        <button class="icon-button mobile-only" type="button" id="closeNavigation" aria-label="Close navigation" title="Close navigation"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </div>
-
-      <button class="new-chat" type="button" id="newChatBtn">
-        <span>New chat</span><span class="shortcut">⌘K</span>
+      <button class="button button-secondary new-chat" id="newChatBtn" type="button">
+        <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg><span>New chat</span><kbd class="shortcut" aria-hidden="true">⌘ K</kbd>
       </button>
-
-      <div class="search-shell" aria-label="Search mock conversations">
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.6" cy="8.6" r="5.4" stroke="currentColor" stroke-width="1.5"/><path d="m12.6 12.6 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <span>Search</span>
+      <div class="search-shell" role="search">
+        <svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg>
+        <label class="sr-only" for="conversationSearch">Search conversations</label>
+        <input id="conversationSearch" type="search" placeholder="Search conversations" autocomplete="off" aria-controls="historyList" aria-describedby="searchStatus">
+        <button class="icon-button" id="clearSearch" type="button" aria-label="Clear search" title="Clear search" hidden><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button>
       </div>
-
-      <nav class="nav-stack" aria-label="Primary">
-        <button class="nav-item active" type="button" data-nav="chat">Chats</button>
-        <button class="nav-item" type="button" data-nav="projects">Projects</button>
-        <button class="nav-item" type="button" data-nav="artifacts">Artifacts</button>
-        <button class="nav-item" type="button" data-nav="research">Research</button>
+      <nav class="nav-stack" aria-label="Workspace views">
+        <button class="nav-item active" type="button" id="chatsNav" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#icon-chat"/></svg><span>Chats</span></button>
+        <button class="nav-item" type="button" id="artifactsNav" disabled aria-describedby="artifactNavHint"><svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg><span>Current artifact</span><span id="artifactCount" class="count">0</span></button>
       </nav>
-
-      <div class="section-label">Recents</div>
-      <div class="history-stack">
-        <button class="history-item" type="button" data-prompt="Summarize the product strategy memo into decisions, assumptions, and next steps.">Product strategy memo</button>
-        <button class="history-item" type="button" data-prompt="Draft a launch checklist for a small AI feature and identify the biggest launch risks.">Launch checklist</button>
-        <button class="history-item" type="button" data-prompt="Turn these rough notes into a clear executive brief with a decision at the top.">Executive brief</button>
-        <button class="history-item" type="button" data-prompt="Create a lightweight prototype plan that leads to a validated product demo.">Prototype plan</button>
+      <p class="nav-help" id="artifactNavHint">Create an artifact to open it here.</p>
+      <div class="history-area">
+        <p class="section-label">Examples &amp; this session</p>
+        <p id="searchStatus" class="search-status" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div class="history-stack" id="historyList"></div>
+        <p class="empty-search" id="emptySearch" hidden>No matching conversations. Try “brief” or clear your search.</p>
       </div>
-
-      <div class="profile-row">
-        <div class="avatar" aria-hidden="true">R</div>
-        <div class="profile-copy"><strong>Robin</strong><span>Local simulated demo</span></div>
-      </div>
+      <div class="profile-row"><span class="avatar" aria-hidden="true">R</span><div class="profile-copy"><strong>Robin’s workspace</strong><span>Local examples · no account</span></div></div>
     </aside>
 
-    <main class="workspace">
-      <section class="chat-pane" aria-label="Claude-inspired mock conversation">
+    <main class="workspace" id="workspace">
+      <section class="chat-pane" id="chatPane" aria-label="Interactive product demo">
         <header class="topbar">
-          <div style="display:flex;align-items:center;gap:8px;min-width:0">
-            <button class="icon-button mobile-menu" type="button" id="mobileMenuButton" aria-label="Open navigation">☰</button>
-            <select class="model-select" id="modelSelect" aria-label="Simulated model">
-              <option>Sonnet 5</option>
-              <option>Opus 5</option>
-              <option>Haiku 5</option>
-            </select>
+          <div class="topbar-leading">
+            <button class="icon-button mobile-only" id="mobileMenuButton" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#icon-menu"/></svg></button>
+            <label class="sr-only" for="modelSelect">Simulated model</label>
+            <select class="model-select" id="modelSelect"><option value="Sonnet">Sonnet · simulated</option><option value="Opus">Opus · simulated</option><option value="Haiku">Haiku · simulated</option></select>
           </div>
-          <div class="demo-badge">Unofficial · local simulation</div>
+          <p class="demo-note">Unofficial demo</p>
         </header>
 
-        <div class="conversation">
-          <section class="welcome" id="welcome">
-            <div class="welcome-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2.75v6.1M12 15.15v6.1M2.75 12h6.1M15.15 12h6.1M5.46 5.46l4.31 4.31M14.23 14.23l4.31 4.31M18.54 5.46l-4.31 4.31M9.77 14.23l-4.31 4.31" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <h1>How can I help you think this through?</h1>
-            <p class="welcome-copy">An original Claude-inspired product demo built from a reusable design system. Try a task, switch the simulated model, and inspect the generated artifact.</p>
-
-            <div class="suggestions" aria-label="Suggested demo tasks">
-              <button class="suggestion" type="button" data-scenario="brief">
-                <span><strong>Write a product brief</strong><p>Turn a rough product idea into a concise story with visible proof.</p></span><span class="suggestion-arrow">↗</span>
-              </button>
-              <button class="suggestion" type="button" data-scenario="risks">
-                <span><strong>Analyze a launch plan</strong><p>Find assumptions, risks, and the cheapest thing to verify next.</p></span><span class="suggestion-arrow">↗</span>
-              </button>
-              <button class="suggestion" type="button" data-scenario="artifact">
-                <span><strong>Create an artifact</strong><p>Show a four-step path from idea to testable product evidence.</p></span><span class="suggestion-arrow">↗</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="thread" id="thread" aria-live="polite" aria-label="Demo conversation">
-            <div class="message-row user">
-              <div class="user-bubble" id="userPrompt"></div>
-            </div>
-
-            <div class="message-row">
-              <div class="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"><path d="M12 3v6M12 15v6M3 12h6M15 12h6M6 6l4 4M14 14l4 4M18 6l-4 4M10 14l-4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <div class="conversation-scroll" id="conversationScroll">
+          <div class="conversation">
+            <section class="welcome" id="welcome" aria-labelledby="welcomeHeading">
+              <div class="welcome-kicker"><svg class="welcome-mark icon" aria-hidden="true"><use href="#icon-mark"/></svg><span>A LITTLE CLARITY, MADE TANGIBLE</span></div>
+              <h1 id="welcomeHeading">An idea is a start.<br>An artifact is something<br class="desktop-break"> you can work with.</h1>
+              <p class="welcome-copy">Try one small task. Watch the conversation turn into a document you can inspect, refine, and keep.</p>
+              <div class="hero-action">
+                <button class="button button-primary" id="primaryDemo" data-scenario="artifact" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg><span>Create a product artifact</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
+                <p class="action-caption">Creates a four-step validation plan. No setup.</p>
               </div>
-              <div class="assistant-copy">
-                <p id="assistantIntro"></p>
-                <div class="result-card">
-                  <div class="result-head">
-                    <span class="result-label" id="modelLabel">Working with Sonnet 5</span>
-                    <span class="status-pill"><span class="status-dot"></span><span id="statusText">Ready</span></span>
+              <div class="secondary-scenarios" aria-label="Other demo tasks"><span class="secondary-label">Or try</span><button class="button button-quiet" data-scenario="brief" type="button">Write a brief <span aria-hidden="true">↗</span></button><button class="button button-quiet" data-scenario="risks" type="button">Review launch risks <span aria-hidden="true">↗</span></button></div>
+              <div class="proof-caption"><span>01 · Your idea</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg><span>02 · A clear plan</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg><span>03 · Your artifact</span></div>
+            </section>
+
+            <section class="thread" id="thread" aria-label="Demo conversation" hidden>
+              <h1 class="sr-only">Demo conversation</h1>
+              <div class="message-row user"><p class="user-bubble" id="userPrompt"></p></div>
+              <div class="message-row assistant">
+                <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#icon-mark"/></svg></span>
+                <div class="assistant-copy">
+                  <p class="assistant-name">Local assistant <span id="modelLabel">Sonnet · simulated</span></p>
+                  <p id="assistantIntro"></p>
+                  <div class="activity" id="activity" role="status" aria-live="polite" aria-atomic="true"><span class="status-dot" aria-hidden="true"></span><span id="statusText">Ready</span></div>
+                  <div class="result-card" id="resultCard" hidden>
+                    <div class="result-head"><span class="section-label">Ready to inspect</span><span class="status-pill"><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg>Local preview</span></div>
+                    <h2 id="resultTitle"></h2><p class="result-summary" id="resultSummary"></p>
+                    <div class="result-grid" id="resultGrid"></div>
+                    <button class="button button-secondary open-artifact" id="openArtifactButton" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-document"/></svg><span>Open generated artifact</span><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></button>
                   </div>
-                  <div class="result-grid">
-                    <div class="result-tile"><strong>1 · Clarify the job</strong><span>Write one sentence describing the user’s actual outcome.</span></div>
-                    <div class="result-tile"><strong>2 · Show proof</strong><span>Expose a result that a person can judge without explanation.</span></div>
-                    <div class="result-tile"><strong>3 · Test behavior</strong><span>Make the key action clickable instead of narrating it.</span></div>
-                    <div class="result-tile"><strong>4 · Tighten scope</strong><span>Remove anything that does not change the decision.</span></div>
-                  </div>
-                  <button class="open-artifact" id="openArtifactButton" type="button">Open generated artifact →</button>
+                  <button class="button button-secondary" id="retryButton" type="button" hidden>Try this task again</button>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
 
         <div class="composer-zone">
-          <div class="composer">
+          <form class="composer" id="composerForm">
             <label class="sr-only" for="composerInput">Message the simulated assistant</label>
-            <textarea id="composerInput" placeholder="Message Claude…" aria-describedby="composerHint"></textarea>
+            <textarea id="composerInput" rows="2" maxlength="16000" placeholder="What would you like to work through?" aria-describedby="composerHint attachmentStatus inputError"></textarea>
+            <p id="inputError" class="input-error" role="alert" hidden></p>
+            <p id="attachmentStatus" class="attachment-status" role="status" hidden></p>
             <div class="composer-footer">
-              <div class="composer-actions">
-                <button class="utility-button" type="button" data-nav="attach">＋</button>
-                <button class="utility-button" type="button" data-nav="tools">Tools</button>
-              </div>
-              <button class="send-button" type="button" id="sendButton">Send ↑</button>
+              <div class="composer-actions"><button class="button button-quiet" type="button" id="attachButton" aria-label="Add notes from a text or Markdown file" title="Add a local .txt or .md file, up to 1 MB"><svg class="icon" aria-hidden="true"><use href="#icon-attach"/></svg><span>Add notes</span></button><input id="notesFile" type="file" accept=".txt,.md,text/plain,text/markdown" hidden></div>
+              <button class="button button-send" id="sendButton" type="submit" disabled><span id="sendLabel">Send</span><svg class="icon" id="sendIcon" aria-hidden="true"><use href="#icon-up"/></svg></button>
             </div>
-          </div>
-          <p class="composer-hint" id="composerHint">Simulated locally. No Anthropic API, login, analytics, external font, image, or runtime dependency.</p>
+          </form>
+          <p class="composer-hint" id="composerHint">Local templates, not live AI. Nothing you type is sent to a server.</p>
         </div>
       </section>
 
-      <aside class="artifact-panel" id="artifactPanel" aria-label="Generated artifact" aria-hidden="true">
-        <div class="artifact-inner">
-          <header class="artifact-head">
-            <div class="artifact-heading-group">
-              <div class="artifact-eyebrow">Generated artifact · <span id="artifactModel">Sonnet 5</span></div>
-              <div class="artifact-title" id="artifactTitle">Product brief</div>
-            </div>
-            <button class="icon-button" type="button" id="closeArtifact" aria-label="Close artifact">×</button>
-          </header>
-          <div class="artifact-scroll">
-            <article class="artifact-document">
-              <div class="artifact-kicker">Decision artifact</div>
-              <h2 id="artifactHeading">A product story people can judge</h2>
-              <p class="artifact-lede" id="artifactLede">A compact brief that turns a fuzzy idea into visible product evidence.</p>
-              <div class="artifact-steps">
-                <div class="artifact-step"><span class="step-number">01</span><div><strong>Name the job</strong><p>Describe the user’s outcome in plain language before describing features.</p></div></div>
-                <div class="artifact-step"><span class="step-number">02</span><div><strong>Create a core action</strong><p>Give the visitor one meaningful interaction that advances the product story.</p></div></div>
-                <div class="artifact-step"><span class="step-number">03</span><div><strong>Produce visible proof</strong><p>Update at least two related regions so success can be seen, not merely claimed.</p></div></div>
-                <div class="artifact-step"><span class="step-number">04</span><div><strong>Verify the loop</strong><p>Exercise desktop, mobile, keyboard, and reset behavior before calling the demo complete.</p></div></div>
-              </div>
-              <div class="provenance">
-                Design source: claude-ai-mockup/DESIGN.md<br />
-                Source project absolute path: unavailable via shell<br />
-                Pi session ID: unavailable via shell<br />
-                Original educational mockup; not affiliated with Anthropic.
-              </div>
-            </article>
-          </div>
+      <aside class="artifact-panel" id="artifactPanel" aria-labelledby="artifactTitle" hidden>
+        <header class="artifact-head"><div class="artifact-heading-group"><p class="artifact-eyebrow">YOUR ARTIFACT <span id="artifactModel">Sonnet · simulated</span></p><h2 class="artifact-title" id="artifactTitle">Product artifact</h2></div><button class="icon-button" id="closeArtifact" type="button" aria-label="Close artifact" title="Close artifact (Escape)"><svg class="icon" aria-hidden="true"><use href="#icon-close"/></svg></button></header>
+        <div class="artifact-scroll" id="artifactScroll">
+          <article class="artifact-document">
+            <div class="document-topline"><span class="artifact-kicker">A WORKING DOCUMENT</span><span class="document-version">LOCAL / 01</span></div>
+            <h3 id="artifactHeading"></h3><p class="artifact-lede" id="artifactLede"></p>
+            <div class="artifact-steps" id="artifactSteps"></div>
+            <div class="document-note"><svg class="icon" aria-hidden="true"><use href="#icon-check"/></svg><p>A starting point, not a verdict.<br>Test the assumptions before you act.</p></div>
+          </article>
+          <details class="provenance"><summary>About this demo &amp; its sources</summary><p>Independent educational mockup. Not affiliated with Anthropic. Model names are simulated display options; responses use local templates.</p><p>Design source: <a href="DESIGN.md">claude-ai-mockup/DESIGN.md</a></p><p>Source project absolute path: /mnt/data/claude-fix-work/repo/claude-ai-mockup<br>Pi session ID: unavailable via shell</p><p>Release: triage-20260915-r2</p></details>
         </div>
+        <footer class="artifact-footer"><span class="artifact-footer-note">Yours to edit and keep</span><button class="button button-secondary" id="downloadArtifact" type="button"><svg class="icon" aria-hidden="true"><use href="#icon-download"/></svg><span>Download .md</span></button></footer>
       </aside>
     </main>
   </div>
-
-  <script src="app.js"></script>
+  <noscript><p class="no-script">This local demo needs JavaScript for its interactions. No external services are used.</p></noscript>
 </body>
 </html>
