@@ -27,10 +27,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Fetch production ChatCut and build playable copy
-        run: node chatcut-mirror-src/build.mjs
-      - name: Localize production Astro runtime
-        run: node chatcut-mirror-src/localize-runtime.mjs
+      - name: Capture a consistent production snapshot
+        run: node chatcut-mirror-src/stable-build.mjs
       - name: Delay playable mutations until hydration
         run: node chatcut-mirror-src/hydration-safe.mjs
       - name: Apply local interaction hit-test fix
@@ -47,6 +45,8 @@ jobs:
           grep -q 'data-cc-playable-hydration-safe' chatcut-playable/index.html
           grep -q 'name="cc-runtime-localized"' chatcut-playable/index.html
           test -n "$(find chatcut-playable/_astro -type f -name '*.js' -print -quit)"
+          test -n "$(find chatcut-playable/_astro -type f -name '*.css' -print -quit)"
+          ! grep -q 'https://chatcut.io/_astro/' chatcut-playable/index.html
           grep -q 'ccPlayableVersion' chatcut-playable/index.html
           grep -q 'best-moments' chatcut-playable/index.html
           grep -q 'transcript-captions' chatcut-playable/index.html
