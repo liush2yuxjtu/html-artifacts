@@ -29,6 +29,8 @@ jobs:
           node-version: '20'
       - name: Capture a consistent production snapshot
         run: node chatcut-mirror-src/stable-build.mjs
+      - name: Guard each Astro island until hydration
+        run: node chatcut-mirror-src/island-safe.mjs
       - name: Delay playable mutations until hydration
         run: node chatcut-mirror-src/hydration-safe.mjs
       - name: Apply local interaction hit-test fix
@@ -40,6 +42,7 @@ jobs:
           test -s chatcut-playable/index.html
           grep -q 'Your AI Video Editor' chatcut-playable/index.html
           grep -q 'data-cc-playable-patch' chatcut-playable/index.html
+          grep -q 'data-cc-playable-island-safe' chatcut-playable/index.html
           grep -q 'data-cc-playable-layer-fix' chatcut-playable/index.html
           grep -q 'data-cc-playable-visual-fix' chatcut-playable/index.html
           grep -q 'data-cc-playable-hydration-safe' chatcut-playable/index.html
