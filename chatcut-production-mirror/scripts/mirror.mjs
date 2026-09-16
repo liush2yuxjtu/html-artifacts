@@ -170,13 +170,14 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
 
   const mediaResults = await downloadMedia([...allMedia].sort(), mediaMode);
   const mediaMap = buildMediaMap([...allMedia], mediaMode);
+  const homepagePatchScript = await fs.readFile(path.join(ROOT, 'patches/home.js'), 'utf8');
 
   for (const { pathname } of pageManifest) {
     const raw = pageHtml.get(pathname);
     let served = sanitizeHtml(raw);
     served = rewritePageLinks(served);
     if (mediaMode === 'local') served = rewriteMediaUrls(served, mediaMap);
-    if (pathname === '/') served = injectHomepagePatch(served);
+    if (pathname === '/') served = injectHomepagePatch(served, homepagePatchScript);
     await writeText(pageOutputPath(pathname), served);
   }
 
