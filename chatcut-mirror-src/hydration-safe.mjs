@@ -10,6 +10,7 @@ const legacyBoot = /  function boot\(\) \{\n    document\.addEventListener\('cli
 
 const safeBoot = `  let overlayObserver = null;
   let overlayStarted = false;
+  let refreshQueued = false;
 
   const absoluteChatCutUrl = value => {
     if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return value;
@@ -40,8 +41,13 @@ const safeBoot = `  let overlayObserver = null;
   };
 
   const refreshOverlay = () => {
-    normalizeHydratedRootUrls();
-    scheduleRender();
+    if (refreshQueued) return;
+    refreshQueued = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      refreshQueued = false;
+      normalizeHydratedRootUrls();
+      scheduleRender();
+    }));
   };
 
   const startOverlay = () => {
@@ -70,6 +76,7 @@ const safeBoot = `  let overlayObserver = null;
 
   const scheduleAfterPageLoad = () => {
     overlayStarted = false;
+    refreshQueued = false;
     if (overlayObserver) {
       overlayObserver.disconnect();
       overlayObserver = null;
