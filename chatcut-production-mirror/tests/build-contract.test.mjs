@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot } from '../scripts/mirror.mjs';
+import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, buildMediaMap } from '../scripts/mirror.mjs';
 
 const expected = [
   '/features/ai-video-editor',
@@ -41,4 +41,13 @@ test('vercel config builds full mirrored media to dist and dist is gitignored', 
   assert.equal(vercel.outputDirectory, 'dist');
   const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
   assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
+});
+
+test('full-media rewrite map includes only successfully downloaded assets', () => {
+  const map = buildMediaMap([
+    { url: 'https://chatcut.io/a.webp', status: 'downloaded', localPath: '/_mirror/chatcut.io/a.webp' },
+    { url: 'https://chatcut.io/dead.webp', status: 'failed', localPath: null },
+  ], 'local');
+  assert.equal(map.get('https://chatcut.io/a.webp'), '/_mirror/chatcut.io/a.webp');
+  assert.equal(map.has('https://chatcut.io/dead.webp'), false);
 });
