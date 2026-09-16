@@ -17,7 +17,7 @@ const safeBoot = `  let overlayObserver = null;
   };
 
   const normalizeHydratedRootUrls = () => {
-    document.querySelectorAll('astro-island').forEach(island => {
+    document.querySelectorAll('astro-island:not([ssr])').forEach(island => {
       island.querySelectorAll('[src],[poster],[href],[action],[srcset]').forEach(el => {
         for (const attr of ['src','poster','href','action']) {
           const value = el.getAttribute(attr);
@@ -39,16 +39,23 @@ const safeBoot = `  let overlayObserver = null;
     });
   };
 
+  const refreshOverlay = () => {
+    normalizeHydratedRootUrls();
+    scheduleRender();
+  };
+
   const startOverlay = () => {
     if (overlayStarted) return;
     overlayStarted = true;
     normalizeHydratedRootUrls();
     renderAll();
-    overlayObserver = new MutationObserver(() => {
-      normalizeHydratedRootUrls();
-      scheduleRender();
+    overlayObserver = new MutationObserver(refreshOverlay);
+    overlayObserver.observe(document.documentElement, {
+      childList:true,
+      subtree:true,
+      attributes:true,
+      attributeFilter:['ssr']
     });
-    overlayObserver.observe(document.documentElement, { childList:true, subtree:true });
   };
 
   const waitForHydration = (startedAt) => {
