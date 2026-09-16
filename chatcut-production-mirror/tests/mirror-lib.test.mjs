@@ -128,3 +128,12 @@ test('can inline the homepage patch to avoid runtime loader issues', () => {
   assert.match(out, /<script data-cc-home-patch="inline">document\.documentElement\.dataset\.ccProbe="1";<\/script>/);
   assert.doesNotMatch(out, /src="\/patches\/home\.js"/);
 });
+
+test('asset extraction ignores JS template placeholders and splits chained CSS urls', () => {
+  const html = `<div style="background:url(https://chatcut.io/a.jpg),url(https://chatcut.io/b.jpg)"></div><script>const x='https://chatcut.io/features/ai-video-generator/tl-\${e%6+1}.webp';</script>`;
+  const result = extractAssetUrls(html, 'https://chatcut.io/');
+  assert.ok(result.media.includes('https://chatcut.io/a.jpg'));
+  assert.ok(result.media.includes('https://chatcut.io/b.jpg'));
+  assert.equal(result.media.some(x => x.includes('${')), false);
+  assert.equal(result.media.some(x => x.includes('a.jpg),url(')), false);
+});
