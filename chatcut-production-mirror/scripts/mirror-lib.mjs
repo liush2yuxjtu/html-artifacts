@@ -218,7 +218,7 @@ export function injectHomepagePatch(html) {
     out = out.replace(/<\/head\s*>/i, '<link rel="stylesheet" href="/patches/home.css"></head>');
   }
   if (!out.includes('/patches/home.js')) {
-    out = out.replace(/<\/body\s*>/i, '<script type="module" src="/patches/home.js"></script></body>');
+    out = out.replace(/<\/body\s*>/i, '<script defer src="/patches/home.js"></script></body>');
   }
   return out;
 }
