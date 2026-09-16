@@ -1,0 +1,41 @@
+name: ChatCut Pages live E2E
+
+on:
+  pull_request:
+    paths:
+      - 'chatcut-mirror-src/**'
+      - 'chatcut-playable/**'
+      - '.github/workflows/chatcut-pages-live-e2e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deployed-pages-playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Python Playwright
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Test the exact public GitHub Pages URL
+        env:
+          CHATCUT_PAGES_URL: https://liush2yuxjtu.github.io/html-artifacts/chatcut-playable/?utm_source=chatgpt.com
+          CHATCUT_E2E_OUT: chatcut-pages-e2e
+        run: python chatcut-mirror-src/pages-e2e.py
+      - name: Upload screenshots and browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatcut-pages-live-e2e
+          path: chatcut-pages-e2e/
+          if-no-files-found: warn
