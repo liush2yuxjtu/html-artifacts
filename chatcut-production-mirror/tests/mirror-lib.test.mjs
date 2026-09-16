@@ -114,3 +114,8 @@ test('absolutizes root-relative CSS url assets in copied inline styles', () => {
   const out = rewritePageLinks(`<span style="--frame:url(/best-moments/ai-editing/high-frames/frame-01.jpg)"></span>`);
   assert.match(out, /url\(https:\/\/chatcut\.io\/best-moments\/ai-editing\/high-frames\/frame-01\.jpg\)/);
 });
+
+test('asset output path tolerates production URLs with malformed percent escapes', () => {
+  assert.doesNotThrow(() => assetOutputPath('https://chatcut.io/assets/100%-real.webp'));
+  assert.equal(assetOutputPath('https://chatcut.io/assets/100%-real.webp'), '_mirror/chatcut.io/assets/100%-real.webp');
+});
