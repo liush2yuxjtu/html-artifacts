@@ -5,6 +5,9 @@
   "scripts": {
     "test": "node --test tests/*.test.mjs",
     "build": "node scripts/mirror.mjs",
-    "mirror:full": "MIRROR_MEDIA_MODE=local node scripts/mirror.mjs"
+    "mirror:full": "MIRROR_MEDIA_MODE=local node scripts/mirror.mjs",
+    "verify:dist": "node scripts/verify-dist.mjs",
+    "ci:check": "npm test && npm run build && npm run verify:dist",
+    "ci:predeploy": "npm test && npm run mirror:full && npm run verify:dist"
   }
 }
