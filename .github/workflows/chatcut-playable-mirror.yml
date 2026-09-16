@@ -46,18 +46,31 @@ jobs:
         run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0
       - name: Install Chromium for QA
         run: /tmp/chatcut-qa/node_modules/.bin/playwright install --with-deps chromium
-      - name: Run playable interaction QA
+      - name: Run playable interaction QA and capture snapshots
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
         run: node chatcut-mirror-src/qa.cjs
-      - name: Commit generated playable site
+      - name: Verify visual snapshots exist
+        run: |
+          test -s chatcut-snapshots/01-hero.png
+          test -s chatcut-snapshots/02-expert-before.png
+          test -s chatcut-snapshots/03-expert-after.png
+          test -s chatcut-snapshots/06-transcript-before.png
+          test -s chatcut-snapshots/07-transcript-after.png
+          test -s chatcut-snapshots/09-image-before.png
+          test -s chatcut-snapshots/10-image-after.png
+          test -s chatcut-snapshots/11-video-before.png
+          test -s chatcut-snapshots/12-video-after.png
+          test -s chatcut-snapshots/13-music-before.png
+          test -s chatcut-snapshots/14-music-after.png
+      - name: Commit generated playable site and snapshots
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f chatcut-playable
+          git add -f chatcut-playable chatcut-snapshots
           if git diff --cached --quiet; then
             echo 'No generated changes.'
             exit 0
           fi
-          git commit -m 'Publish ChatCut playable mirror [skip ci]'
+          git commit -m 'Publish ChatCut playable mirror and visual snapshots [skip ci]'
           git push origin HEAD:main
