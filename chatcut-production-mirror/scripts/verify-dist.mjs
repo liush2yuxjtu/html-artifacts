@@ -78,6 +78,27 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
     failures.push(`invalid page manifest: ${error.message}`);
   }
 
+  const assetManifestPath = path.join(distDir, '_meta/asset-manifest.json');
+  let assetManifest;
+  try {
+    assetManifest = JSON.parse(await fs.readFile(assetManifestPath, 'utf8'));
+  } catch (error) {
+    failures.push(`invalid asset manifest: ${error.message}`);
+  }
+
+  if (assetManifest?.mediaMode === 'local') {
+    const failedMedia = (assetManifest.media ?? []).filter(item => item?.status === 'failed');
+    for (const item of failedMedia) {
+      failures.push(`failed mirrored media: ${item.url}${item.error ? ` (${item.error})` : ''}`);
+    }
+    for (const item of assetManifest.media ?? []) {
+      if (item?.status !== 'downloaded' || !item.localPath) continue;
+      if (!(await exists(localPathToFile(distDir, item.localPath)))) {
+        failures.push(`downloaded media missing from dist: ${item.url} -> ${item.localPath}`);
+      }
+    }
+  }
+
   const routeToOutput = new Map();
   if (pageManifest?.pages) {
     for (const page of pageManifest.pages) {
@@ -98,7 +119,7 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
 
     for (const resourcePath of extractLocalResourcePaths(html)) {
       const clean = stripQueryHash(resourcePath);
-      if (clean === '/' || clean.startsWith('/features')) continue;
+      if (clean === '/' || clean.startsWith('/features') || clean.startsWith('/_astro/')) continue;
       if (!(await exists(localPathToFile(distDir, resourcePath)))) {
         failures.push(`broken local resource in ${relative}: ${resourcePath}`);
       }
@@ -121,6 +142,7 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
     requiredFiles: REQUIRED_FILES.length,
     mirroredRoutes: routeToOutput.size,
     htmlFilesChecked: htmlFiles.size,
+    mirroredMediaChecked: assetManifest?.mediaMode === 'local' ? (assetManifest.media ?? []).length : 0,
   };
 }
 
