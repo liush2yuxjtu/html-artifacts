@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "build": "node scripts/mirror.mjs"
+    "build": "node scripts/mirror.mjs",
+    "mirror:full": "MIRROR_MEDIA_MODE=local node scripts/mirror.mjs"
   }
 }
