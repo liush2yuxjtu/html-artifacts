@@ -1,0 +1,49 @@
+name: Build ChatCut playable mirror
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'chatcut-mirror-src/**'
+      - '.github/workflows/chatcut-playable-mirror.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chatcut-playable-mirror
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Fetch production ChatCut and build playable copy
+        run: node chatcut-mirror-src/build.mjs
+      - name: Verify generated homepage
+        run: |
+          test -s chatcut-playable/index.html
+          grep -q 'Your AI Video Editor' chatcut-playable/index.html
+          grep -q 'data-cc-playable-patch' chatcut-playable/index.html
+          grep -q 'best-moments' chatcut-playable/index.html
+          grep -q 'music-generation' chatcut-playable/index.html
+      - name: Commit generated playable site
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f chatcut-playable
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m 'Publish ChatCut playable mirror [skip ci]'
+          git push origin HEAD:main
