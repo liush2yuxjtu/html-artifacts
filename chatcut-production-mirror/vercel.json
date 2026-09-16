@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run mirror:full",
   "outputDirectory": "dist",
   "framework": null,
   "cleanUrls": true
