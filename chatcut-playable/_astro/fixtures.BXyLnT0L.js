@@ -1,0 +1,21 @@
+import{c as s}from"./createLucideIcon.BXU3OlWu.js";/**
+ * @license lucide-react v0.555.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const o=[["path",{d:"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8",key:"1357e3"}],["path",{d:"M3 3v5h5",key:"1xhq8a"}],["path",{d:"M12 7v5l4 2",key:"1fdv2h"}]],k=s("history",o);/**
+ * @license lucide-react v0.555.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const n=[["path",{d:"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8",key:"5wwlr5"}],["path",{d:"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",key:"r6nss1"}]],m=s("house",n);/**
+ * @license lucide-react v0.555.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const r=[["circle",{cx:"6",cy:"6",r:"3",key:"1lh9wr"}],["path",{d:"M8.12 8.12 12 12",key:"1alkpv"}],["path",{d:"M20 4 8.12 15.88",key:"xgtan2"}],["circle",{cx:"6",cy:"18",r:"3",key:"fqmcym"}],["path",{d:"M14.8 14.8 20 20",key:"ptml3r"}]],u=s("scissors",r);/**
+ * @license lucide-react v0.555.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */const l=[["path",{d:"M12 3v12",key:"1x0j5s"}],["path",{d:"m17 8-5-5-5 5",key:"7q97r8"}],["path",{d:"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",key:"ih7n3h"}]],b=s("upload",l),c=t=>t.replace(/\/+$/,""),p="https://cdn.chatcut.dev/playback",a=(t,i)=>`${c(p)}/${t.replace(/^\/+/,"")}`,e=t=>Math.round(t*1e3/30);function h(t,i){const d=i?.filmstripUrl??a("talking-head-filmstrip.jpg");return{durationMs:19904,tracks:[{clips:[{endMs:e(75)+2100,id:"mg-favorite",label:"Favorite Card",startMs:e(75)},{endMs:e(266),id:"mg-chapter",label:"Chapter Overlay",startMs:e(176)},{endMs:e(593),id:"mg-top5",label:"Top 5",startMs:e(469)}],id:"mg",kind:"mg",label:"MG"},{clips:[{endMs:e(447),id:"v2-broll",label:"B-roll",startMs:e(399)}],filmstripUrl:d,id:"v2",kind:"video",label:"V2"},{clips:[{endMs:e(75),id:"v1-1",label:"Open",startMs:e(0)},{endMs:e(146),id:"v1-2",label:"Take A",startMs:e(75)},{endMs:e(306),id:"v1-3",label:"Take B",startMs:e(146)},{endMs:e(358),id:"v1-4",label:"Take C",startMs:e(306)},{endMs:e(399),id:"v1-5",label:"Take D",startMs:e(358)},{endMs:e(440),id:"v1-6",label:"Take E",startMs:e(399)},{endMs:e(594),id:"v1-7",label:"CTA",startMs:e(440)}],filmstripUrl:d,id:"v1",kind:"video",label:"V1"},{clips:[{endMs:e(306),id:"a1-1",startMs:e(0)},{endMs:e(440),id:"a1-2",startMs:e(306)},{endMs:e(594),id:"a1-3",label:"Voice-over",startMs:e(440)}],id:"a1",kind:"audio",label:"A1",waveformUrl:i?.waveformUrl}]}}function v(t){return[{durationLabel:"04:12",id:"m1",kind:"video",label:"interview.mp4",thumbUrl:a("chat-previews/generated-video.jpg")},{durationLabel:"01:48",id:"m2",kind:"video",label:"broll.mov",thumbUrl:a("chat-previews/generated-motion-graphics.jpg")},{durationLabel:"02:30",id:"m3",kind:"audio",label:"score.wav"}]}function g(t){return{avatarInitial:"F",caption:"the vault tracks hit different at midnight",chat:[{id:"u1",kind:"user",text:"Cut this down to a 20s fan edit — clean the fillers, add motion graphics and score it."},{id:"t1",kind:"tool",status:"done",text:"read_transcript · 2 files"},{id:"t2",kind:"tool",status:"done",text:"removed 12 fillers · 3 repeated takes"},{id:"t3",kind:"tool",status:"done",text:"cut_sequence · 7 cuts · 20s"},{id:"t4",kind:"tool",previewAlt:"Generated motion graphics preview",previewSrc:a("chat-previews/generated-motion-graphics.jpg"),status:"done",text:"generate_motion_graphics · 3 overlays"},{id:"t5",kind:"tool",status:"running",text:"score_with_music · ambient bed"},{actions:!0,id:"a1",kind:"assistant",text:"Done — 20s cut with 7 edits, 3 motion graphics and a scored bed. Want a 9:16 version for Shorts?"}],composerPlaceholder:"Tell AI what changes to make — @ to reference media",credits:"735.6",fps:30,media:v(),playheadMs:7400,playing:!1,posterUrl:a("chat-previews/generated-video.jpg"),projectName:"Midnights — Fan Cut",selectedClipId:"v1-3",timeline:h()}}export{k as H,u as S,b as U,m as a,a as p,g as t};

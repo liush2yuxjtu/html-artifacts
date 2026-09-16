@@ -1,0 +1,1 @@
+const u=["utm_source","utm_medium","utm_campaign","utm_content","utm_term","gclid","gbraid","wbraid","gad_source","gclsrc","dclid","fpr"];function a(s,c){for(const t of u){const o=s.get(t);o&&!c.has(t)&&c.set(t,o)}}export{u as A,a as c};
