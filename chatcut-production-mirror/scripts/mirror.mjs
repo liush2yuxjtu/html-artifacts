@@ -1,5 +1,8 @@
+import { createWriteStream } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { Readable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
 import {
   discoverFeaturePaths,
@@ -17,6 +20,7 @@ const DIST = path.join(ROOT, 'dist');
 const ORIGIN = 'https://chatcut.io';
 const MEDIA_RE = /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|m4a|ogg|aac)(?:[?#].*)?$/i;
 const FONT_RE = /\.(?:woff2?|ttf|otf|eot)(?:[?#].*)?$/i;
+const VIDEO_RE = /\.(?:mp4|webm|mov|m4v)(?:[?#].*)?$/i;
 
 const FALLBACK_INTENT_HTML = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut · Copy → Edit Intent</title><style>body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fcfbfd;color:#211a13}main{max-width:920px;margin:auto;padding:64px 24px}h1{font-size:clamp(36px,7vw,72px);line-height:.98;letter-spacing:-.04em}p{font-size:18px;line-height:1.6;color:#6f675e}.flow{margin-top:36px;padding:28px;border:1px solid #e7e1d9;border-radius:18px;background:white;font-size:22px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}.card{padding:20px;border:1px solid #e7e1d9;border-radius:16px;background:white}.card b{display:block;margin-bottom:8px}@media(max-width:700px){.grid{grid-template-columns:1fr}}</style></head><body><main><p>ChatCut · interview prototype</p><h1>不是 rebuild。<br>复制原站，再直接编辑。</h1><div class="flow">原 production component → 保留原 layout / CSS / video / assets → 只增加一个本地 trigger → 原结果继续发生在原组件里。</div><div class="grid"><div class="card"><b>Homepage</b>Best Moments、Motion Graphics、Transcript、Image、Video、Music 变成原地 playable。</div><div class="card"><b>Feature pages</b>保持 production mirror，不扩散 redesign。</div><div class="card"><b>Captions / Pricing</b>原本已经清楚的交互保持不动。</div><div class="card"><b>核心目标</b>截图仍然像 ChatCut；点击以后才发现 demo 会继续。</div></div></main></body></html>`;
 
@@ -57,7 +61,7 @@ async function writeText(relativePath, content) {
   await fs.writeFile(target, content, 'utf8');
 }
 
-async function fetchWithRetry(url, { binary = false, attempts = 3, timeoutMs = 30000 } = {}) {
+async function fetchWithRetry(url, { attempts = 3, timeoutMs = 30000 } = {}) {
   let lastError;
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const controller = new AbortController();
@@ -68,11 +72,11 @@ async function fetchWithRetry(url, { binary = false, attempts = 3, timeoutMs = 3
         signal: controller.signal,
         headers: {
           'user-agent': 'Mozilla/5.0 ChatCutInterviewMirror/1.0',
-          accept: binary ? '*/*' : 'text/html,application/xhtml+xml',
+          accept: 'text/html,application/xhtml+xml',
         },
       });
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
-      return binary ? new Uint8Array(await response.arrayBuffer()) : await response.text();
+      return await response.text();
     } catch (error) {
       lastError = error;
       if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 300 * attempt));
@@ -81,6 +85,50 @@ async function fetchWithRetry(url, { binary = false, attempts = 3, timeoutMs = 3
     }
   }
   throw new Error(`Failed to fetch ${url}: ${lastError?.message ?? lastError}`);
+}
+
+async function downloadBinaryWithRetry(url, target, { attempts = 3, timeoutMs = 60000 } = {}) {
+  let lastError;
+  await ensureParent(target);
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const temp = `${target}.part-${process.pid}-${attempt}`;
+    try {
+      const response = await fetch(url, {
+        redirect: 'follow',
+        signal: controller.signal,
+        headers: {
+          'user-agent': 'Mozilla/5.0 ChatCutInterviewMirror/1.0',
+          accept: '*/*',
+          referer: `${ORIGIN}/`,
+        },
+      });
+      if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+      if (!response.body) throw new Error('response body is empty');
+
+      await pipeline(Readable.fromWeb(response.body), createWriteStream(temp));
+      const stat = await fs.stat(temp);
+      if (!stat.size) throw new Error('downloaded file is empty');
+      await fs.rename(temp, target);
+      return stat.size;
+    } catch (error) {
+      lastError = error;
+      await fs.rm(temp, { force: true }).catch(() => {});
+      if (attempt < attempts) await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  throw new Error(`Failed to fetch ${url}: ${lastError?.message ?? lastError}`);
+}
+
+export function rewriteRuntimeAssetUrls(html) {
+  return html
+    .replaceAll(`${ORIGIN}/_astro/`, '/_astro/')
+    .replaceAll('https:\\/\\/chatcut.io\\/_astro\\/', '\\/_astro\\/');
 }
 
 export function buildMediaMap(mediaResults, mediaMode) {
@@ -109,11 +157,13 @@ async function downloadMedia(mediaUrls, mediaMode) {
       const url = queue[index];
       const relative = assetOutputPath(url);
       const target = path.join(DIST, relative);
+      const isVideo = VIDEO_RE.test(url);
       try {
-        const bytes = await fetchWithRetry(url, { binary: true, attempts: 2, timeoutMs: 45000 });
-        await ensureParent(target);
-        await fs.writeFile(target, bytes);
-        results.push({ url, status: 'downloaded', localPath: `/${relative}`, bytes: bytes.byteLength });
+        const bytes = await downloadBinaryWithRetry(url, target, {
+          attempts: isVideo ? 4 : 3,
+          timeoutMs: isVideo ? 180000 : 60000,
+        });
+        results.push({ url, status: 'downloaded', localPath: `/${relative}`, bytes });
       } catch (error) {
         results.push({ url, status: 'failed', localPath: null, error: error.message });
       }
@@ -178,6 +228,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     const raw = pageHtml.get(pathname);
     let served = sanitizeHtml(raw);
     served = rewritePageLinks(served);
+    served = rewriteRuntimeAssetUrls(served);
     if (mediaMode === 'local') served = rewriteMediaUrls(served, mediaMap);
     if (pathname === '/') served = injectHomepagePatch(served, homepagePatchScript);
     await writeText(pageOutputPath(pathname), served);
@@ -204,10 +255,10 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     media: mediaResults,
     stylesheets: [...allStylesheets].sort(),
     scripts: [...allScripts].sort(),
-    fontPolicy: 'Font binaries are intentionally not copied; production stylesheets load them from the original host.',
+    runtimePolicy: 'Astro runtime, CSS, and font dependencies are served through the same-origin /_astro proxy.',
   }, null, 2));
 
-  return {
+  const summary = {
     pages: pageManifest.length,
     featurePages: featurePaths.length,
     mediaAssets: allMedia.size,
@@ -215,6 +266,13 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     failedMedia: mediaResults.filter(x => x.status === 'failed').length,
     mediaMode,
   };
+
+  if (mediaMode === 'local' && summary.failedMedia > 0) {
+    const failed = mediaResults.filter(x => x.status === 'failed');
+    throw new Error(`Local mirror is incomplete: ${failed.length} media asset(s) failed:\n${failed.map(item => `- ${item.url}: ${item.error}`).join('\n')}`);
+  }
+
+  return summary;
 }
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
