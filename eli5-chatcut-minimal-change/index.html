@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; frame-src https://chatcut.io https://www.chatcut.io; img-src data:; font-src data:; media-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>ChatCut · 最小改动对照</title>
+<style>
+:root{
+  --bg:#f7f6f2;--paper:#fff;--ink:#171714;--muted:#77756d;--line:#dedbd2;
+  --orange:#ff6b42;--blue:#dfeeff;--purple:#eee7ff;--green:#dff3e7;--dark:#22221f;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding:24px}
+button,a{font:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.wrap{max-width:1440px;margin:auto}
+.hero{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:18px}
+h1{font-size:clamp(28px,4vw,52px);line-height:1;margin:0;letter-spacing:-.04em}
+.sub{color:var(--muted);font-size:14px;max-width:620px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-width:0}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--line);font-weight:800}
+.badge{font-size:11px;border:1px solid var(--line);border-radius:999px;padding:5px 8px;color:var(--muted)}
+.live{height:760px;background:#fff}
+.live iframe{width:100%;height:100%;border:0;background:#fff}
+.fallback{display:none;padding:28px;text-align:center;color:var(--muted)}
+.mock{padding:14px;background:#fbfbfa;min-height:760px}
+.sitebar{height:46px;border:1px solid var(--line);border-radius:10px;background:#fff;display:flex;align-items:center;gap:12px;padding:0 12px;margin-bottom:16px}
+.logo{font-weight:900}.nav{display:flex;gap:12px;font-size:11px;color:var(--muted)}.cta{margin-left:auto;background:var(--dark);color:#fff;border:0;border-radius:8px;padding:7px 11px}
+.copy{padding:18px 6px 14px}
+.copy h2{font-size:34px;line-height:1.03;letter-spacing:-.04em;margin:0 0 8px}
+.copy p{color:var(--muted);margin:0 0 14px;font-size:13px}
+.editor{border:1px solid #cfcfc9;border-radius:13px;overflow:hidden;background:#101013;color:#f4f4f2}
+.chrome{height:38px;background:#1a1a1e;border-bottom:1px solid #303038;display:flex;align-items:center;padding:0 10px;gap:6px;font-size:11px;color:#9c9ca5}
+.dot{width:8px;height:8px;border-radius:50%;background:#444}
+.editor-grid{display:grid;grid-template-columns:170px 1fr}
+.side{border-right:1px solid #303038;background:#141418;padding:10px}
+.label{font-size:9px;letter-spacing:.1em;color:#777883;margin-bottom:8px;text-transform:uppercase}
+.moment{width:100%;border:1px solid transparent;background:transparent;color:#c5c5cd;border-radius:8px;text-align:left;padding:9px;margin-bottom:6px}
+.moment small{display:block;color:#71727c;margin-top:3px}
+.moment[aria-selected="true"]{background:#24242a;border-color:#383841;color:#fff}
+.workspace{min-width:0}
+.preview{height:360px;background:linear-gradient(135deg,#34435f,#9a5e48);display:grid;place-items:center;position:relative;overflow:hidden}
+.scene{font-size:34px;font-weight:900;letter-spacing:-.03em}
+.caption{position:absolute;bottom:24px;background:rgba(0,0,0,.65);padding:7px 10px;border-radius:7px;font-weight:800;font-size:14px}
+.jump{position:absolute;top:14px;right:14px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 8px;font-size:10px;color:#ddd}
+.timeline{background:#0e0e11;border-top:1px solid #303038;padding:12px}
+.ruler{display:flex;justify-content:space-between;font-size:9px;color:#65666f;margin-bottom:8px}
+.lane{height:30px;background:#19191e;border-radius:6px;position:relative;overflow:hidden;margin-bottom:7px}
+.clip{position:absolute;inset:0 auto 0 4%;width:73%;background:#dadbe0;border-radius:6px;color:#141418;font-size:9px;font-weight:800;display:flex;align-items:center;padding:0 7px}
+.clip.b{left:36%;width:24%;background:#82d5a5}
+.playhead{position:absolute;top:0;bottom:0;left:18%;width:2px;background:var(--orange);transition:left .22s ease}
+.tools{display:flex;gap:7px;flex-wrap:wrap;padding:10px;border-top:1px solid #303038;background:#141418}
+.tool{border:1px solid #383841;background:#1d1d22;color:#aaaab3;border-radius:7px;padding:6px 8px;font-size:10px}
+.tool.active{background:#fff;color:#161619;border-color:#fff}
+.eli5{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.step{border:1px solid var(--line);border-radius:12px;background:#fff;padding:13px;min-height:104px}
+.num{font-size:36px;font-weight:900;color:var(--orange);line-height:1}
+.step b{display:block;margin:4px 0}.step span{font-size:12px;color:var(--muted)}
+.note{margin-top:12px;color:var(--muted);font-size:12px;text-align:center}
+@media(max-width:900px){body{padding:12px}.hero{display:block}.sub{margin-top:8px}.compare{grid-template-columns:1fr}.live{height:620px}.mock{min-height:auto}.eli5{grid-template-columns:1fr 1fr 1fr}}
+@media(max-width:520px){.editor-grid{grid-template-columns:1fr}.side{border-right:0;border-bottom:1px solid #303038}.preview{height:260px}.eli5{grid-template-columns:1fr}.nav{display:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <div>
+      <h1>左边现在，右边只“接上按钮”。</h1>
+      <div class="sub">不换设计。不改文案。不重做 Hero。只让产品模型能点。</div>
+    </div>
+    <div class="badge">ELI5 · minimal change</div>
+  </header>
+
+  <section class="compare" aria-label="ChatCut 原版与最小改动对照">
+    <article class="panel">
+      <div class="panel-head"><span>左：真实 ChatCut.io</span><span class="badge">LIVE</span></div>
+      <div class="live">
+        <iframe src="https://chatcut.io/" title="真实 ChatCut.io 当前首页" loading="eager"></iframe>
+        <div class="fallback">如果浏览器阻止嵌入：<a href="https://chatcut.io/" target="_blank" rel="noopener">打开真实 ChatCut.io ↗</a></div>
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head"><span>右：同设计，只加可玩状态</span><span class="badge">FRONTEND ONLY</span></div>
+      <div class="mock">
+        <div class="sitebar">
+          <div class="logo">ChatCut</div>
+          <div class="nav"><span>Features</span><span>Resources</span><span>Plugin</span><span>Pricing</span></div>
+          <button class="cta" type="button">Try Now</button>
+        </div>
+
+        <div class="copy">
+          <h2>Your AI Video Editor</h2>
+          <p>Tell it everything you want, every thought you have. And ChatCut turns it all into a video.</p>
+        </div>
+
+        <div class="editor" aria-label="可玩的 ChatCut 前端模型">
+          <div class="chrome"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span style="margin-left:7px">Mal's Davinci Edited.mov</span></div>
+          <div class="editor-grid">
+            <aside class="side">
+              <div class="label">Best moments</div>
+              <button class="moment" type="button" aria-selected="true" data-pos="18" data-scene="Standings" data-caption="Standings B-roll"><b>0:04 Standings</b><small>Supporting B-roll</small></button>
+              <button class="moment" type="button" aria-selected="false" data-pos="47" data-scene="Speaker" data-caption="Keep this line"><b>0:09 Speaker</b><small>Best quote</small></button>
+              <button class="moment" type="button" aria-selected="false" data-pos="74" data-scene="Product" data-caption="Product moment"><b>0:14 Product</b><small>Close-up</small></button>
+            </aside>
+
+            <div class="workspace">
+              <div class="preview" id="preview">
+                <div class="scene" id="scene">Standings</div>
+                <div class="caption" id="caption">Standings B-roll</div>
+                <div class="jump" id="time">00:04.20</div>
+              </div>
+              <div class="timeline">
+                <div class="ruler"><span>00:00</span><span>00:05</span><span>00:10</span><span>00:15</span><span>00:19</span></div>
+                <div class="lane"><span class="clip">Mal's Davinci Edited.mov</span><span class="playhead" id="playhead"></span></div>
+                <div class="lane"><span class="clip b">Standings B-roll</span></div>
+              </div>
+              <div class="tools" aria-label="纯前端样式切换">
+                <button class="tool active" type="button" data-mode="clean">Clean captions</button>
+                <button class="tool" type="button" data-mode="pop">Pop captions</button>
+                <button class="tool" type="button" data-mode="chart">Bar chart overlay</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="eli5">
+          <div class="step"><div class="num">1</div><b>点</b><span>点一个 moment</span></div>
+          <div class="step"><div class="num">2</div><b>跳</b><span>playhead 原地跳</span></div>
+          <div class="step"><div class="num">3</div><b>换</b><span>preview 原地换</span></div>
+        </div>
+        <div class="note">没有后端。没有真 AI。只是把现有 mock GUI 接上 state。</div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+(() => {
+  const moments=[...document.querySelectorAll('.moment')];
+  const playhead=document.getElementById('playhead');
+  const scene=document.getElementById('scene');
+  const caption=document.getElementById('caption');
+  const time=document.getElementById('time');
+  const preview=document.getElementById('preview');
+  const times=['00:04.20','00:09.10','00:14.30'];
+  const colors=[
+    'linear-gradient(135deg,#34435f,#9a5e48)',
+    'linear-gradient(135deg,#315466,#4b8f81)',
+    'linear-gradient(135deg,#5e3c4f,#c17b51)'
+  ];
+  moments.forEach((b,i)=>b.addEventListener('click',()=>{
+    moments.forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));
+    playhead.style.left=b.dataset.pos+'%';
+    scene.textContent=b.dataset.scene;
+    caption.textContent=b.dataset.caption;
+    time.textContent=times[i];
+    preview.style.background=colors[i];
+  }));
+
+  const tools=[...document.querySelectorAll('.tool')];
+  tools.forEach(btn=>btn.addEventListener('click',()=>{
+    tools.forEach(x=>x.classList.toggle('active',x===btn));
+    const mode=btn.dataset.mode;
+    if(mode==='clean'){
+      caption.style.background='rgba(0,0,0,.65)';
+      caption.style.color='#fff';
+      caption.style.textTransform='none';
+      caption.textContent='Clean caption style';
+    }else if(mode==='pop'){
+      caption.style.background='transparent';
+      caption.style.color='#fff';
+      caption.style.textTransform='uppercase';
+      caption.textContent='POP CAPTION STYLE';
+    }else{
+      caption.style.background='#fff';
+      caption.style.color='#111';
+      caption.style.textTransform='none';
+      caption.textContent='▮▮▮ Bar chart overlay';
+    }
+  }));
+})();
+</script>
+</body>
+</html>
