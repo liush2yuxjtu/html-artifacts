@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<title>ChatCut · Copy First, Edit Second · ELI5</title>
+<style>
+:root{--bg:#f8f6f1;--paper:#fff;--ink:#241b15;--muted:#756d65;--line:#ded8cf;--orange:#ef6a3e;--green:#e7f3e9;--dark:#181512}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{width:min(1060px,calc(100% - 28px));margin:auto;padding:32px 0 48px}.kicker{font-size:10px;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(36px,6vw,66px);line-height:.98;letter-spacing:-.055em;margin:10px 0 14px;max-width:900px}.lead{font-size:15px;line-height:1.6;color:var(--muted);max-width:780px}.rule{margin:22px 0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;font-size:clamp(20px,3vw,30px);font-weight:900}.rule strong{color:var(--orange)}.flow{display:grid;grid-template-columns:1fr 44px 1fr 44px 1fr;align-items:center;gap:8px;margin:22px 0}.box{min-height:122px;border:1px solid var(--line);border-radius:14px;background:#fff;padding:14px;display:flex;flex-direction:column;justify-content:center}.box b{font-size:15px}.box span{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.45}.arrow{text-align:center;font-size:24px;color:#9a9188}.sections{display:grid;gap:9px}.item{display:grid;grid-template-columns:54px 1.1fr 1fr;gap:10px;border:1px solid var(--line);border-radius:13px;background:#fff;padding:12px;align-items:center}.n{font-size:25px;font-weight:950;color:var(--orange)}.item h2{font-size:14px;margin:0 0 3px}.item p{font-size:10px;line-height:1.45;color:var(--muted);margin:0}.result{border-radius:9px;background:var(--green);padding:9px;font-size:10px;line-height:1.45}.keep{background:#f0eee9}.scope{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:9px}.scope>div{border:1px solid var(--line);border-radius:13px;background:#fff;padding:14px}.scope h3{margin:0 0 5px;font-size:13px}.scope p{margin:0;color:var(--muted);font-size:10px;line-height:1.5}.cta{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.cta a{display:inline-block;padding:9px 12px;border-radius:9px;background:var(--dark);color:#fff;text-decoration:none;font-size:10px;font-weight:800}.cta a.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}.end{margin-top:24px;border-radius:16px;background:var(--dark);color:#fff;padding:18px}.end b{font-size:20px}.end p{font-size:11px;color:#d4ccc5;line-height:1.55;margin:7px 0 0}@media(max-width:720px){.flow{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.item{grid-template-columns:42px 1fr}.result{grid-column:2}.scope{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<div class="kicker">ChatCut · intent.html · ELI5</div>
+<h1>不重建官网。<br>是复制原站，然后只改“因果关系”。</h1>
+<p class="lead">这次的实现方式很简单：先把当前 ChatCut production page 和所有英文 feature pages 原样镜像下来。Homepage 保留原组件、原布局、原视频、原图片；只在需要的地方加一个很小的动作。</p>
+<div class="rule"><strong>原组件</strong> → 一个动作 → <strong>原结果继续</strong></div>
+<section class="flow" aria-label="ELI5 flow"><div class="box"><b>① 原组件</b><span>真实 ChatCut DOM / copy / video / timeline / cards。</span></div><div class="arrow">→</div><div class="box"><b>② 一个动作</b><span>Send 或 Generate。只增加一个明确触发器。</span></div><div class="arrow">→</div><div class="box"><b>③ 原结果</b><span>同一个组件继续播放、删除、生成、出现。不跳走。</span></div></section>
+<section class="sections">
+<div class="item"><div class="n">1</div><div><h2>Edit Like an Expert Editor</h2><p>原 Best Moments、三条素材轨、原 final-clip.mp4 都保留。</p></div><div class="result">Send → 原动画继续 → 原 playhead 往前 → 原 final clip 播放。</div></div>
+<div class="item"><div class="n">2</div><div><h2>AI Motion Graphics</h2><p>原 cards、tabs、Remotion 结果全部保留。</p></div><div class="result">Generate → 已存在的真实结果在原位置显现。</div></div>
+<div class="item"><div class="n">3</div><div><h2>Text-Based Editing</h2><p>原 Transcript 和 filler word DOM 保留。</p></div><div class="result">Clean filler words → 原 filler nodes 被删/折叠 → 原状态更新。</div></div>
+<div class="item"><div class="n">4</div><div><h2>Auto AI Captions</h2><p>当前官网已经讲清楚，不为了互动而互动。</p></div><div class="result keep">KEEP：原 video + word timing + style rail。</div></div>
+<div class="item"><div class="n">5</div><div><h2>AI Image Generation</h2><p>原 section、prompt、option dock、generated asset 保留。</p></div><div class="result">先原始 boring source → Generate → 原 generated result 出现。</div></div>
+<div class="item"><div class="n">6</div><div><h2>AI Video Generation</h2><p>原 reference、poster 和真实 preview.mp4 保留。</p></div><div class="result">Reference → Generate → loading → 原视频播放。</div></div>
+<div class="item"><div class="n">6.5</div><div><h2>AI Music Generator</h2><p>原 waveform、album cover、genre controls 全保留。</p></div><div class="result">Silent source → prompt → 原 music result UI / waveform 出现。</div></div>
+<div class="item"><div class="n">7</div><div><h2>Pricing</h2><p>不重画 pricing cards。</p></div><div class="result keep">KEEP：production Monthly / Annual behavior。</div></div>
+</section>
+<section class="scope"><div><h3>Homepage</h3><p>唯一进行 Cursor-style playable 改动。所有 demo 共用同一个本地 DemoSession。</p></div><div><h3>Feature pages</h3><p>只做 production mirror：原 HTML、原组件、原媒体。没有 homepage interaction patch。</p></div></section>
+<div class="cta"><a href="/">打开 Playable Homepage</a><a class="secondary" href="/features">查看 Mirrored Feature Pages</a></div>
+<section class="end"><b>一句话：</b><p>截图看起来还是 ChatCut；只有当你点击 Send / Generate 时，才发现原来的产品 demo 真的会继续。</p></section>
+</main></body></html>
