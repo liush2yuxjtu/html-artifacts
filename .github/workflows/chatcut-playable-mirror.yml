@@ -29,6 +29,8 @@ jobs:
           node-version: '20'
       - name: Fetch production ChatCut and build playable copy
         run: node chatcut-mirror-src/build.mjs
+      - name: Localize production Astro runtime
+        run: node chatcut-mirror-src/localize-runtime.mjs
       - name: Apply local interaction hit-test fix
         run: node chatcut-mirror-src/postbuild-fix.mjs
       - name: Apply snapshot-driven visual polish
@@ -40,6 +42,8 @@ jobs:
           grep -q 'data-cc-playable-patch' chatcut-playable/index.html
           grep -q 'data-cc-playable-layer-fix' chatcut-playable/index.html
           grep -q 'data-cc-playable-visual-fix' chatcut-playable/index.html
+          grep -q 'name="cc-runtime-localized"' chatcut-playable/index.html
+          test -n "$(find chatcut-playable/_astro -type f -name '*.js' -print -quit)"
           grep -q 'ccPlayableVersion' chatcut-playable/index.html
           grep -q 'best-moments' chatcut-playable/index.html
           grep -q 'transcript-captions' chatcut-playable/index.html
@@ -49,6 +53,10 @@ jobs:
         run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0 sharp@0.34.3
       - name: Install Chromium for QA
         run: /tmp/chatcut-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify localized runtime and native controls
+        env:
+          NODE_PATH: /tmp/chatcut-qa/node_modules
+        run: node chatcut-mirror-src/runtime-qa.cjs
       - name: Run playable interaction QA and capture snapshots
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
