@@ -63,6 +63,10 @@ jobs:
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
         run: node chatcut-mirror-src/runtime-qa.cjs
+      - name: Compare full-page hydration journey with production
+        env:
+          NODE_PATH: /tmp/chatcut-qa/node_modules
+        run: node chatcut-mirror-src/journey-qa.cjs
       - name: Run playable interaction QA and capture snapshots
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
