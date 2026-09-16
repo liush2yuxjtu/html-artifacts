@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run mirror:full",
+  "outputDirectory": "dist",
+  "framework": null,
+  "cleanUrls": true
+}
