@@ -212,12 +212,17 @@ export function rewriteMediaUrls(html, urlToLocalPath) {
   return out;
 }
 
-export function injectHomepagePatch(html) {
+export function injectHomepagePatch(html, scriptText = '') {
   let out = html;
   if (!out.includes('/patches/home.css')) {
     out = out.replace(/<\/head\s*>/i, '<link rel="stylesheet" href="/patches/home.css"></head>');
   }
-  if (!out.includes('/patches/home.js')) {
+  if (scriptText) {
+    if (!out.includes('data-cc-home-patch="inline"')) {
+      const safeScript = scriptText.replace(/<\/script/gi, '<\\/script');
+      out = out.replace(/<\/body\s*>/i, `<script data-cc-home-patch="inline">${safeScript}</script></body>`);
+    }
+  } else if (!out.includes('/patches/home.js')) {
     out = out.replace(/<\/body\s*>/i, '<script defer src="/patches/home.js"></script></body>');
   }
   return out;
