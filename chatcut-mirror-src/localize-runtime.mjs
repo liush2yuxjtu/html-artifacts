@@ -41,7 +41,7 @@ async function fetchAsset(url) {
     redirect: 'follow',
     cache: 'no-store',
     headers: {
-      'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.1',
+      'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.0',
       accept: '*/*',
       'cache-control': 'no-cache',
       pragma: 'no-cache',
@@ -78,15 +78,6 @@ async function mirrorAsset(rawUrl, base = `${ORIGIN}/`) {
       return `${quote}${browserSpec(url, dep.href)}${quote}`;
     });
 
-    // The frozen SSR HTML has root-relative marketing links/media absoluteized
-    // to chatcut.io. Apply the same normalization inside hydrated React chunks
-    // so server markup and client render stay byte-for-byte compatible instead
-    // of producing React hydration error #418 on the mirror host.
-    source = source.replace(/(["'`])(\/(?!\/)[A-Za-z0-9._~!$&()*+,;=:@%/?#-]+)\1/g, (match, quote, spec) => {
-      if (spec.startsWith('/_astro/')) return match;
-      return `${quote}${ORIGIN}${spec}${quote}`;
-    });
-
     await fs.writeFile(file, source, 'utf8');
     mirrored.push(pathname);
     for (const dep of dependencies) await mirrorAsset(dep, url);
@@ -102,14 +93,9 @@ async function mirrorAsset(rawUrl, base = `${ORIGIN}/`) {
       if (!trimmed || /^data:/i.test(trimmed)) return match;
       let dep;
       try { dep = normalize(trimmed, url); } catch { return match; }
-      if (isAstroAsset(dep.href)) {
-        dependencies.add(dep.href);
-        return `url(${quote}${browserSpec(url, dep.href)}${quote})`;
-      }
-      if (dep.origin === ORIGIN && trimmed.startsWith('/')) {
-        return `url(${quote}${dep.href}${quote})`;
-      }
-      return match;
+      if (!isAstroAsset(dep.href)) return match;
+      dependencies.add(dep.href);
+      return `url(${quote}${browserSpec(url, dep.href)}${quote})`;
     });
 
     await fs.writeFile(file, source, 'utf8');
