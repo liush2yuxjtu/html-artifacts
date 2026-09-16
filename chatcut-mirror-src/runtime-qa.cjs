@@ -4,6 +4,7 @@ const path = require('node:path');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve('chatcut-playable');
+const INDEX = path.join(ROOT, 'index.html');
 const PORT = 4174;
 const PAGE_URL = `http://127.0.0.1:${PORT}/?runtime-qa=1`;
 const PRODUCTION_URL = 'https://chatcut.io/?runtime-qa-baseline=1';
@@ -17,8 +18,18 @@ function type(file) {
   if (/\.webp$/i.test(file)) return 'image/webp';
   if (/\.jpe?g$/i.test(file)) return 'image/jpeg';
   if (/\.mp4$/i.test(file)) return 'video/mp4';
-  if (/\.woff2$/i.test(file)) return 'font/woff2';
+  if (/\.woff2?$/i.test(file)) return 'font/woff2';
   return 'application/octet-stream';
+}
+
+function disableIsland(html, index) {
+  let cursor = -1;
+  return html.replace(/<astro-island\b[^>]*>/gi, tag => {
+    cursor += 1;
+    if (cursor !== index) return tag;
+    if (!/\ssr(?:=(?:""|'')?)?(?=\s|>)/i.test(tag)) return tag;
+    return tag.replace(/\ssr(?:=(?:""|'')?)?(?=\s|>)/i, ' data-cc-disabled-ssr="1"');
+  });
 }
 
 function server() {
@@ -28,12 +39,16 @@ function server() {
     try { pathname = decodeURIComponent(u.pathname); } catch { pathname = u.pathname; }
     if (pathname === '/') pathname = '/index.html';
     const file = path.resolve(ROOT, '.' + pathname);
-    if (!file.startsWith(ROOT + path.sep) && file !== path.join(ROOT, 'index.html')) {
+    if (!file.startsWith(ROOT + path.sep) && file !== INDEX) {
       res.writeHead(403).end('Forbidden');
       return;
     }
     fs.readFile(file, (err, data) => {
       if (err) return res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
+      if (file === INDEX && u.searchParams.has('disable-island')) {
+        const index = Number(u.searchParams.get('disable-island'));
+        data = Buffer.from(disableIsland(data.toString('utf8'), index));
+      }
       res.writeHead(200, { 'content-type': type(file), 'cache-control': 'no-store' });
       res.end(data);
     });
@@ -52,23 +67,43 @@ function signature(message) {
   return message.replace(/https?:\/\/[^\s)]+/g, '<url>').slice(0, 240);
 }
 
+function islandMetadata() {
+  const html = fs.readFileSync(INDEX, 'utf8');
+  return Array.from(html.matchAll(/<astro-island\b[^>]*>/gi)).map((match, index) => {
+    const tag = match[0];
+    const componentUrl = tag.match(/component-url=(?:"([^"]+)"|'([^']+)')/i);
+    const componentExport = tag.match(/component-export=(?:"([^"]+)"|'([^']+)')/i);
+    const client = tag.match(/client=(?:"([^"]+)"|'([^']+)')/i);
+    return {
+      index,
+      componentUrl: componentUrl?.[1] || componentUrl?.[2] || null,
+      componentExport: componentExport?.[1] || componentExport?.[2] || null,
+      client: client?.[1] || client?.[2] || null,
+    };
+  });
+}
+
+async function collectErrors(browser, url, waitMs = 1400) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors = [];
+  page.on('pageerror', e => errors.push(String(e?.message || e)));
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
+    await page.waitForTimeout(waitMs);
+  } finally {
+    await page.close();
+  }
+  return relevant(errors);
+}
+
 (async () => {
   const s = server();
   await new Promise((resolve, reject) => { s.once('error', reject); s.listen(PORT, '127.0.0.1', resolve); });
   const browser = await chromium.launch({ headless: true });
 
   try {
-    const baselinePage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    const baselineErrors = [];
-    baselinePage.on('pageerror', e => baselineErrors.push(String(e?.message || e)));
-    try {
-      await baselinePage.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-      await baselinePage.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
-      await baselinePage.waitForTimeout(1800);
-    } finally {
-      await baselinePage.close();
-    }
-    const baselineRelevant = relevant(baselineErrors);
+    const baselineRelevant = await collectErrors(browser, PRODUCTION_URL, 1800);
     const baselineSignatures = new Set(baselineRelevant.map(signature));
 
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -77,7 +112,7 @@ function signature(message) {
     page.on('pageerror', e => errors.push(String(e?.message || e)));
     page.on('requestfailed', req => {
       const url = req.url();
-      if (url.includes('/_astro/') && /\.m?js(?:\?|$)/.test(url)) failed.push(`${req.failure()?.errorText || 'failed'} ${url}`);
+      if (url.includes('/_astro/')) failed.push(`${req.failure()?.errorText || 'failed'} ${url}`);
     });
 
     try {
@@ -108,6 +143,19 @@ function signature(message) {
 
       const localRelevant = relevant(errors);
       const localOnlyErrors = localRelevant.filter(message => !baselineSignatures.has(signature(message)));
+      let hydrationIsolation = [];
+      if (localOnlyErrors.some(message => /Minified React error #418/i.test(message))) {
+        const islands = islandMetadata();
+        for (const island of islands) {
+          const isolatedErrors = await collectErrors(browser, `http://127.0.0.1:${PORT}/?disable-island=${island.index}`, 1200);
+          hydrationIsolation.push({
+            ...island,
+            errors: isolatedErrors.map(signature),
+            removes418: !isolatedErrors.some(message => /Minified React error #418/i.test(message)),
+          });
+        }
+      }
+
       const result = {
         localizedCount,
         astroIslands,
@@ -115,12 +163,13 @@ function signature(message) {
         productionBaselineErrors: baselineRelevant,
         pageErrors: localRelevant,
         localOnlyErrors,
-        failedAstroRequests: failed,
+        failedAssetRequests: failed,
+        hydrationIsolation,
       };
       const failures = [];
       if (!(localizedCount > 0)) failures.push('runtime-not-localized');
       if (localOnlyErrors.length) failures.push('local-only-page-errors');
-      if (failed.length) failures.push('astro-request-failures');
+      if (failed.length) failures.push('asset-request-failures');
       if (!captionsChanged) failures.push('captions-native-control');
       console.log(JSON.stringify({ ...result, failures }, null, 2));
       if (failures.length) process.exitCode = 1;
