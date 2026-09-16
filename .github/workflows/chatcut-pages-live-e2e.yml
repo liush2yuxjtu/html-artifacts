@@ -3,6 +3,7 @@ name: ChatCut Pages live E2E
 on:
   pull_request:
     paths:
+      - '.nojekyll'
       - 'chatcut-mirror-src/**'
       - 'chatcut-playable/**'
       - '.github/workflows/chatcut-pages-live-e2e.yml'
@@ -12,12 +13,18 @@ permissions:
   contents: read
 
 jobs:
-  deployed-pages-playwright:
+  pages-playwright:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Verify Pages publishing source keeps underscore assets
+        run: |
+          test -f .nojekyll
+          test -s chatcut-playable/index.html
+          test -n "$(find chatcut-playable/_astro -type f -name '*.js' -print -quit)"
+          test -n "$(find chatcut-playable/_astro -type f -name '*.css' -print -quit)"
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -27,12 +34,30 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install playwright==1.55.0
           python -m playwright install --with-deps chromium
-      - name: Test the exact public GitHub Pages URL
+      - name: Capture current public Pages incident
+        continue-on-error: true
         env:
           CHATCUT_PAGES_URL: https://liush2yuxjtu.github.io/html-artifacts/chatcut-playable/?utm_source=chatgpt.com
-          CHATCUT_E2E_OUT: chatcut-pages-e2e
+          CHATCUT_EXPECTED_HOST: liush2yuxjtu.github.io
+          CHATCUT_E2E_OUT: chatcut-pages-e2e/live
         run: python chatcut-mirror-src/pages-e2e.py
-      - name: Upload screenshots and browser report
+      - name: Start exact Pages-subpath simulation from PR checkout
+        run: |
+          python -m http.server 4173 --bind 127.0.0.1 > /tmp/chatcut-pages-http.log 2>&1 &
+          echo $! > /tmp/chatcut-pages-http.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/chatcut-playable/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/chatcut-pages-http.log
+          exit 1
+      - name: Test PR at the exact GitHub Pages subpath shape
+        env:
+          CHATCUT_PAGES_URL: http://127.0.0.1:4173/chatcut-playable/?utm_source=chatgpt.com
+          CHATCUT_EXPECTED_HOST: 127.0.0.1
+          CHATCUT_E2E_OUT: chatcut-pages-e2e/prefix-simulation
+        run: python chatcut-mirror-src/pages-e2e.py
+      - name: Upload screenshots and browser reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
