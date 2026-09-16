@@ -35,9 +35,9 @@ test('raw snapshots use stable audit paths', () => {
   assert.equal(outputPathForRawSnapshot('/features/ai-music'), '_raw/features/ai-music.source.html');
 });
 
-test('vercel config builds to dist and dist is gitignored', async () => {
+test('vercel config builds full mirrored media to dist and dist is gitignored', async () => {
   const vercel = JSON.parse(await fs.readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
-  assert.equal(vercel.buildCommand, 'npm run build');
+  assert.equal(vercel.buildCommand, 'npm run mirror:full');
   assert.equal(vercel.outputDirectory, 'dist');
   const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
   assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
