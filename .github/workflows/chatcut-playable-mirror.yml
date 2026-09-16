@@ -29,13 +29,24 @@ jobs:
           node-version: '20'
       - name: Fetch production ChatCut and build playable copy
         run: node chatcut-mirror-src/build.mjs
-      - name: Verify generated homepage
+      - name: Verify generated homepage contract
         run: |
           test -s chatcut-playable/index.html
           grep -q 'Your AI Video Editor' chatcut-playable/index.html
           grep -q 'data-cc-playable-patch' chatcut-playable/index.html
+          grep -q 'ccPlayableVersion' chatcut-playable/index.html
           grep -q 'best-moments' chatcut-playable/index.html
+          grep -q 'transcript-captions' chatcut-playable/index.html
+          grep -q 'image-to-video' chatcut-playable/index.html
           grep -q 'music-generation' chatcut-playable/index.html
+      - name: Install browser QA dependency
+        run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0
+      - name: Install Chromium for QA
+        run: /tmp/chatcut-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run playable interaction QA
+        env:
+          NODE_PATH: /tmp/chatcut-qa/node_modules
+        run: node chatcut-mirror-src/qa.cjs
       - name: Commit generated playable site
         run: |
           git config user.name 'github-actions[bot]'
