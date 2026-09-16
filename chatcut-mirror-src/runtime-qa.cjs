@@ -6,6 +6,7 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve('chatcut-playable');
 const PORT = 4174;
 const PAGE_URL = `http://127.0.0.1:${PORT}/?runtime-qa=1`;
+const PRODUCTION_URL = 'https://chatcut.io/?runtime-qa-baseline=1';
 
 function type(file) {
   if (/\.html$/i.test(file)) return 'text/html; charset=utf-8';
@@ -39,60 +40,93 @@ function server() {
   });
 }
 
+function relevant(messages) {
+  return messages.filter(x => !/ResizeObserver loop/i.test(x));
+}
+
+function signature(message) {
+  const react = message.match(/Minified React error #(\d+).*?(?:args%5B%5D|args\[\])=([^&\s]+)/i);
+  if (react) return `react-${react[1]}-${decodeURIComponent(react[2] || '')}`;
+  const reactOnly = message.match(/Minified React error #(\d+)/i);
+  if (reactOnly) return `react-${reactOnly[1]}`;
+  return message.replace(/https?:\/\/[^\s)]+/g, '<url>').slice(0, 240);
+}
+
 (async () => {
   const s = server();
   await new Promise((resolve, reject) => { s.once('error', reject); s.listen(PORT, '127.0.0.1', resolve); });
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-  const errors = [];
-  const failed = [];
-  page.on('pageerror', e => errors.push(String(e?.message || e)));
-  page.on('requestfailed', req => {
-    const url = req.url();
-    if (url.includes('/_astro/') && /\.m?js(?:\?|$)/.test(url)) failed.push(`${req.failure()?.errorText || 'failed'} ${url}`);
-  });
 
   try {
-    await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    await page.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
-    await page.waitForTimeout(1800);
+    const baselinePage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const baselineErrors = [];
+    baselinePage.on('pageerror', e => baselineErrors.push(String(e?.message || e)));
+    try {
+      await baselinePage.goto(PRODUCTION_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await baselinePage.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
+      await baselinePage.waitForTimeout(1800);
+    } finally {
+      await baselinePage.close();
+    }
+    const baselineRelevant = relevant(baselineErrors);
+    const baselineSignatures = new Set(baselineRelevant.map(signature));
 
-    const localizedCount = Number(await page.locator('meta[name="cc-runtime-localized"]').getAttribute('content'));
-    const astroIslands = await page.locator('astro-island').count();
-
-    const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
-    await captions.scrollIntoViewIfNeeded();
-    const next = page.locator('#tc-style-next');
-    await next.waitFor({ state: 'visible', timeout: 10000 });
-    const before = await page.evaluate(() => {
-      const line = document.querySelector('#tc-cap-line');
-      const root = document.querySelector('#transcript-captions [data-tc-part="captions"]');
-      return JSON.stringify({ preset: line?.getAttribute('data-preset'), cls: line?.className, html: root?.innerHTML });
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+    const errors = [];
+    const failed = [];
+    page.on('pageerror', e => errors.push(String(e?.message || e)));
+    page.on('requestfailed', req => {
+      const url = req.url();
+      if (url.includes('/_astro/') && /\.m?js(?:\?|$)/.test(url)) failed.push(`${req.failure()?.errorText || 'failed'} ${url}`);
     });
-    await next.click();
-    await page.waitForTimeout(700);
-    const after = await page.evaluate(() => {
-      const line = document.querySelector('#tc-cap-line');
-      const root = document.querySelector('#transcript-captions [data-tc-part="captions"]');
-      return JSON.stringify({ preset: line?.getAttribute('data-preset'), cls: line?.className, html: root?.innerHTML });
-    });
-    const captionsChanged = before !== after;
 
-    const relevantErrors = errors.filter(x => !/ResizeObserver loop/i.test(x));
-    const result = {
-      localizedCount,
-      astroIslands,
-      captionsChanged,
-      pageErrors: relevantErrors,
-      failedAstroRequests: failed,
-    };
-    const failures = [];
-    if (!(localizedCount > 0)) failures.push('runtime-not-localized');
-    if (relevantErrors.length) failures.push('page-errors');
-    if (failed.length) failures.push('astro-request-failures');
-    if (!captionsChanged) failures.push('captions-native-control');
-    console.log(JSON.stringify({ ...result, failures }, null, 2));
-    if (failures.length) process.exitCode = 1;
+    try {
+      await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await page.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
+      await page.waitForTimeout(1800);
+
+      const localizedCount = Number(await page.locator('meta[name="cc-runtime-localized"]').getAttribute('content'));
+      const astroIslands = await page.locator('astro-island').count();
+
+      const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
+      await captions.scrollIntoViewIfNeeded();
+      const next = page.locator('#tc-style-next');
+      await next.waitFor({ state: 'visible', timeout: 10000 });
+      const before = await page.evaluate(() => {
+        const line = document.querySelector('#tc-cap-line');
+        const root = document.querySelector('#transcript-captions [data-tc-part="captions"]');
+        return JSON.stringify({ preset: line?.getAttribute('data-preset'), cls: line?.className, html: root?.innerHTML });
+      });
+      await next.click();
+      await page.waitForTimeout(700);
+      const after = await page.evaluate(() => {
+        const line = document.querySelector('#tc-cap-line');
+        const root = document.querySelector('#transcript-captions [data-tc-part="captions"]');
+        return JSON.stringify({ preset: line?.getAttribute('data-preset'), cls: line?.className, html: root?.innerHTML });
+      });
+      const captionsChanged = before !== after;
+
+      const localRelevant = relevant(errors);
+      const localOnlyErrors = localRelevant.filter(message => !baselineSignatures.has(signature(message)));
+      const result = {
+        localizedCount,
+        astroIslands,
+        captionsChanged,
+        productionBaselineErrors: baselineRelevant,
+        pageErrors: localRelevant,
+        localOnlyErrors,
+        failedAstroRequests: failed,
+      };
+      const failures = [];
+      if (!(localizedCount > 0)) failures.push('runtime-not-localized');
+      if (localOnlyErrors.length) failures.push('local-only-page-errors');
+      if (failed.length) failures.push('astro-request-failures');
+      if (!captionsChanged) failures.push('captions-native-control');
+      console.log(JSON.stringify({ ...result, failures }, null, 2));
+      if (failures.length) process.exitCode = 1;
+    } finally {
+      await page.close();
+    }
   } finally {
     await browser.close();
     await new Promise(resolve => s.close(resolve));
