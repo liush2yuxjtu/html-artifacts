@@ -64,6 +64,7 @@ async function scrollJourney(browser, url, local = false) {
   const page = await browser.newPage({ viewport:{ width:1440, height:1000 } });
   const errors = [];
   const failedAssets = [];
+  const steps = [];
   page.on('pageerror', e => errors.push(String(e?.message || e)));
   page.on('requestfailed', req => {
     if (local && req.url().includes('/_astro/')) {
@@ -74,22 +75,24 @@ async function scrollJourney(browser, url, local = false) {
     await page.goto(url, { waitUntil:'domcontentloaded', timeout:60000 });
     await page.locator('h1').first().waitFor({ state:'visible', timeout:30000 });
     await page.waitForTimeout(900);
+    let seenErrors = relevant(errors).length;
     for (const selector of TARGETS) {
       const exists = await page.locator(selector).first().count();
-      if (!exists) continue;
-      for (let attempt = 0; attempt < 4; attempt += 1) {
-        try {
-          await page.evaluate(sel => {
-            document.querySelector(sel)?.scrollIntoView({ block:'center', inline:'nearest' });
-          }, selector);
-          break;
-        } catch {}
+      if (!exists) {
+        steps.push({ selector, exists:false, newErrors:[] });
+        continue;
       }
-      await page.waitForTimeout(850);
+      await page.evaluate(sel => {
+        document.querySelector(sel)?.scrollIntoView({ block:'center', inline:'nearest' });
+      }, selector);
+      await page.waitForTimeout(950);
+      const now = relevant(errors);
+      steps.push({ selector, exists:true, newErrors:now.slice(seenErrors) });
+      seenErrors = now.length;
     }
     await page.evaluate(() => window.scrollTo({ top:0, behavior:'instant' }));
     await page.waitForTimeout(500);
-    return { errors: relevant(errors), failedAssets };
+    return { errors: relevant(errors), failedAssets, steps };
   } finally {
     await page.close();
   }
@@ -109,7 +112,9 @@ async function scrollJourney(browser, url, local = false) {
     if (local.failedAssets.length) failures.push('local-astro-request-failures');
     console.log(JSON.stringify({
       productionErrors: live.errors,
+      productionSteps: live.steps,
       localErrors: local.errors,
+      localSteps: local.steps,
       localOnlyErrors,
       localFailedAstroRequests: local.failedAssets,
       failures,
