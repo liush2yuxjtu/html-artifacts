@@ -6,7 +6,7 @@ Pattern follows anthropics/skills:webapp-testing:
 - wait for rendered/network state
 - capture screenshots + browser failures
 - discover stable selectors from the rendered page
-- exercise one real visible interaction
+- exercise the real scroll/hydration journey and one visible interaction
 
 The same script runs against the real public Pages URL and a local server mounted
 at the exact `/chatcut-playable/` subpath so a fix can be proven before merge.
@@ -36,6 +36,40 @@ def visible(locator) -> bool:
         return locator.count() > 0 and locator.first.is_visible()
     except Exception:
         return False
+
+
+def scroll_hydration_journey(page) -> list[dict[str, object]]:
+    """Scroll the actual page so Astro `client:visible` islands get a chance to hydrate."""
+    steps: list[dict[str, object]] = []
+    selectors = [
+        "#best-moments",
+        "#motion-graphics",
+        "#transcript-captions",
+        "#image-to-video",
+        "#music-generation",
+        "#pricing",
+        "footer",
+    ]
+    for selector in selectors:
+        locator = page.locator(selector).first
+        if locator.count() == 0:
+            steps.append({"selector": selector, "exists": False})
+            continue
+        try:
+            locator.scroll_into_view_if_needed(timeout=10_000)
+        except Exception:
+            page.evaluate("sel => document.querySelector(sel)?.scrollIntoView({block:'center'})", selector)
+        page.wait_for_timeout(850)
+        steps.append(
+            {
+                "selector": selector,
+                "exists": True,
+                "pending": locator.evaluate("el => Boolean(el.closest('astro-island[ssr]') || el.querySelector('astro-island[ssr]'))"),
+            }
+        )
+    page.evaluate("() => window.scrollTo({top:0, behavior:'instant'})")
+    page.wait_for_timeout(600)
+    return steps
 
 
 def main() -> int:
@@ -85,9 +119,8 @@ def main() -> int:
         except PlaywrightTimeoutError:
             report["networkidle"] = False
 
-        # The playable boot intentionally waits for lazy Astro hydration before
-        # mutating demo DOM. Give it enough wall time to settle before inspection.
-        page.wait_for_timeout(6_000)
+        page.wait_for_timeout(1_200)
+        report["scroll_journey"] = scroll_hydration_journey(page)
 
         report["title"] = page.title()
         report["h1"] = page.locator("h1").first.inner_text().strip() if page.locator("h1").count() else ""
@@ -137,8 +170,6 @@ def main() -> int:
         report["interaction_ok"] = interaction_ok
         report["interaction_status"] = interaction_status
 
-        # A phone snapshot catches the common "looks loaded but is unusable"
-        # failure caused by overflow or hidden controls.
         mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
         mobile = mobile_context.new_page()
         mobile_response = mobile.goto(TARGET, wait_until="domcontentloaded", timeout=60_000)
@@ -146,7 +177,8 @@ def main() -> int:
             mobile.wait_for_load_state("networkidle", timeout=20_000)
         except PlaywrightTimeoutError:
             pass
-        mobile.wait_for_timeout(6_000)
+        mobile.wait_for_timeout(1_200)
+        scroll_hydration_journey(mobile)
         mobile.screenshot(path=str(OUT / "mobile.png"), full_page=True, animations="disabled")
         report["mobile_status"] = mobile_response.status if mobile_response else None
         report["mobile_overflow"] = mobile.evaluate(
@@ -171,7 +203,7 @@ def main() -> int:
         if report["playable_version"] != "2":
             failures.append("playable-patch-not-booted")
         if int(report["pending_astro_islands"] or 0) > 0:
-            failures.append("astro-islands-still-pending")
+            failures.append("astro-islands-still-pending-after-scroll")
         if int(report["local_send_count"] or 0) == 0:
             failures.append("no-playable-controls")
         if not bool(report["expert_send_visible"]):
