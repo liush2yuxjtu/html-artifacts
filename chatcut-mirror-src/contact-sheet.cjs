@@ -18,6 +18,15 @@ const orderedShots = pages.flatMap(([title, files]) => files.map((file, index) =
   file,
   label: files.length === 1 ? 'Rendered' : index === 0 ? 'Before' : index === 1 ? 'After' : 'Native',
 })));
+const reviewThumbs = [
+  '02-expert-before.png',
+  '04-motion-before.png',
+  '05-motion-after.png',
+  '09-image-before.png',
+  '10-image-after.png',
+  '13-music-before.png',
+  '14-music-after.png',
+];
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
@@ -41,6 +50,21 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 </style></head><body>${pageHtml}</body></html>`;
 
 fs.writeFileSync(path.join(SNAP_ROOT, 'contact-sheet.html'), html, 'utf8');
+
+async function makeReviewThumbs() {
+  const outDir = path.join(SNAP_ROOT, 'review-thumbs');
+  fs.rmSync(outDir, { recursive: true, force: true });
+  fs.mkdirSync(outDir, { recursive: true });
+  for (const file of reviewThumbs) {
+    const base = file.replace(/\.png$/i, '');
+    const jpeg = await sharp(path.join(SNAP_ROOT, file))
+      .resize({ width: 520, withoutEnlargement: true })
+      .flatten({ background: '#fcfbfd' })
+      .jpeg({ quality: 68, mozjpeg: true })
+      .toBuffer();
+    fs.writeFileSync(path.join(outDir, `${base}.jpg.b64.txt`), jpeg.toString('base64'), 'utf8');
+  }
+}
 
 async function makeMosaic() {
   const tileW = 320;
@@ -67,7 +91,6 @@ async function makeMosaic() {
     .jpeg({ quality: 78 })
     .toFile(mosaicPath);
 
-  // A tiny, palette-quantized representation is committed as text so automated reviewers can reconstruct pixels.
   const tinyW = 128;
   const tinyH = Math.round(outH * tinyW / outW);
   const { data } = await sharp(mosaicPath).resize(tinyW, tinyH, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -100,6 +123,7 @@ async function makeMosaic() {
 }
 
 (async () => {
+  await makeReviewThumbs();
   await makeMosaic();
   const browser = await chromium.launch({ headless: true });
   try {
@@ -124,7 +148,7 @@ async function makeMosaic() {
   } finally {
     await browser.close();
   }
-  console.log('Generated contact-sheet.pdf, contact-sheet.jpg, and contact-sheet-visual.txt');
+  console.log('Generated contact sheet, visual mosaic, and review thumbnails');
 })().catch(error => {
   console.error(error?.stack || error);
   process.exit(1);
