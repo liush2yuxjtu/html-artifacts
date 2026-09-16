@@ -53,6 +53,7 @@ export function extractAssetUrls(html, pageUrl) {
   const scripts = new Set();
 
   const consider = (raw) => {
+    if (String(raw).includes('${')) return;
     const absolute = toAbsolute(raw, pageUrl);
     if (!absolute) return;
     if (FONT_EXT_RE.test(absolute)) return;
@@ -81,11 +82,11 @@ export function extractAssetUrls(html, pageUrl) {
     consider(match[1]);
   }
 
-  for (const match of decoded.matchAll(/https?:\/\/[^\s"'<>]+/gi)) {
+  for (const match of decoded.matchAll(/https?:\/\/[^\s"'<>),]+/gi)) {
     consider(match[0]);
   }
 
-  for (const match of decoded.matchAll(/(?:^|[\s"'(=:])((?:\/[A-Za-z0-9._~!$&()*+,;=:@%\/-]+)\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|m4a|ogg|aac|css|m?js)(?:\?[^\s"'<>)]+)?)/gim)) {
+  for (const match of decoded.matchAll(/(?:^|[\s"'(=:])((?:\/[A-Za-z0-9._~!$&*+,;=:@%\/-]+)\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|m4a|ogg|aac|css|m?js)(?:\?[^\s"'<>)]+)?)/gim)) {
     consider(match[1]);
   }
 
@@ -169,7 +170,6 @@ export function rewritePageLinks(html) {
       return url.toString();
     }
 
-    // src/poster and Astro island module attributes need a resolvable production URL before media localization.
     return url.toString();
   };
 
