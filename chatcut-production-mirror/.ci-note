@@ -1,1 +1,0 @@
-Shift-left CI added in .github/workflows/chatcut-production-mirror-ci.yml; Vercel deploys are gated by ci:predeploy and dist verification.
