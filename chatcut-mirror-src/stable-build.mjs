@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 
 const attempts = 8;
-const retryable = /(?:fetch failed|asset fetch failed)\s+(?:404|408|409|410|425|429|5\d\d)|ECONN|ETIMEDOUT|socket|network|fetch failed/i;
+const retryable = /(?:fetch failed|asset fetch failed)\s+(?:404|408|409|410|425|429|5\d\d)|snapshot mismatch|ECONN|ETIMEDOUT|socket|network|fetch failed/i;
 
 function run(script) {
   const result = spawnSync(process.execPath, [script], {
@@ -28,6 +28,7 @@ for (currentAttempt = 1; currentAttempt <= attempts; currentAttempt += 1) {
   try {
     console.log(`\n[stable-build] snapshot attempt ${currentAttempt}/${attempts}`);
     run('chatcut-mirror-src/build.mjs');
+    run('chatcut-mirror-src/restore-island-ssr.mjs');
     run('chatcut-mirror-src/localize-runtime.mjs');
     console.log(`[stable-build] consistent production snapshot captured on attempt ${currentAttempt}`);
     lastError = null;
@@ -38,7 +39,7 @@ for (currentAttempt = 1; currentAttempt <= attempts; currentAttempt += 1) {
     const canRetry = retryable.test(output) && currentAttempt < attempts;
     if (!canRetry) throw error;
     const delay = Math.min(14000, 1500 + currentAttempt * 1750);
-    console.warn(`[stable-build] production assets changed during capture; retrying from fresh HTML in ${delay}ms`);
+    console.warn(`[stable-build] production changed during capture; retrying from fresh HTML in ${delay}ms`);
     await sleep(delay);
   }
 }
