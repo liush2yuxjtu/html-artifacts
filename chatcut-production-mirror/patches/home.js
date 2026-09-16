@@ -1,6 +1,22 @@
-import { createDemoSession, transitionDemo } from './demo-session.js';
+(() => {
+function createDemoSession() {
+  return { expert: 'idle', motion: 'idle', transcript: 'raw', image: 'source', video: 'reference', music: 'silent' };
+}
+const demoTransitions = {
+  EXPERT_START: ['expert', 'running'], EXPERT_DONE: ['expert', 'done'], MOTION_GENERATE: ['motion', 'done'],
+  TRANSCRIPT_START: ['transcript', 'cleaning'], TRANSCRIPT_DONE: ['transcript', 'clean'],
+  IMAGE_START: ['image', 'loading'], IMAGE_DONE: ['image', 'generated'],
+  VIDEO_START: ['video', 'loading'], VIDEO_DONE: ['video', 'generated'],
+  MUSIC_START: ['music', 'loading'], MUSIC_DONE: ['music', 'generated'],
+};
+function transitionDemo(session, action = {}) {
+  const transition = demoTransitions[action.type];
+  if (!transition) return session;
+  const [key, value] = transition;
+  return { ...session, [key]: value };
+}
 
-export const PRODUCTION_SELECTORS = Object.freeze({
+const PRODUCTION_SELECTORS = Object.freeze({
   bestMoments: '#best-moments',
   bestMomentsVideo: '.bm-final-video',
   motion: '#motion-graphics',
@@ -11,9 +27,9 @@ export const PRODUCTION_SELECTORS = Object.freeze({
   music: '#music-generation',
 });
 
-export const IMAGE_BEFORE_ASSET = 'https://chatcut.io/features/ai-image-generator/cat-white-before.webp';
-export const MUSIC_PROMPT = 'Upbeat lo-fi hip hop, relaxed mood, 90 BPM';
-export const MUSIC_SOURCE_VIDEO = 'https://cdn.chatcut.dev/landing-hero/transcript-captions/project-caption-timeline.mp4';
+const IMAGE_BEFORE_ASSET = 'https://chatcut.io/features/ai-image-generator/cat-white-before.webp';
+const MUSIC_PROMPT = 'Upbeat lo-fi hip hop, relaxed mood, 90 BPM';
+const MUSIC_SOURCE_VIDEO = 'https://cdn.chatcut.dev/landing-hero/transcript-captions/project-caption-timeline.mp4';
 
 function setSession(action) {
   window.__chatcutDemoSession = transitionDemo(window.__chatcutDemoSession, { type: action });
@@ -324,3 +340,5 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
   else boot();
 }
+
+})();
