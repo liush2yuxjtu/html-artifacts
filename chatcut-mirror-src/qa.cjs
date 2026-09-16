@@ -89,7 +89,6 @@ async function main() {
     await page.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '2', null, { timeout: 15000 });
     report.version = await page.evaluate(() => document.documentElement.dataset.ccPlayableVersion);
 
-    // 1. Expert Editor: real hit-testing must work; completion cannot depend on autoplay permission.
     const expert = page.locator('#best-moments');
     await expert.scrollIntoViewIfNeeded();
     await page.locator('#best-moments .cc-expert-send').waitFor({ state: 'visible', timeout: 15000 });
@@ -97,14 +96,12 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#best-moments [data-cc-status="expert"]')?.textContent.trim() === 'Done · first cut updated', null, { timeout: 8000 });
     report.expert = (await page.locator('#best-moments [data-cc-status="expert"]').innerText()).trim() === 'Done · first cut updated';
 
-    // 2. Motion Graphics: intercept the production Generate control and reveal results in place.
     const motion = page.locator('#motion-graphics');
     await motion.scrollIntoViewIfNeeded();
     await clickFirstVisible(page.locator('#motion-graphics [aria-label="Generate"]'));
     await page.waitForFunction(() => document.querySelector('#motion-graphics [data-cc-status="motion"]')?.textContent.trim() === 'Generated · editable motion graphics ready', null, { timeout: 8000 });
     report.motion = await motion.evaluate(el => el.classList.contains('cc-motion-generated'));
 
-    // 3. Transcript: filler words disappear and duration/meta updates.
     const transcript = page.locator('#transcript-captions [data-tc-part="edit"]');
     await transcript.scrollIntoViewIfNeeded();
     await page.locator('#tc-edit-send').waitFor({ state: 'visible', timeout: 15000 });
@@ -114,7 +111,6 @@ async function main() {
     const transcriptMeta = (await page.locator('#tc-edit-meta').innerText()).trim();
     report.transcript = fillerVisibleCount === 0 && transcriptMeta === '46 words · 0:31';
 
-    // 4. Image: conceal the real production result until Generate; never substitute unrelated media.
     const imageStory = page.locator('#image-to-video .itv-story:not(.itv-story-video)');
     await imageStory.scrollIntoViewIfNeeded();
     await page.waitForFunction(() => document.querySelector('#image-to-video .itv-story:not(.itv-story-video)')?.classList.contains('cc-image-source'), null, { timeout: 10000 });
@@ -128,7 +124,6 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#image-to-video .itv-story:not(.itv-story-video) [data-cc-status="image"]')?.textContent.trim() === 'Generated · ready to add to the edit', null, { timeout: 8000 });
     report.image = imageInitial && await imageStory.evaluate(el => el.classList.contains('cc-image-generated'));
 
-    // 5. Video: selected production reference is the initial state; existing preview is revealed after Generate.
     const videoStory = page.locator('#image-to-video .itv-story-video');
     await videoStory.scrollIntoViewIfNeeded();
     await page.locator('#image-to-video .itv-story-video .cc-video-reference-overlay').waitFor({ state: 'visible', timeout: 10000 });
@@ -137,18 +132,16 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#image-to-video .itv-story-video [data-cc-status="video"]')?.textContent.trim() === 'Generated · original preview video loaded', null, { timeout: 8000 });
     report.video = initialReference && await videoStory.evaluate(el => el.classList.contains('cc-video-generated')) && (await page.locator('#image-to-video .itv-story-video .cc-video-reference-overlay').count()) === 0;
 
-    // 6. Music: one compact trigger reveals the existing production waveform board.
     const music = page.locator('#music-generation');
     await music.scrollIntoViewIfNeeded();
     await page.locator('#music-generation .cc-music-prompt-bar').waitFor({ state: 'visible', timeout: 10000 });
     const silentInitial = (await page.locator('#music-generation .cc-music-state-pill').innerText()).trim() === 'Silent video';
     await page.locator('#music-generation .cc-music-send').click();
     await page.waitForFunction(() => document.querySelector('#music-generation .cc-music-state-pill')?.textContent.trim() === 'Music ready', null, { timeout: 8000 });
+    await page.waitForTimeout(550);
     const boardOpacity = Number(await page.locator('#music-generation .tc-music-board').evaluate(el => getComputedStyle(el).opacity));
     report.music = silentInitial && boardOpacity > 0.95 && await music.evaluate(el => el.classList.contains('cc-music-generated'));
 
-    // 7. Captions are intentionally untouched. Verify the production control is still clickable
-    // and our patch has not attached a demo state or navigated away.
     const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
     await captions.scrollIntoViewIfNeeded();
     const captionsNext = page.locator('#tc-style-next');
