@@ -11,11 +11,43 @@ const legacyBoot = /  function boot\(\) \{\n    document\.addEventListener\('cli
 const safeBoot = `  let overlayObserver = null;
   let overlayStarted = false;
 
+  const absoluteChatCutUrl = value => {
+    if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return value;
+    return 'https://chatcut.io' + value;
+  };
+
+  const normalizeHydratedRootUrls = () => {
+    document.querySelectorAll('astro-island').forEach(island => {
+      island.querySelectorAll('[src],[poster],[href],[action],[srcset]').forEach(el => {
+        for (const attr of ['src','poster','href','action']) {
+          const value = el.getAttribute(attr);
+          const next = absoluteChatCutUrl(value);
+          if (next !== value) el.setAttribute(attr, next);
+        }
+        const srcset = el.getAttribute('srcset');
+        if (srcset && srcset.includes('/')) {
+          const nextSrcset = srcset.split(',').map(candidate => {
+            const trimmed = candidate.trim();
+            if (!trimmed) return trimmed;
+            const parts = trimmed.split(/\\s+/);
+            parts[0] = absoluteChatCutUrl(parts[0]);
+            return parts.join(' ');
+          }).join(', ');
+          if (nextSrcset !== srcset) el.setAttribute('srcset', nextSrcset);
+        }
+      });
+    });
+  };
+
   const startOverlay = () => {
     if (overlayStarted) return;
     overlayStarted = true;
+    normalizeHydratedRootUrls();
     renderAll();
-    overlayObserver = new MutationObserver(scheduleRender);
+    overlayObserver = new MutationObserver(() => {
+      normalizeHydratedRootUrls();
+      scheduleRender();
+    });
     overlayObserver.observe(document.documentElement, { childList:true, subtree:true });
   };
 
