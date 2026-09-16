@@ -43,14 +43,14 @@ jobs:
           grep -q 'image-to-video' chatcut-playable/index.html
           grep -q 'music-generation' chatcut-playable/index.html
       - name: Install browser QA dependency
-        run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0
+        run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0 sharp@0.34.3
       - name: Install Chromium for QA
         run: /tmp/chatcut-qa/node_modules/.bin/playwright install --with-deps chromium
       - name: Run playable interaction QA and capture snapshots
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
         run: node chatcut-mirror-src/qa.cjs
-      - name: Render visual contact sheet PDF
+      - name: Render visual contact sheet PDF and mosaic
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
         run: node chatcut-mirror-src/contact-sheet.cjs
@@ -69,6 +69,8 @@ jobs:
           test -s chatcut-snapshots/14-music-after.png
           test -s chatcut-snapshots/contact-sheet.html
           test -s chatcut-snapshots/contact-sheet.pdf
+          test -s chatcut-snapshots/contact-sheet.jpg
+          grep -q '^SIZE 128 ' chatcut-snapshots/contact-sheet-visual.txt
       - name: Commit generated playable site and snapshots
         run: |
           git config user.name 'github-actions[bot]'
