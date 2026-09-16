@@ -1,6 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require('playwright');
+const sharp = require('sharp');
 
 const SNAP_ROOT = path.resolve('chatcut-snapshots');
 const pages = [
@@ -12,15 +13,18 @@ const pages = [
   ['AI Video Generation', ['11-video-before.png', '12-video-after.png']],
   ['AI Music', ['13-music-before.png', '14-music-after.png']],
 ];
+const orderedShots = pages.flatMap(([title, files]) => files.map((file, index) => ({
+  title,
+  file,
+  label: files.length === 1 ? 'Rendered' : index === 0 ? 'Before' : index === 1 ? 'After' : 'Native',
+})));
 
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[ch]);
 }
 
-for (const [, files] of pages) {
-  for (const file of files) {
-    if (!fs.existsSync(path.join(SNAP_ROOT, file))) throw new Error(`Missing snapshot: ${file}`);
-  }
+for (const { file } of orderedShots) {
+  if (!fs.existsSync(path.join(SNAP_ROOT, file))) throw new Error(`Missing snapshot: ${file}`);
 }
 
 const pageHtml = pages.map(([title, files]) => {
@@ -38,7 +42,65 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewp
 
 fs.writeFileSync(path.join(SNAP_ROOT, 'contact-sheet.html'), html, 'utf8');
 
+async function makeMosaic() {
+  const tileW = 320;
+  const tileH = 220;
+  const gap = 16;
+  const cols = 4;
+  const rows = Math.ceil(orderedShots.length / cols);
+  const outW = cols * tileW + (cols - 1) * gap;
+  const outH = rows * tileH + (rows - 1) * gap;
+  const composites = [];
+
+  for (let i = 0; i < orderedShots.length; i += 1) {
+    const shot = orderedShots[i];
+    const thumb = await sharp(path.join(SNAP_ROOT, shot.file))
+      .resize({ width: tileW, height: tileH, fit: 'contain', background: '#fcfbfd' })
+      .jpeg({ quality: 72 })
+      .toBuffer();
+    composites.push({ input: thumb, left: (i % cols) * (tileW + gap), top: Math.floor(i / cols) * (tileH + gap) });
+  }
+
+  const mosaicPath = path.join(SNAP_ROOT, 'contact-sheet.jpg');
+  await sharp({ create: { width: outW, height: outH, channels: 3, background: '#e8e5df' } })
+    .composite(composites)
+    .jpeg({ quality: 78 })
+    .toFile(mosaicPath);
+
+  // A tiny, palette-quantized representation is committed as text so automated reviewers can reconstruct pixels.
+  const tinyW = 128;
+  const tinyH = Math.round(outH * tinyW / outW);
+  const { data } = await sharp(mosaicPath).resize(tinyW, tinyH, { fit: 'fill' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const palette = [
+    [252,251,253],[242,240,235],[225,221,213],[201,196,187],[170,164,155],[130,122,113],[91,83,75],[45,40,35],
+    [17,17,17],[255,255,255],[234,86,54],[225,126,54],[201,167,104],[133,164,132],[116,151,177],[89,111,143],
+  ];
+  const symbols = '0123456789ABCDEF';
+  const lines = [];
+  for (let y = 0; y < tinyH; y += 1) {
+    let row = '';
+    for (let x = 0; x < tinyW; x += 1) {
+      const p = (y * tinyW + x) * 3;
+      const r = data[p], g = data[p + 1], b = data[p + 2];
+      let best = 0, bestD = Infinity;
+      for (let j = 0; j < palette.length; j += 1) {
+        const pr = palette[j][0], pg = palette[j][1], pb = palette[j][2];
+        const d = (r-pr)*(r-pr) + (g-pg)*(g-pg) + (b-pb)*(b-pb);
+        if (d < bestD) { bestD = d; best = j; }
+      }
+      row += symbols[best];
+    }
+    lines.push(row);
+  }
+  fs.writeFileSync(path.join(SNAP_ROOT, 'contact-sheet-visual.txt'), [
+    `SIZE ${tinyW} ${tinyH}`,
+    `PALETTE ${palette.map((rgb, i) => `${symbols[i]}:#${rgb.map(v => v.toString(16).padStart(2,'0')).join('')}`).join(' ')}`,
+    ...lines,
+  ].join('\n'), 'utf8');
+}
+
 (async () => {
+  await makeMosaic();
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1400, height: 900 } });
@@ -62,7 +124,7 @@ fs.writeFileSync(path.join(SNAP_ROOT, 'contact-sheet.html'), html, 'utf8');
   } finally {
     await browser.close();
   }
-  console.log('Generated chatcut-snapshots/contact-sheet.pdf');
+  console.log('Generated contact-sheet.pdf, contact-sheet.jpg, and contact-sheet-visual.txt');
 })().catch(error => {
   console.error(error?.stack || error);
   process.exit(1);
