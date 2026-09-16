@@ -131,6 +131,11 @@ export function rewriteRuntimeAssetUrls(html) {
     .replaceAll('https:\\/\\/chatcut.io\\/_astro\\/', '\\/_astro\\/');
 }
 
+export function classifyMediaFailure(error) {
+  const message = String(error?.message ?? error ?? '');
+  return /(?:^|\s)(?:404|410)(?:\s|$)/.test(message) ? 'upstream-missing' : 'failed';
+}
+
 export function buildMediaMap(mediaResults, mediaMode) {
   const map = new Map();
   if (mediaMode !== 'local') return map;
@@ -165,7 +170,7 @@ async function downloadMedia(mediaUrls, mediaMode) {
         });
         results.push({ url, status: 'downloaded', localPath: `/${relative}`, bytes });
       } catch (error) {
-        results.push({ url, status: 'failed', localPath: null, error: error.message });
+        results.push({ url, status: classifyMediaFailure(error), localPath: null, error: error.message });
       }
     }
   }
@@ -264,6 +269,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     mediaAssets: allMedia.size,
     downloadedMedia: mediaResults.filter(x => x.status === 'downloaded').length,
     failedMedia: mediaResults.filter(x => x.status === 'failed').length,
+    missingUpstreamMedia: mediaResults.filter(x => x.status === 'upstream-missing').length,
     mediaMode,
   };
 
