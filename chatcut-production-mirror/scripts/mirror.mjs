@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import {
   discoverFeaturePaths,
   extractAssetUrls,
+  assetOutputPath,
   pageOutputPath,
   sanitizeHtml,
   rewritePageLinks,
@@ -16,6 +17,8 @@ const DIST = path.join(ROOT, 'dist');
 const ORIGIN = 'https://chatcut.io';
 const MEDIA_RE = /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|m4a|ogg|aac)(?:[?#].*)?$/i;
 const FONT_RE = /\.(?:woff2?|ttf|otf|eot)(?:[?#].*)?$/i;
+
+const FALLBACK_INTENT_HTML = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut · Copy → Edit Intent</title><style>body{margin:0;font-family:Inter,system-ui,sans-serif;background:#fcfbfd;color:#211a13}main{max-width:920px;margin:auto;padding:64px 24px}h1{font-size:clamp(36px,7vw,72px);line-height:.98;letter-spacing:-.04em}p{font-size:18px;line-height:1.6;color:#6f675e}.flow{margin-top:36px;padding:28px;border:1px solid #e7e1d9;border-radius:18px;background:white;font-size:22px;line-height:1.6}.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px}.card{padding:20px;border:1px solid #e7e1d9;border-radius:16px;background:white}.card b{display:block;margin-bottom:8px}@media(max-width:700px){.grid{grid-template-columns:1fr}}</style></head><body><main><p>ChatCut · interview prototype</p><h1>不是 rebuild。<br>复制原站，再直接编辑。</h1><div class="flow">原 production component → 保留原 layout / CSS / video / assets → 只增加一个本地 trigger → 原结果继续发生在原组件里。</div><div class="grid"><div class="card"><b>Homepage</b>Best Moments、Motion Graphics、Transcript、Image、Video、Music 变成原地 playable。</div><div class="card"><b>Feature pages</b>保持 production mirror，不扩散 redesign。</div><div class="card"><b>Captions / Pricing</b>原本已经清楚的交互保持不动。</div><div class="card"><b>核心目标</b>截图仍然像 ChatCut；点击以后才发现 demo 会继续。</div></div></main></body></html>`;
 
 export const BASELINE_FEATURE_PATHS = Object.freeze([
   '/features/ai-video-editor',
@@ -104,13 +107,7 @@ async function downloadMedia(mediaUrls, mediaMode) {
     while (cursor < queue.length) {
       const index = cursor++;
       const url = queue[index];
-      const urlObject = new URL(url);
-      const safeHost = urlObject.hostname.replace(/[^A-Za-z0-9.-]/g, '_');
-      let pathname = urlObject.pathname;
-      try { pathname = decodeURIComponent(pathname); } catch {}
-      if (!pathname || pathname === '/') pathname = '/index-asset';
-      pathname = pathname.split('/').map(segment => segment.replace(/[^A-Za-z0-9._~!$&'()+,;=@%-]/g, '_')).join('/');
-      const relative = path.posix.join('_mirror', safeHost, pathname);
+      const relative = assetOutputPath(url);
       const target = path.join(DIST, relative);
       try {
         const bytes = await fetchWithRetry(url, { binary: true, attempts: 2, timeoutMs: 45000 });
@@ -150,8 +147,10 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   const allStylesheets = new Set();
   const allScripts = new Set();
 
-  for (const pathname of ['/', '/features']) {
-    pageHtml.set(pathname, await fetchWithRetry(toPageUrl(pathname)));
+  const indexPaths = ['/', '/features'];
+  for (const pathname of indexPaths) {
+    const html = await fetchWithRetry(toPageUrl(pathname));
+    pageHtml.set(pathname, html);
   }
 
   const discovered = discoverFeaturePaths(pageHtml.get('/features'));
@@ -187,7 +186,8 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   await copyIfExists('patches/home.css');
   await copyIfExists('patches/home.js');
   await copyIfExists('patches/demo-session.js');
-  await copyIfExists('intent.html');
+  const copiedIntent = await copyIfExists('intent.html');
+  if (!copiedIntent) await writeText('intent.html', FALLBACK_INTENT_HTML);
   await copyIfExists('intent.md', '_meta/intent.md');
   await copyIfExists('README.md', '_meta/README.md');
 
