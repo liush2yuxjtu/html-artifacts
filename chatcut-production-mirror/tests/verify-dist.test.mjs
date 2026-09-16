@@ -16,12 +16,14 @@ async function makeFixture() {
   await fs.writeFile(path.join(dist, '_mirror/chatcut.io/favicon.svg'), '<svg/>');
   await fs.writeFile(path.join(dist, 'features/ai-captions/index.html'), '<h1>captions</h1>');
   await fs.writeFile(path.join(dist, 'intent.html'), '<h1>Intent</h1>');
-  await fs.writeFile(path.join(dist, 'index.html'), '<link rel="icon" href="/_mirror/chatcut.io/favicon.svg"><a href="/features/ai-captions">Captions</a><link rel="stylesheet" href="/patches/home.css">');
+  await fs.writeFile(path.join(dist, 'index.html'), '<script type="module" src="/_astro/client.js"></script><link rel="icon" href="/_mirror/chatcut.io/favicon.svg"><a href="/features/ai-captions">Captions</a><link rel="stylesheet" href="/patches/home.css">');
   await fs.writeFile(path.join(dist, '_meta/page-manifest.json'), JSON.stringify({ pages: [
     { pathname: '/', output: 'index.html' },
     { pathname: '/features/ai-captions', output: 'features/ai-captions/index.html' },
   ] }));
-  await fs.writeFile(path.join(dist, '_meta/asset-manifest.json'), JSON.stringify({ media: [] }));
+  await fs.writeFile(path.join(dist, '_meta/asset-manifest.json'), JSON.stringify({ mediaMode: 'local', media: [
+    { url: 'https://chatcut.io/favicon.svg', status: 'downloaded', localPath: '/_mirror/chatcut.io/favicon.svg' },
+  ] }));
   return dist;
 }
 
@@ -31,11 +33,12 @@ test('extracts local resources and feature links that must survive deployment', 
   assert.deepEqual(extractLocalFeatureLinks(html), ['/features/ai-music']);
 });
 
-test('passes when review artifact, mirrored routes, and local assets are deployable', async () => {
+test('passes when review artifact, mirrored routes, media manifest, and local assets are deployable', async () => {
   const dist = await makeFixture();
   const summary = await verifyDist(dist);
   assert.equal(summary.mirroredRoutes, 2);
   assert.equal(summary.requiredFiles, 6);
+  assert.equal(summary.mirroredMediaChecked, 1);
 });
 
 test('fails before deploy when intent.html or a local resource would 404', async () => {
@@ -45,6 +48,18 @@ test('fails before deploy when intent.html or a local resource would 404', async
   await assert.rejects(() => verifyDist(dist), error => {
     assert.match(error.message, /missing required file: intent\.html/);
     assert.match(error.message, /broken local resource in index\.html: \/_mirror\/missing\.svg/);
+    return true;
+  });
+});
+
+test('fails before deploy when the local mirror manifest records a failed media asset', async () => {
+  const dist = await makeFixture();
+  await fs.writeFile(path.join(dist, '_meta/asset-manifest.json'), JSON.stringify({
+    mediaMode: 'local',
+    media: [{ url: 'https://cdn.chatcut.dev/missing.mp4', status: 'failed', localPath: null, error: 'timeout' }],
+  }));
+  await assert.rejects(() => verifyDist(dist), error => {
+    assert.match(error.message, /failed mirrored media: https:\/\/cdn\.chatcut\.dev\/missing\.mp4 \(timeout\)/);
     return true;
   });
 });
