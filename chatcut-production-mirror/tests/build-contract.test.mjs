@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, rewriteRuntimeAssetUrls, buildMediaMap } from '../scripts/mirror.mjs';
+import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, rewriteRuntimeAssetUrls, classifyMediaFailure, buildMediaMap } from '../scripts/mirror.mjs';
 
 const expected = [
   '/features/ai-video-editor',
@@ -51,6 +51,13 @@ test('normalizes production Astro runtime URLs to the same-origin proxy', () => 
   const out = rewriteRuntimeAssetUrls(html);
   assert.match(out, /src="\/_astro\/a\.js"/);
   assert.match(out, /const x='\\\/_astro\\\/b\.js'/);
+});
+
+test('treats upstream 404/410 as documented source drift but keeps real fetch failures fatal', () => {
+  assert.equal(classifyMediaFailure(new Error('404 Not Found')), 'upstream-missing');
+  assert.equal(classifyMediaFailure(new Error('410 Gone')), 'upstream-missing');
+  assert.equal(classifyMediaFailure(new Error('403 Forbidden')), 'failed');
+  assert.equal(classifyMediaFailure(new Error('The operation was aborted')), 'failed');
 });
 
 test('full-media rewrite map includes only successfully downloaded assets', () => {
