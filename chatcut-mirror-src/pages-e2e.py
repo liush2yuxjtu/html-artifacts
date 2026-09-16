@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Real-browser acceptance for the deployed ChatCut GitHub Pages surface.
+"""Browser acceptance for the ChatCut GitHub Pages surface.
 
 Pattern follows anthropics/skills:webapp-testing:
-- navigate the real running app
+- navigate the running app
 - wait for rendered/network state
 - capture screenshots + browser failures
 - discover stable selectors from the rendered page
 - exercise one real visible interaction
+
+The same script runs against the real public Pages URL and a local server mounted
+at the exact `/chatcut-playable/` subpath so a fix can be proven before merge.
 """
 from __future__ import annotations
 
@@ -23,6 +26,7 @@ TARGET = os.environ.get(
     "CHATCUT_PAGES_URL",
     "https://liush2yuxjtu.github.io/html-artifacts/chatcut-playable/?utm_source=chatgpt.com",
 )
+EXPECTED_HOST = os.environ.get("CHATCUT_EXPECTED_HOST", "liush2yuxjtu.github.io")
 OUT = Path(os.environ.get("CHATCUT_E2E_OUT", "chatcut-pages-e2e"))
 OUT.mkdir(parents=True, exist_ok=True)
 
@@ -37,6 +41,7 @@ def visible(locator) -> bool:
 def main() -> int:
     report: dict[str, object] = {
         "target": TARGET,
+        "expected_host": EXPECTED_HOST,
         "failures": [],
         "console_errors": [],
         "page_errors": [],
@@ -111,7 +116,7 @@ def main() -> int:
             }))"""
         )
 
-        page.screenshot(path=str(OUT / "live-desktop-before.png"), full_page=True, animations="disabled")
+        page.screenshot(path=str(OUT / "desktop-before.png"), full_page=True, animations="disabled")
 
         interaction_ok = False
         interaction_status = None
@@ -128,31 +133,38 @@ def main() -> int:
                 interaction_ok = False
             status = page.locator("#best-moments [data-cc-status='expert']")
             interaction_status = status.first.inner_text().strip() if status.count() else None
-            page.screenshot(path=str(OUT / "live-desktop-after.png"), full_page=True, animations="disabled")
+            page.screenshot(path=str(OUT / "desktop-after.png"), full_page=True, animations="disabled")
         report["interaction_ok"] = interaction_ok
         report["interaction_status"] = interaction_status
 
-        # A phone snapshot catches the common GitHub Pages "looks loaded but is unusable"
+        # A phone snapshot catches the common "looks loaded but is unusable"
         # failure caused by overflow or hidden controls.
-        mobile = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1).new_page()
+        mobile_context = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1)
+        mobile = mobile_context.new_page()
         mobile_response = mobile.goto(TARGET, wait_until="domcontentloaded", timeout=60_000)
         try:
             mobile.wait_for_load_state("networkidle", timeout=20_000)
         except PlaywrightTimeoutError:
             pass
         mobile.wait_for_timeout(6_000)
-        mobile.screenshot(path=str(OUT / "live-mobile.png"), full_page=True, animations="disabled")
+        mobile.screenshot(path=str(OUT / "mobile.png"), full_page=True, animations="disabled")
         report["mobile_status"] = mobile_response.status if mobile_response else None
         report["mobile_overflow"] = mobile.evaluate(
             "() => document.documentElement.scrollWidth > window.innerWidth + 1"
         )
-        mobile.context.close()
+        if report["mobile_overflow"]:
+            report["mobile_overflow_elements"] = mobile.evaluate(
+                """() => Array.from(document.querySelectorAll('body *')).map(el => {
+                  const r = el.getBoundingClientRect();
+                  return {tag:el.tagName, id:el.id, cls:String(el.className || '').slice(0,120), left:r.left, right:r.right, width:r.width};
+                }).filter(x => x.right > window.innerWidth + 1 || x.left < -1).slice(0,30)"""
+            )
+        mobile_context.close()
 
-        expected_host = "liush2yuxjtu.github.io"
         failures: list[str] = report["failures"]  # type: ignore[assignment]
         if report["http_status"] != 200:
             failures.append(f"http-status:{report['http_status']}")
-        if urlparse(str(report["final_url"])).hostname != expected_host:
+        if urlparse(str(report["final_url"])).hostname != EXPECTED_HOST:
             failures.append("unexpected-final-host")
         if not report["h1"]:
             failures.append("missing-visible-h1")
