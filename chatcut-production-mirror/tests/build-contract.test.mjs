@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, buildMediaMap } from '../scripts/mirror.mjs';
+import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, rewriteRuntimeAssetUrls, buildMediaMap } from '../scripts/mirror.mjs';
 
 const expected = [
   '/features/ai-video-editor',
@@ -35,14 +35,23 @@ test('raw snapshots use stable audit paths', () => {
   assert.equal(outputPathForRawSnapshot('/features/ai-music'), '_raw/features/ai-music.source.html');
 });
 
-test('vercel config runs tests before full mirror deploy and builds to dist', async () => {
+test('vercel config runs tests before full mirror deploy and proxies Astro runtime same-origin', async () => {
   const vercel = JSON.parse(await fs.readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
   assert.equal(vercel.buildCommand, 'npm run ci:predeploy');
   assert.equal(vercel.outputDirectory, 'dist');
+  assert.ok(vercel.rewrites?.some(rule =>
+    rule.source === '/_astro/:path*' && rule.destination === 'https://chatcut.io/_astro/:path*'
+  ));
   const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
   assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
 });
 
+test('normalizes production Astro runtime URLs to the same-origin proxy', () => {
+  const html = `<script src="https://chatcut.io/_astro/a.js"></script><script>const x='https:\\/\\/chatcut.io\\/_astro\\/b.js'</script>`;
+  const out = rewriteRuntimeAssetUrls(html);
+  assert.match(out, /src="\/_astro\/a\.js"/);
+  assert.match(out, /const x='\\\/_astro\\\/b\.js'/);
+});
 
 test('full-media rewrite map includes only successfully downloaded assets', () => {
   const map = buildMediaMap([
