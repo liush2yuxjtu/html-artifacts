@@ -70,3 +70,9 @@ Analytics and marketing tracking scripts are removed from served mirror pages. T
 ## Review workflow
 
 This branch is intended for a Draft PR and preview review. It should not be merged until the human reviewer approves the final interactive result.
+
+## Shift-left deployment gates
+
+`npm run ci:check` is the PR/local gate: unit/contract tests run first, then the remote-media mirror is built, then `verify:dist` checks every mirrored route plus local asset references and the review artifact (`intent.html`).
+
+`npm run ci:predeploy` is the Vercel production gate: the same tests run **before** the full-media mirror, followed by the same dist verifier. A missing `intent.html`, missing mirrored feature route, or broken local `src`/`poster`/CSS `url(...)` now fails the build instead of becoming a deployed 404.
