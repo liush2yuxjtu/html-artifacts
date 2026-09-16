@@ -100,6 +100,8 @@ test('injects homepage patch exactly once', () => {
   const twice = injectHomepagePatch(once);
   assert.equal((twice.match(/\/patches\/home\.css/g) ?? []).length, 1);
   assert.equal((twice.match(/\/patches\/home\.js/g) ?? []).length, 1);
+  assert.match(twice, /<script defer src="\/patches\/home\.js"><\/script>/);
+  assert.doesNotMatch(twice, /type="module" src="\/patches\/home\.js"/);
   assert.equal((twice.match(/\/patches\/demo-session\.js/g) ?? []).length, 0);
 });
 
@@ -118,4 +120,11 @@ test('absolutizes root-relative CSS url assets in copied inline styles', () => {
 test('asset output path tolerates production URLs with malformed percent escapes', () => {
   assert.doesNotThrow(() => assetOutputPath('https://chatcut.io/assets/100%-real.webp'));
   assert.equal(assetOutputPath('https://chatcut.io/assets/100%-real.webp'), '_mirror/chatcut.io/assets/100%-real.webp');
+});
+
+test('can inline the homepage patch to avoid runtime loader issues', () => {
+  const html = '<!doctype html><html><head></head><body></body></html>';
+  const out = injectHomepagePatch(html, 'document.documentElement.dataset.ccProbe="1";');
+  assert.match(out, /<script data-cc-home-patch="inline">document\.documentElement\.dataset\.ccProbe="1";<\/script>/);
+  assert.doesNotMatch(out, /src="\/patches\/home\.js"/);
 });
