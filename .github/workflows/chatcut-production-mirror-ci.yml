@@ -1,0 +1,30 @@
+name: ChatCut mirror CI
+
+on:
+  pull_request:
+    paths:
+      - 'chatcut-production-mirror/**'
+      - '.github/workflows/chatcut-production-mirror-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chatcut-production-mirror/**'
+      - '.github/workflows/chatcut-production-mirror-ci.yml'
+
+concurrency:
+  group: chatcut-mirror-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-build-verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chatcut-production-mirror
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Shift-left tests + mirror contract
+        run: npm run ci:check
