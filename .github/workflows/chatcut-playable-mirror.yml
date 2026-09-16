@@ -31,6 +31,8 @@ jobs:
         run: node chatcut-mirror-src/build.mjs
       - name: Localize production Astro runtime
         run: node chatcut-mirror-src/localize-runtime.mjs
+      - name: Delay playable mutations until hydration
+        run: node chatcut-mirror-src/hydration-safe.mjs
       - name: Apply local interaction hit-test fix
         run: node chatcut-mirror-src/postbuild-fix.mjs
       - name: Apply snapshot-driven visual polish
@@ -42,6 +44,7 @@ jobs:
           grep -q 'data-cc-playable-patch' chatcut-playable/index.html
           grep -q 'data-cc-playable-layer-fix' chatcut-playable/index.html
           grep -q 'data-cc-playable-visual-fix' chatcut-playable/index.html
+          grep -q 'data-cc-playable-hydration-safe' chatcut-playable/index.html
           grep -q 'name="cc-runtime-localized"' chatcut-playable/index.html
           test -n "$(find chatcut-playable/_astro -type f -name '*.js' -print -quit)"
           grep -q 'ccPlayableVersion' chatcut-playable/index.html
