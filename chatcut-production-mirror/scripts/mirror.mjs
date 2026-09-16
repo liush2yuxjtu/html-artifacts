@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url';
 import {
   discoverFeaturePaths,
   extractAssetUrls,
-  assetOutputPath,
   pageOutputPath,
   sanitizeHtml,
   rewritePageLinks,
@@ -81,12 +80,12 @@ async function fetchWithRetry(url, { binary = false, attempts = 3, timeoutMs = 3
   throw new Error(`Failed to fetch ${url}: ${lastError?.message ?? lastError}`);
 }
 
-function buildMediaMap(mediaUrls, mediaMode) {
+export function buildMediaMap(mediaResults, mediaMode) {
   const map = new Map();
   if (mediaMode !== 'local') return map;
-  for (const url of mediaUrls) {
-    if (!shouldDownloadMedia(url)) continue;
-    map.set(url, `/${assetOutputPath(url)}`);
+  for (const item of mediaResults) {
+    if (item?.status !== 'downloaded' || !item.localPath) continue;
+    map.set(item.url, item.localPath);
   }
   return map;
 }
@@ -105,7 +104,13 @@ async function downloadMedia(mediaUrls, mediaMode) {
     while (cursor < queue.length) {
       const index = cursor++;
       const url = queue[index];
-      const relative = assetOutputPath(url);
+      const urlObject = new URL(url);
+      const safeHost = urlObject.hostname.replace(/[^A-Za-z0-9.-]/g, '_');
+      let pathname = urlObject.pathname;
+      try { pathname = decodeURIComponent(pathname); } catch {}
+      if (!pathname || pathname === '/') pathname = '/index-asset';
+      pathname = pathname.split('/').map(segment => segment.replace(/[^A-Za-z0-9._~!$&'()+,;=@%-]/g, '_')).join('/');
+      const relative = path.posix.join('_mirror', safeHost, pathname);
       const target = path.join(DIST, relative);
       try {
         const bytes = await fetchWithRetry(url, { binary: true, attempts: 2, timeoutMs: 45000 });
@@ -145,10 +150,8 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   const allStylesheets = new Set();
   const allScripts = new Set();
 
-  const indexPaths = ['/', '/features'];
-  for (const pathname of indexPaths) {
-    const html = await fetchWithRetry(toPageUrl(pathname));
-    pageHtml.set(pathname, html);
+  for (const pathname of ['/', '/features']) {
+    pageHtml.set(pathname, await fetchWithRetry(toPageUrl(pathname)));
   }
 
   const discovered = discoverFeaturePaths(pageHtml.get('/features'));
@@ -169,7 +172,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   }
 
   const mediaResults = await downloadMedia([...allMedia].sort(), mediaMode);
-  const mediaMap = buildMediaMap([...allMedia], mediaMode);
+  const mediaMap = buildMediaMap(mediaResults, mediaMode);
   const homepagePatchScript = await fs.readFile(path.join(ROOT, 'patches/home.js'), 'utf8');
 
   for (const { pathname } of pageManifest) {
