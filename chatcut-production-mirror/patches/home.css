@@ -1,0 +1,36 @@
+/* Homepage interaction patch. New UI/state classes are cc-prefixed; original ChatCut layout remains authoritative. */
+.cc-demo-status{margin-top:8px;color:#7b736a;font-size:12px;line-height:1.35}
+.cc-local-send{display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:999px;background:#111;color:#fff;cursor:pointer;box-shadow:0 5px 16px rgba(0,0,0,.12)}
+.cc-local-send svg{width:15px;height:15px}
+.cc-local-send:hover{opacity:.88}.cc-local-send:active{transform:scale(.96)}
+#best-moments.cc-expert-awaiting .bm-stage *{animation-play-state:paused!important}
+#best-moments .bm-prompt-card{pointer-events:auto!important}
+#best-moments .bm-prompt-input{position:relative;padding-right:42px}
+#best-moments .bm-prompt-input>.cc-local-send{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:6}
+#best-moments .bm-prompt-input>.cc-local-send:active{transform:translateY(-50%) scale(.96)}
+#best-moments.cc-expert-running .bm-final-video-card{opacity:1}
+#motion-graphics.cc-motion-awaiting .agentic-thinking-card{opacity:.28;filter:saturate(.55) blur(.6px);transition:opacity .35s ease,filter .35s ease,transform .35s ease}
+#motion-graphics.cc-motion-generated .agentic-thinking-card{opacity:1;filter:none;transition:opacity .35s ease,filter .35s ease,transform .35s ease}
+#motion-graphics.cc-motion-generated .agentic-thinking-card:nth-child(2){transform:translateY(-4px);box-shadow:0 18px 42px rgba(35,28,20,.14)}
+#image-to-video .itv-showcase{position:relative}
+#image-to-video .cc-generate-overlay{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.78);backdrop-filter:blur(5px);color:#211a13;font-size:13px;font-weight:650}
+.cc-spinner{width:16px;height:16px;border:2px solid rgba(33,26,19,.18);border-top-color:#211a13;border-radius:50%;animation:cc-spin .7s linear infinite}
+@keyframes cc-spin{to{transform:rotate(360deg)}}
+#image-to-video .itv-story.cc-image-loading .itv-showcase-img{filter:saturate(.55)}
+#image-to-video .itv-video-showcase{position:relative}
+#image-to-video .cc-video-reference-overlay{position:absolute;inset:0;z-index:10;width:100%;height:100%;object-fit:cover;background:#f3f0ea}
+#image-to-video .itv-story-video.cc-video-awaiting .itv-showcase-video,#image-to-video .itv-story-video.cc-video-awaiting .itv-video-poster{opacity:0!important}
+#image-to-video .itv-story-video.cc-video-generated .itv-showcase-video{opacity:1!important}
+#music-generation .cc-music-source-row{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(230px,1.3fr);gap:12px;margin-bottom:12px}
+#music-generation .cc-music-source-video{position:relative;overflow:hidden;aspect-ratio:16/9;border-radius:12px;background:#171719}
+#music-generation .cc-music-source-video video{width:100%;height:100%;object-fit:cover;display:block}
+#music-generation .cc-audio-badge{position:absolute;right:8px;top:8px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font-size:10px;font-weight:650}
+#music-generation .cc-music-prompt-card{position:relative;min-height:100%;padding:14px 50px 30px 14px;border:1px solid #e5e0d8;border-radius:12px;background:#fff;color:#211a13;box-shadow:0 12px 30px rgba(35,28,20,.07)}
+#music-generation .cc-music-prompt-label{margin-bottom:7px;color:#7b736a;font-size:10px;font-weight:650;text-transform:uppercase;letter-spacing:.08em}
+#music-generation .cc-music-prompt-text{font-size:13px;line-height:1.45}
+#music-generation .cc-music-prompt-card>.cc-local-send{position:absolute;right:10px;bottom:10px}
+#music-generation .cc-music-prompt-card>.cc-demo-status{position:absolute;left:14px;bottom:12px;margin:0;font-size:10px}
+#music-generation.cc-music-awaiting .tc-music-board{opacity:.34;filter:saturate(.5);transition:opacity .4s ease,filter .4s ease}
+#music-generation.cc-music-generated .tc-music-board{opacity:1;filter:none;transition:opacity .4s ease,filter .4s ease}
+@media(max-width:720px){#music-generation .cc-music-source-row{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.cc-spinner{animation:none!important}#motion-graphics .agentic-thinking-card,#music-generation .tc-music-board{transition:none!important}}
