@@ -29,11 +29,14 @@ jobs:
           node-version: '20'
       - name: Fetch production ChatCut and build playable copy
         run: node chatcut-mirror-src/build.mjs
+      - name: Apply local interaction hit-test fix
+        run: node chatcut-mirror-src/postbuild-fix.mjs
       - name: Verify generated homepage contract
         run: |
           test -s chatcut-playable/index.html
           grep -q 'Your AI Video Editor' chatcut-playable/index.html
           grep -q 'data-cc-playable-patch' chatcut-playable/index.html
+          grep -q 'data-cc-playable-layer-fix' chatcut-playable/index.html
           grep -q 'ccPlayableVersion' chatcut-playable/index.html
           grep -q 'best-moments' chatcut-playable/index.html
           grep -q 'transcript-captions' chatcut-playable/index.html
