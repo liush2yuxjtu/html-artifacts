@@ -1,0 +1,1 @@
+This preview build intentionally uses `npm run mirror:full` so all discovered public image/video/audio/SVG assets are downloaded into the Vercel build output. Production Astro runtime CSS/JS stays remote to preserve original hydration behavior. Font binaries remain remote by design.
