@@ -5,32 +5,368 @@ const ORIGIN = 'https://chatcut.io';
 const OUT = path.resolve('chatcut-playable');
 
 const PATCH_CSS = String.raw`
-/* ChatCut playable patch: preserve production layout, add only causal local states. */
-.cc-demo-status{margin-top:8px;color:#7b736a;font-size:12px;line-height:1.35}.cc-local-send{display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:999px;background:#111;color:#fff;cursor:pointer;box-shadow:0 5px 16px rgba(0,0,0,.12)}.cc-local-send svg{width:15px;height:15px}.cc-local-send:hover{opacity:.88}.cc-local-send:active{transform:scale(.96)}
-#best-moments.cc-expert-awaiting .bm-stage *{animation-play-state:paused!important}#best-moments .bm-prompt-card{pointer-events:auto!important}#best-moments .bm-prompt-input{position:relative;padding-right:42px}#best-moments .bm-prompt-input>.cc-local-send{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:6}#best-moments .bm-prompt-input>.cc-local-send:active{transform:translateY(-50%) scale(.96)}#best-moments.cc-expert-running .bm-final-video-card{opacity:1}
-#motion-graphics.cc-motion-awaiting .agentic-thinking-card{opacity:.28;filter:saturate(.55) blur(.6px);transition:opacity .35s ease,filter .35s ease,transform .35s ease}#motion-graphics.cc-motion-generated .agentic-thinking-card{opacity:1;filter:none;transition:opacity .35s ease,filter .35s ease,transform .35s ease}#motion-graphics.cc-motion-generated .agentic-thinking-card:nth-child(2){transform:translateY(-4px);box-shadow:0 18px 42px rgba(35,28,20,.14)}
-#image-to-video .itv-showcase{position:relative}.cc-generate-overlay{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.78);backdrop-filter:blur(5px);color:#211a13;font-size:13px;font-weight:650}.cc-spinner{width:16px;height:16px;border:2px solid rgba(33,26,19,.18);border-top-color:#211a13;border-radius:50%;animation:cc-spin .7s linear infinite}@keyframes cc-spin{to{transform:rotate(360deg)}}#image-to-video .itv-story.cc-image-loading .itv-showcase-img{filter:saturate(.55)}
-#image-to-video .itv-video-showcase{position:relative}#image-to-video .cc-video-reference-overlay{position:absolute;inset:0;z-index:10;width:100%;height:100%;object-fit:cover;background:#f3f0ea}#image-to-video .itv-story-video.cc-video-awaiting .itv-showcase-video,#image-to-video .itv-story-video.cc-video-awaiting .itv-video-poster{opacity:0!important}#image-to-video .itv-story-video.cc-video-generated .itv-showcase-video{opacity:1!important}
-#music-generation .cc-music-source-row{display:grid;grid-template-columns:minmax(180px,.7fr) minmax(230px,1.3fr);gap:12px;margin-bottom:12px}#music-generation .cc-music-source-video{position:relative;overflow:hidden;aspect-ratio:16/9;border-radius:12px;background:#171719}#music-generation .cc-music-source-video video{width:100%;height:100%;object-fit:cover;display:block}#music-generation .cc-audio-badge{position:absolute;right:8px;top:8px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font-size:10px;font-weight:650}#music-generation .cc-music-prompt-card{position:relative;min-height:100%;padding:14px 50px 30px 14px;border:1px solid #e5e0d8;border-radius:12px;background:#fff;color:#211a13;box-shadow:0 12px 30px rgba(35,28,20,.07)}#music-generation .cc-music-prompt-label{margin-bottom:7px;color:#7b736a;font-size:10px;font-weight:650;text-transform:uppercase;letter-spacing:.08em}#music-generation .cc-music-prompt-text{font-size:13px;line-height:1.45}#music-generation .cc-music-prompt-card>.cc-local-send{position:absolute;right:10px;bottom:10px}#music-generation .cc-music-prompt-card>.cc-demo-status{position:absolute;left:14px;bottom:12px;margin:0;font-size:10px}#music-generation.cc-music-awaiting .tc-music-board{opacity:.34;filter:saturate(.5);transition:opacity .4s ease,filter .4s ease}#music-generation.cc-music-generated .tc-music-board{opacity:1;filter:none;transition:opacity .4s ease,filter .4s ease}
-@media(max-width:720px){#music-generation .cc-music-source-row{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){.cc-spinner{animation:none!important}#motion-graphics .agentic-thinking-card,#music-generation .tc-music-board{transition:none!important}}
+/* ChatCut playable patch v2: production DOM/assets stay authoritative; only demo state is layered on top. */
+.cc-demo-status{margin-top:8px;color:#7b736a;font-size:12px;line-height:1.35;min-height:16px}
+.cc-local-send{display:grid;place-items:center;width:30px;height:30px;padding:0;border:0;border-radius:999px;background:#111;color:#fff;cursor:pointer;box-shadow:0 5px 16px rgba(0,0,0,.12);transition:opacity .15s ease,transform .15s ease}
+.cc-local-send svg{width:15px;height:15px}.cc-local-send:hover{opacity:.88}.cc-local-send:active{transform:scale(.96)}
+.cc-generate-overlay{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:9px;background:rgba(255,255,255,.78);backdrop-filter:blur(5px);color:#211a13;font-size:13px;font-weight:650;border-radius:inherit}
+.cc-spinner{width:16px;height:16px;border:2px solid rgba(33,26,19,.18);border-top-color:#211a13;border-radius:50%;animation:cc-spin .7s linear infinite}@keyframes cc-spin{to{transform:rotate(360deg)}}
+
+#best-moments.cc-expert-awaiting .bm-stage *{animation-play-state:paused!important}
+#best-moments .bm-prompt-card{pointer-events:auto!important}
+#best-moments .bm-prompt-input{position:relative;padding-right:42px}
+#best-moments .bm-prompt-input>.cc-local-send{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:8}
+#best-moments .bm-prompt-input>.cc-local-send:active{transform:translateY(-50%) scale(.96)}
+#best-moments.cc-expert-running .bm-final-video-card,#best-moments.cc-expert-done .bm-final-video-card{opacity:1!important}
+#best-moments.cc-expert-running .bm-final-row,#best-moments.cc-expert-done .bm-final-row{opacity:1!important}
+
+#motion-graphics.cc-motion-awaiting .agentic-thinking-card{opacity:.28;filter:saturate(.55) blur(.5px);transition:opacity .35s ease,filter .35s ease,transform .35s ease}
+#motion-graphics.cc-motion-generated .agentic-thinking-card{opacity:1;filter:none;transition:opacity .35s ease,filter .35s ease,transform .35s ease}
+#motion-graphics.cc-motion-generated .agentic-thinking-card:nth-child(2){transform:translateY(-4px);box-shadow:0 18px 42px rgba(35,28,20,.14)}
+
+#transcript-captions [data-tc-part="edit"] .tc-word[data-tc-filler="true"]{transition:opacity .18s ease,color .18s ease,text-decoration-color .18s ease}
+#transcript-captions [data-tc-part="edit"] .tc-word.cc-filler-marked{opacity:.35;color:#9e958b;text-decoration:line-through;text-decoration-thickness:1.5px}
+#transcript-captions [data-tc-part="edit"] .tc-word.cc-filler-removed{display:none!important}
+
+#image-to-video .itv-showcase,#image-to-video .itv-video-showcase{position:relative}
+#image-to-video .itv-story.cc-image-source .itv-showcase-img{filter:saturate(.35) blur(2px);opacity:.34;transition:filter .35s ease,opacity .35s ease}
+#image-to-video .itv-story.cc-image-source .itv-showcase::after{content:'Waiting to generate';position:absolute;inset:0;z-index:9;display:grid;place-items:center;color:#6f675f;font-size:12px;font-weight:650;letter-spacing:.01em;background:linear-gradient(180deg,rgba(252,251,253,.18),rgba(252,251,253,.42));pointer-events:none}
+#image-to-video .itv-story.cc-image-generated .itv-showcase-img{filter:none;opacity:1;transition:filter .35s ease,opacity .35s ease}
+#image-to-video .cc-video-reference-overlay{position:absolute;inset:0;z-index:12;width:100%;height:100%;object-fit:cover;background:#f3f0ea}
+#image-to-video .itv-story-video.cc-video-awaiting .itv-showcase-video,#image-to-video .itv-story-video.cc-video-awaiting .itv-video-poster{opacity:0!important}
+#image-to-video .itv-story-video.cc-video-generated .itv-showcase-video{opacity:1!important}
+
+#music-generation .cc-music-prompt-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 10px 10px 12px;border:1px solid #e5e0d8;border-radius:12px;background:#fff;color:#211a13;box-shadow:0 10px 28px rgba(35,28,20,.06)}
+#music-generation .cc-music-state-pill{flex:none;padding:5px 8px;border-radius:999px;background:#f3f0ea;color:#71685f;font-size:10px;font-weight:700;white-space:nowrap}
+#music-generation .cc-music-prompt-text{min-width:0;flex:1;font-size:13px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#music-generation .cc-music-prompt-bar>.cc-local-send{flex:none}
+#music-generation .cc-music-prompt-bar>.cc-demo-status{display:none}
+#music-generation.cc-music-awaiting .tc-music-board{opacity:.3;filter:saturate(.35);transition:opacity .4s ease,filter .4s ease}
+#music-generation.cc-music-loading .tc-music-board{opacity:.45;filter:saturate(.5);transition:opacity .4s ease,filter .4s ease}
+#music-generation.cc-music-generated .tc-music-board{opacity:1;filter:none;transition:opacity .4s ease,filter .4s ease}
+
+@media(max-width:720px){#music-generation .cc-music-prompt-bar{align-items:flex-start;flex-wrap:wrap}#music-generation .cc-music-prompt-text{flex-basis:calc(100% - 98px);white-space:normal}}
+@media(prefers-reduced-motion:reduce){.cc-spinner{animation:none!important}#motion-graphics .agentic-thinking-card,#music-generation .tc-music-board,#image-to-video .itv-showcase-img{transition:none!important}}
 `;
 
 const PATCH_JS = String.raw`
 (() => {
-const session={expert:'idle',motion:'idle',transcript:'raw',image:'source',video:'reference',music:'silent'};window.__chatcutDemoSession=session;
-const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
-const status=t=>{const e=document.createElement('div');e.className='cc-demo-status';e.textContent=t;return e};
-const send=l=>{const b=document.createElement('button');b.type='button';b.className='cc-local-send';b.setAttribute('aria-label',l);b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';return b};
-const loading=(r,t)=>{const e=document.createElement('div');e.className='cc-generate-overlay';e.innerHTML='<span class="cc-spinner"></span><span>'+t+'</span>';r.append(e);return e};
-function bindExpert(){const r=q('#best-moments');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';r.classList.add('cc-expert-awaiting');const v=q('.bm-final-video',r),p=q('.bm-prompt-input',r);if(!v||!p)return;v.pause();try{v.currentTime=0}catch{};v.addEventListener('play',()=>{if(session.expert==='idle'){v.pause();try{v.currentTime=0}catch{}}});const b=send('Apply editing prompt');p.append(b);p.closest('.bm-prompt-card')?.setAttribute('aria-hidden','false');const s=status('Paused · send the edit instruction');q('.bm-header',r)?.append(s);v.addEventListener('timeupdate',()=>{if(v.duration){r.style.setProperty('--bm-playhead-progress',Math.min(1,v.currentTime/v.duration));if(v.currentTime/v.duration>.9&&session.expert==='running'){session.expert='done';s.textContent='Done · first cut updated'}}});b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();session.expert='running';r.classList.remove('cc-expert-awaiting');r.classList.add('cc-expert-running');s.textContent='Playing · finding highlights + adding B-roll';try{v.currentTime=0}catch{};v.play().catch(()=>{s.textContent='Click the video to continue playback';v.controls=true})})}
-function bindMotion(){const r=q('#motion-graphics');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';r.classList.add('cc-motion-awaiting');const s=status('Ready · generate these graphics in place');(q('[data-thread-dock="mg"]',r)||q('.agentic-thinking-static',r))?.append(s);r.addEventListener('click',e=>{const a=e.target.closest('a[aria-label="Generate"],a[data-utm-link][href*="target=motion-graphics"]');if(!a||!r.contains(a))return;e.preventDefault();e.stopPropagation();session.motion='done';r.classList.remove('cc-motion-awaiting');r.classList.add('cc-motion-generated');s.textContent='Generated · editable motion graphics ready'},true)}
-function bindTranscript(){const r=q('#transcript-captions [data-tc-part="edit"]');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';const f=qa('.tc-word[data-tc-filler="true"]',r),b=q('#tc-edit-send',r),s=q('#tc-edit-status',r),m=q('#tc-edit-meta',r),p=q('#tc-edit-prompt',r);if(!f.length||!b)return;f.forEach(x=>x.classList.remove('tc-collapsed'));if(s)s.textContent='Transcript ready';if(m)m.textContent='54 words · 0:43';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(session.transcript!=='raw')return;session.transcript='cleaning';p?.classList.add('tc-prompt-sent');if(s)s.textContent='Removing fillers…';f.forEach((x,i)=>setTimeout(()=>x.classList.add('tc-collapsed'),100+i*85));setTimeout(()=>{session.transcript='clean';if(s)s.textContent='Done — '+f.length+' fillers removed';if(m)m.textContent='46 words · 0:31'},180+f.length*90)},true)}
-function bindImage(){const r=q('#image-to-video .itv-story:not(.itv-story-video)');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';r.classList.add('cc-image-source');const sh=q('.itv-showcase',r),im=q('.itv-showcase-img',r),b=q('.itv-send-btn,a[aria-label="Generate"]',r);if(!sh||!im||!b)return;const generated=im.currentSrc||im.src;im.dataset.generated=generated;im.src='https://chatcut.io/features/ai-image-generator/cat-white-before.webp';im.alt='Original source before AI generation';const s=status('Source image · result not generated yet');q('.itv-prompt-shell',r)?.append(s);b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(session.image==='loading')return;session.image='loading';r.classList.add('cc-image-loading');s.textContent='Generating image…';const o=loading(sh,'Generating image…');setTimeout(()=>{im.src=im.dataset.generated||generated;o.remove();r.classList.remove('cc-image-source','cc-image-loading');r.classList.add('cc-image-generated');session.image='generated';s.textContent='Generated · ready to add to the edit'},850)},true)}
-function bindVideo(){const r=q('#image-to-video .itv-story-video');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';r.classList.add('cc-video-awaiting');const sh=q('.itv-video-showcase',r),v=q('.itv-showcase-video',r),ref=q('.itv-reference-card img',r),b=q('.itv-send-btn,a[aria-label="Generate"]',r);if(!sh||!v||!ref||!b)return;const ov=document.createElement('img');ov.className='cc-video-reference-overlay';ov.src=ref.currentSrc||ref.src;ov.alt='Selected reference image waiting to become video';sh.append(ov);v.pause();v.addEventListener('play',()=>{if(session.video==='reference')v.pause()});const s=status('Reference image ready · video not generated yet');q('.itv-prompt-shell',r)?.append(s);b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(session.video==='loading')return;session.video='loading';s.textContent='Generating video from reference…';const o=loading(sh,'Generating video…');setTimeout(()=>{o.remove();ov.remove();r.classList.remove('cc-video-awaiting');r.classList.add('cc-video-generated');session.video='generated';s.textContent='Generated · original preview video loaded';try{v.currentTime=0}catch{};v.play().catch(()=>v.controls=true)},950)},true)}
-function bindMusic(){const r=q('#music-generation');if(!r||r.dataset.ccBound)return;r.dataset.ccBound='1';r.classList.add('cc-music-awaiting');const stack=q('.tc-demo-stack',r),board=q('.tc-music-board',r);if(!stack||!board)return;const row=document.createElement('div');row.className='cc-music-source-row';row.innerHTML='<div class="cc-music-source-video"><video muted loop playsinline preload="metadata" src="https://cdn.chatcut.dev/landing-hero/transcript-captions/project-caption-timeline.mp4"></video><span class="cc-audio-badge">Silent video</span></div><div class="cc-music-prompt-card"><div class="cc-music-prompt-label">Prompt</div><div class="cc-music-prompt-text">Upbeat lo-fi hip hop, relaxed mood, 90 BPM</div><button type="button" class="cc-local-send cc-music-send" aria-label="Generate royalty-free music"><svg viewBox="0 0 24 24"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="cc-demo-status">Silent source · no music track yet</div></div>';stack.insertBefore(row,board);const v=q('video',row),badge=q('.cc-audio-badge',row),b=q('.cc-music-send',row),s=q('.cc-demo-status',row);v?.play().catch(()=>{});b.addEventListener('click',e=>{e.preventDefault();if(session.music==='loading')return;session.music='loading';r.classList.add('cc-music-loading');s.textContent='Generating royalty-free track…';badge.textContent='Generating music…';setTimeout(()=>{r.classList.remove('cc-music-awaiting','cc-music-loading');r.classList.add('cc-music-generated');session.music='generated';badge.textContent='Music track ready';s.textContent='Generated · waveform + music asset ready'},850)})}
-function bindAll(){bindExpert();bindMotion();bindTranscript();bindImage();bindVideo();bindMusic()}
-function boot(){bindAll();let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;bindAll()})}).observe(document.documentElement,{childList:true,subtree:true});document.addEventListener('astro:page-load',bindAll)}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  const DEFAULT_SESSION = { expert:'idle', motion:'idle', transcript:'raw', image:'source', video:'reference', music:'silent' };
+  const session = window.__chatcutDemoSession || { ...DEFAULT_SESSION };
+  window.__chatcutDemoSession = session;
+  document.documentElement.dataset.ccPlayableVersion = '2';
+
+  const q = (s, r=document) => r.querySelector(s);
+  const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
+  const setState = (key, value) => {
+    session[key] = value;
+    document.documentElement.dataset.ccDemoSession = JSON.stringify(session);
+  };
+  const text = (el, value) => { if (el && el.textContent !== value) el.textContent = value; };
+  const stopLocal = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+  };
+  const makeSend = (className, label) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'cc-local-send ' + className;
+    b.setAttribute('aria-label', label);
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return b;
+  };
+  const ensureStatus = (root, key, parent, initial) => {
+    let el = q('[data-cc-status="' + key + '"]', root);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'cc-demo-status';
+      el.dataset.ccStatus = key;
+      const host = typeof parent === 'string' ? q(parent, root) : parent;
+      if (host) host.append(el);
+    }
+    if (el && !el.textContent) el.textContent = initial;
+    return el;
+  };
+  const ensureLoading = (container, key, label) => {
+    if (!container) return null;
+    let el = q('[data-cc-loading="' + key + '"]', container);
+    if (!el) {
+      el = document.createElement('div');
+      el.className = 'cc-generate-overlay';
+      el.dataset.ccLoading = key;
+      el.innerHTML = '<span class="cc-spinner" aria-hidden="true"></span><span></span>';
+      container.append(el);
+    }
+    text(q('span:last-child', el), label);
+    return el;
+  };
+  const clearLoading = (container, key) => q('[data-cc-loading="' + key + '"]', container)?.remove();
+
+  let expertTimer = 0;
+  let expertRaf = 0;
+  const startExpertProgress = (root, video, status) => {
+    cancelAnimationFrame(expertRaf);
+    clearTimeout(expertTimer);
+    const started = performance.now();
+    const duration = 3600;
+    const tick = (now) => {
+      if (session.expert !== 'running') return;
+      const p = Math.max(0, Math.min(1, (now - started) / duration));
+      root.style.setProperty('--bm-playhead-progress', String(p));
+      if (p < 1) expertRaf = requestAnimationFrame(tick);
+    };
+    expertRaf = requestAnimationFrame(tick);
+    expertTimer = window.setTimeout(() => {
+      if (session.expert !== 'running') return;
+      setState('expert', 'done');
+      renderExpert();
+      text(status, 'Done · first cut updated');
+    }, duration + 120);
+    if (video) {
+      video.muted = true;
+      video.playsInline = true;
+      video.controls = false;
+      try { video.currentTime = 0; } catch {}
+      const p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    }
+  };
+
+  function renderExpert() {
+    const root = q('#best-moments');
+    if (!root) return;
+    root.classList.toggle('cc-expert-awaiting', session.expert === 'idle');
+    root.classList.toggle('cc-expert-running', session.expert === 'running');
+    root.classList.toggle('cc-expert-done', session.expert === 'done');
+    const prompt = q('.bm-prompt-input', root);
+    if (prompt && !q('.cc-expert-send', prompt)) prompt.append(makeSend('cc-expert-send', 'Apply editing prompt'));
+    prompt?.closest('.bm-prompt-card')?.setAttribute('aria-hidden', 'false');
+    const status = ensureStatus(root, 'expert', '.bm-header', 'Paused · send the edit instruction');
+    if (session.expert === 'idle') {
+      text(status, 'Paused · send the edit instruction');
+      const video = q('.bm-final-video', root);
+      if (video) { video.pause(); try { if (video.currentTime > .05) video.currentTime = 0; } catch {} }
+      root.style.setProperty('--bm-playhead-progress', '0');
+    } else if (session.expert === 'running') text(status, 'Playing · finding highlights + adding B-roll');
+    else text(status, 'Done · first cut updated');
+  }
+
+  function renderMotion() {
+    const root = q('#motion-graphics');
+    if (!root) return;
+    root.classList.toggle('cc-motion-awaiting', session.motion !== 'done');
+    root.classList.toggle('cc-motion-generated', session.motion === 'done');
+    const dock = q('[data-thread-dock="mg"]', root) || q('.agentic-thinking-static', root);
+    const status = ensureStatus(root, 'motion', dock, 'Ready · generate these graphics in place');
+    text(status, session.motion === 'done' ? 'Generated · editable motion graphics ready' : 'Ready · generate these graphics in place');
+  }
+
+  function renderTranscript() {
+    const root = q('#transcript-captions [data-tc-part="edit"]');
+    if (!root) return;
+    const fillers = qa('.tc-word[data-tc-filler="true"]', root);
+    const status = q('#tc-edit-status', root);
+    const meta = q('#tc-edit-meta', root);
+    const prompt = q('#tc-edit-prompt', root);
+    const send = q('#tc-edit-send', root);
+    if (send) {
+      send.setAttribute('href', '#');
+      send.setAttribute('role', 'button');
+      send.setAttribute('aria-label', 'Clean up filler words');
+    }
+    if (session.transcript === 'raw') {
+      fillers.forEach(f => f.classList.remove('cc-filler-marked', 'cc-filler-removed'));
+      prompt?.classList.remove('tc-prompt-sent');
+      text(status, 'Transcript ready'); text(meta, '54 words · 0:43');
+    } else if (session.transcript === 'cleaning') {
+      prompt?.classList.add('tc-prompt-sent');
+      text(status, 'Removing fillers…');
+    } else {
+      fillers.forEach(f => f.classList.add('cc-filler-removed'));
+      prompt?.classList.add('tc-prompt-sent');
+      text(status, 'Done — ' + fillers.length + ' fillers removed'); text(meta, '46 words · 0:31');
+    }
+  }
+
+  function renderImage() {
+    const root = q('#image-to-video .itv-story:not(.itv-story-video)');
+    if (!root) return;
+    root.classList.toggle('cc-image-source', session.image === 'source');
+    root.classList.toggle('cc-image-loading', session.image === 'loading');
+    root.classList.toggle('cc-image-generated', session.image === 'generated');
+    const showcase = q('.itv-showcase', root);
+    const status = ensureStatus(root, 'image', '.itv-prompt-shell', 'Source ready · result not generated yet');
+    if (session.image === 'loading') {
+      ensureLoading(showcase, 'image', 'Generating image…');
+      text(status, 'Generating image…');
+    } else {
+      clearLoading(showcase, 'image');
+      text(status, session.image === 'generated' ? 'Generated · ready to add to the edit' : 'Source ready · result not generated yet');
+    }
+  }
+
+  function ensureVideoReference(root) {
+    const showcase = q('.itv-video-showcase', root);
+    const reference = q('.itv-reference-card img', root);
+    if (!showcase || !reference) return;
+    let overlay = q('.cc-video-reference-overlay', showcase);
+    if (!overlay) {
+      overlay = document.createElement('img');
+      overlay.className = 'cc-video-reference-overlay';
+      overlay.alt = 'Selected reference image waiting to become video';
+      showcase.append(overlay);
+    }
+    const src = reference.currentSrc || reference.src;
+    if (src && overlay.src !== src) overlay.src = src;
+  }
+
+  function renderVideo() {
+    const root = q('#image-to-video .itv-story-video');
+    if (!root) return;
+    root.classList.toggle('cc-video-awaiting', session.video === 'reference');
+    root.classList.toggle('cc-video-generated', session.video === 'generated');
+    const showcase = q('.itv-video-showcase', root);
+    const video = q('.itv-showcase-video', root);
+    const status = ensureStatus(root, 'video', '.itv-prompt-shell', 'Reference image ready · video not generated yet');
+    if (session.video === 'reference') {
+      ensureVideoReference(root);
+      clearLoading(showcase, 'video');
+      if (video) video.pause();
+      text(status, 'Reference image ready · video not generated yet');
+    } else if (session.video === 'loading') {
+      ensureVideoReference(root);
+      ensureLoading(showcase, 'video', 'Generating video…');
+      text(status, 'Generating video from reference…');
+    } else {
+      clearLoading(showcase, 'video');
+      q('.cc-video-reference-overlay', showcase)?.remove();
+      text(status, 'Generated · original preview video loaded');
+    }
+  }
+
+  function renderMusic() {
+    const root = q('#music-generation');
+    if (!root) return;
+    root.classList.toggle('cc-music-awaiting', session.music === 'silent');
+    root.classList.toggle('cc-music-loading', session.music === 'loading');
+    root.classList.toggle('cc-music-generated', session.music === 'generated');
+    const stack = q('.tc-demo-stack', root);
+    const board = q('.tc-music-board', root);
+    if (!stack || !board) return;
+    let bar = q('.cc-music-prompt-bar', root);
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'cc-music-prompt-bar';
+      bar.innerHTML = '<span class="cc-music-state-pill">Silent video</span><span class="cc-music-prompt-text">Upbeat lo-fi hip hop, relaxed mood, 90 BPM</span><button type="button" class="cc-local-send cc-music-send" aria-label="Generate royalty-free music"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="cc-demo-status" data-cc-status="music"></div>';
+      stack.insertBefore(bar, board);
+    }
+    const pill = q('.cc-music-state-pill', bar);
+    const status = q('[data-cc-status="music"]', bar);
+    if (session.music === 'silent') { text(pill, 'Silent video'); text(status, 'Silent video · no music track yet'); }
+    else if (session.music === 'loading') { text(pill, 'Generating…'); text(status, 'Generating royalty-free track…'); }
+    else { text(pill, 'Music ready'); text(status, 'Generated · waveform + music track ready'); }
+  }
+
+  function renderAll() {
+    renderExpert(); renderMotion(); renderTranscript(); renderImage(); renderVideo(); renderMusic();
+  }
+
+  function handleClick(event) {
+    const target = event.target instanceof Element ? event.target : null;
+    if (!target) return;
+
+    const expertRoot = target.closest('#best-moments');
+    if (expertRoot && target.closest('.cc-expert-send')) {
+      stopLocal(event);
+      setState('expert', 'running');
+      renderExpert();
+      startExpertProgress(expertRoot, q('.bm-final-video', expertRoot), q('[data-cc-status="expert"]', expertRoot));
+      return;
+    }
+
+    const motionRoot = target.closest('#motion-graphics');
+    if (motionRoot && target.closest('[aria-label="Generate"]')) {
+      stopLocal(event);
+      setState('motion', 'done');
+      renderMotion();
+      return;
+    }
+
+    const transcriptRoot = target.closest('#transcript-captions [data-tc-part="edit"]');
+    if (transcriptRoot && target.closest('#tc-edit-send')) {
+      stopLocal(event);
+      if (session.transcript !== 'raw') return;
+      setState('transcript', 'cleaning');
+      renderTranscript();
+      const fillers = qa('.tc-word[data-tc-filler="true"]', transcriptRoot);
+      fillers.forEach((filler, index) => {
+        setTimeout(() => filler.classList.add('cc-filler-marked'), 80 + index * 55);
+        setTimeout(() => filler.classList.add('cc-filler-removed'), 240 + index * 55);
+      });
+      setTimeout(() => { setState('transcript', 'clean'); renderTranscript(); }, 360 + fillers.length * 55);
+      return;
+    }
+
+    const imageRoot = target.closest('#image-to-video .itv-story:not(.itv-story-video)');
+    if (imageRoot && target.closest('.itv-send-btn,[aria-label="Generate"]')) {
+      stopLocal(event);
+      if (session.image === 'loading') return;
+      setState('image', 'loading'); renderImage();
+      setTimeout(() => { setState('image', 'generated'); renderImage(); }, 850);
+      return;
+    }
+    if (imageRoot && target.closest('.itv-option-button')) {
+      setTimeout(() => { setState('image', 'source'); renderImage(); }, 0);
+      return;
+    }
+
+    const videoRoot = target.closest('#image-to-video .itv-story-video');
+    if (videoRoot && target.closest('.itv-send-btn,[aria-label="Generate"]')) {
+      stopLocal(event);
+      if (session.video === 'loading') return;
+      setState('video', 'loading'); renderVideo();
+      setTimeout(() => {
+        setState('video', 'generated'); renderVideo();
+        const video = q('.itv-showcase-video', videoRoot);
+        if (video) {
+          video.muted = true; video.playsInline = true;
+          try { video.currentTime = 0; } catch {}
+          const p = video.play(); if (p && typeof p.catch === 'function') p.catch(() => { video.controls = true; });
+        }
+      }, 950);
+      return;
+    }
+    if (videoRoot && target.closest('.itv-option-button')) {
+      setTimeout(() => { setState('video', 'reference'); renderVideo(); }, 0);
+      return;
+    }
+
+    const musicRoot = target.closest('#music-generation');
+    if (musicRoot && target.closest('.cc-music-send')) {
+      stopLocal(event);
+      if (session.music === 'loading') return;
+      setState('music', 'loading'); renderMusic();
+      setTimeout(() => { setState('music', 'generated'); renderMusic(); }, 850);
+    }
+  }
+
+  let queued = false;
+  const scheduleRender = () => {
+    if (queued) return;
+    queued = true;
+    queueMicrotask(() => { queued = false; renderAll(); });
+  };
+
+  function boot() {
+    document.addEventListener('click', handleClick, true);
+    document.addEventListener('astro:page-load', renderAll);
+    new MutationObserver(scheduleRender).observe(document.documentElement, { childList:true, subtree:true });
+    renderAll();
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true });
+  else boot();
 })();
 `;
 
@@ -51,10 +387,16 @@ function stripTracking(html) {
 }
 
 async function fetchPage(url) {
-  const r = await fetch(url, {redirect:'follow',headers:{'user-agent':'Mozilla/5.0 ChatCutPlayableMirror/1.0','accept':'text/html,application/xhtml+xml'}});
+  const r = await fetch(url, {
+    redirect:'follow',
+    headers:{'user-agent':'Mozilla/5.0 ChatCutPlayableMirror/2.0','accept':'text/html,application/xhtml+xml'}
+  });
   if (!r.ok) throw new Error(`Fetch failed ${r.status} ${url}`);
   return r.text();
 }
+
+// Fail in CI before publishing if the injected patch itself is syntactically invalid.
+new Function(PATCH_JS);
 
 await fs.rm(OUT,{recursive:true,force:true});
 await fs.mkdir(OUT,{recursive:true});
@@ -67,6 +409,6 @@ html = html.replace(/<link\s+href="\/"\s+rel="canonical">/i, `<link href="${ORIG
 html = html.replace(/<\/head\s*>/i, `<style data-cc-playable-patch>${PATCH_CSS}</style></head>`);
 html = html.replace(/<\/body\s*>/i, `<script data-cc-playable-patch>${PATCH_JS.replace(/<\/script/gi,'<\\/script')}</script></body>`);
 await fs.writeFile(path.join(OUT,'index.html'),html,'utf8');
-await fs.writeFile(path.join(OUT,'intent.html'),'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut playable intent</title><style>body{font-family:Inter,system-ui;margin:0;background:#fcfbfd;color:#211a13}main{max-width:900px;margin:auto;padding:64px 24px}h1{font-size:clamp(40px,7vw,72px);line-height:.98}p{font-size:20px;line-height:1.55;color:#6b6256}.card{margin-top:28px;padding:24px;border:1px solid #e5e0d8;border-radius:18px;background:#fff}</style><main><h1>Copy first. Edit second.</h1><p>Production ChatCut homepage is fetched at build time. Original layout, CSS, scripts, images and videos stay authoritative. The patch only turns existing demos into local cause→effect interactions.</p><div class="card">Send → original Best Moments clip continues · Transcript → filler words disappear · Generate image/video/music → the original result state appears in place.</div></main>','utf8');
+await fs.writeFile(path.join(OUT,'intent.html'),'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut playable intent</title><style>body{font-family:Inter,system-ui;margin:0;background:#fcfbfd;color:#211a13}main{max-width:900px;margin:auto;padding:64px 24px}h1{font-size:clamp(40px,7vw,72px);line-height:.98}p{font-size:20px;line-height:1.55;color:#6b6256}.card{margin-top:28px;padding:24px;border:1px solid #e5e0d8;border-radius:18px;background:#fff}</style><main><h1>Copy first. Edit second.</h1><p>Production ChatCut homepage is fetched at build time. Original layout, CSS, scripts, images and videos stay authoritative. The patch only turns existing demos into local cause→effect interactions.</p><div class="card">Send → original Best Moments cut advances · Transcript → filler words visibly disappear · Generate image/video/music → the original result state appears in place.</div></main>','utf8');
 await fs.writeFile(path.join(OUT,'.nojekyll'),'','utf8');
-console.log(JSON.stringify({ok:true,bytes:Buffer.byteLength(html),out:OUT},null,2));
+console.log(JSON.stringify({ok:true,bytes:Buffer.byteLength(html),out:OUT,patchVersion:2},null,2));
