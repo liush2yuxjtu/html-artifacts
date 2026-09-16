@@ -5,7 +5,7 @@ const { chromium } = require('playwright');
 
 const ROOT = path.resolve('chatcut-playable');
 const PORT = 4174;
-const URL = `http://127.0.0.1:${PORT}/?runtime-qa=1`;
+const PAGE_URL = `http://127.0.0.1:${PORT}/?runtime-qa=1`;
 
 function type(file) {
   if (/\.html$/i.test(file)) return 'text/html; charset=utf-8';
@@ -22,7 +22,7 @@ function type(file) {
 
 function server() {
   return http.createServer((req, res) => {
-    const u = new URL(req.url, URL);
+    const u = new globalThis.URL(req.url, PAGE_URL);
     let pathname;
     try { pathname = decodeURIComponent(u.pathname); } catch { pathname = u.pathname; }
     if (pathname === '/') pathname = '/index.html';
@@ -53,7 +53,7 @@ function server() {
   });
 
   try {
-    await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(PAGE_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
     await page.waitForTimeout(1800);
 
