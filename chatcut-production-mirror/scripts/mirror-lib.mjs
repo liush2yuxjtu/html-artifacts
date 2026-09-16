@@ -100,7 +100,13 @@ export function assetOutputPath(assetUrl) {
   const url = new URL(assetUrl);
   if (FONT_EXT_RE.test(url.pathname)) throw new Error(`Font assets are excluded: ${assetUrl}`);
   const safeHost = url.hostname.replace(/[^A-Za-z0-9.-]/g, '_');
-  let pathname = decodeURIComponent(url.pathname);
+  const pathnameSource = url.pathname;
+  let pathname;
+  try {
+    pathname = decodeURIComponent(pathnameSource);
+  } catch {
+    pathname = pathnameSource;
+  }
   if (!pathname || pathname === '/') pathname = '/index-asset';
   pathname = pathname
     .split('/')
