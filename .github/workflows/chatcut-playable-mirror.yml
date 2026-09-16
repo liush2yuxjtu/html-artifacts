@@ -50,6 +50,10 @@ jobs:
         env:
           NODE_PATH: /tmp/chatcut-qa/node_modules
         run: node chatcut-mirror-src/qa.cjs
+      - name: Render visual contact sheet PDF
+        env:
+          NODE_PATH: /tmp/chatcut-qa/node_modules
+        run: node chatcut-mirror-src/contact-sheet.cjs
       - name: Verify visual snapshots exist
         run: |
           test -s chatcut-snapshots/01-hero.png
@@ -63,6 +67,8 @@ jobs:
           test -s chatcut-snapshots/12-video-after.png
           test -s chatcut-snapshots/13-music-before.png
           test -s chatcut-snapshots/14-music-after.png
+          test -s chatcut-snapshots/contact-sheet.html
+          test -s chatcut-snapshots/contact-sheet.pdf
       - name: Commit generated playable site and snapshots
         run: |
           git config user.name 'github-actions[bot]'
