@@ -178,7 +178,9 @@ export function rewritePageLinks(html) {
   }
 
   out = out.replace(/url\(\s*([\"']?)(\/(?!\/)[^\"')]+)\1\s*\)/gi, (_all, quote, value) => {
-    const absolute = new URL(value, ORIGIN + '/').toString();
+    // Inline JS may contain CSS url() template expressions. URL serialization
+    // would encode ${...} and silently break every dynamically selected frame.
+    const absolute = value.includes('${') ? ORIGIN + value : new URL(value, ORIGIN + '/').toString();
     return `url(${quote}${absolute}${quote})`;
   });
 

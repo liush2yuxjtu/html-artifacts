@@ -137,3 +137,10 @@ test('asset extraction ignores JS template placeholders and splits chained CSS u
   assert.equal(result.media.some(x => x.includes('${')), false);
   assert.equal(result.media.some(x => x.includes('a.jpg),url(')), false);
 });
+
+test('preserves dynamic CSS URL template expressions in inline product scripts', () => {
+  const source = '<script>const frame = `url(/features/ai-image-generator/showcase/tl-${e%6+1}.webp)`;</script>';
+  const result = rewritePageLinks(source);
+  assert.ok(result.includes('https://chatcut.io/features/ai-image-generator/showcase/tl-${e%6+1}.webp'));
+  assert.doesNotMatch(result, /%7B|%7D/);
+});

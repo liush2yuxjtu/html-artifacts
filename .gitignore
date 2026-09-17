@@ -4,3 +4,7 @@
 # scratch / scraped temp
 .source-index.html
 *.tmp
+
+.vercel/
+
+chatcut-vercel-evidence/
