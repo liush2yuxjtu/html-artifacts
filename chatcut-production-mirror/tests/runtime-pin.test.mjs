@@ -2,15 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { extractRuntimeRefs, normalizeRuntimeUrl, runtimeOutputPath, shouldScanRuntimeHtml, localizeRuntimeText } from '../scripts/pin-runtime.mjs';
 
-test('normalizes only ChatCut Astro runtime URLs', () => {
+test('normalizes ChatCut Astro runtime and same-origin CSS dependency URLs only', () => {
   assert.equal(normalizeRuntimeUrl('/_astro/index.ABC.css'), 'https://chatcut.io/_astro/index.ABC.css');
   assert.equal(normalizeRuntimeUrl('https://chatcut.io/_astro/chunk.X.js'), 'https://chatcut.io/_astro/chunk.X.js');
+  assert.equal(normalizeRuntimeUrl('/editor-mock/waveform.svg', 'https://chatcut.io/_astro/index.ABC.css'), 'https://chatcut.io/editor-mock/waveform.svg');
   assert.equal(normalizeRuntimeUrl('https://example.com/_astro/chunk.X.js'), null);
-  assert.equal(normalizeRuntimeUrl('/images/a.webp'), null);
+  assert.equal(normalizeRuntimeUrl('/pricing', 'https://chatcut.io/_astro/index.ABC.css'), null);
 });
 
-test('runtime output path preserves the production /_astro path', () => {
+test('runtime output path preserves same-origin production asset paths', () => {
   assert.equal(runtimeOutputPath('https://chatcut.io/_astro/index.ABC.css?x=1'), '_astro/index.ABC.css');
+  assert.equal(runtimeOutputPath('https://chatcut.io/editor-mock/waveform.svg'), 'editor-mock/waveform.svg');
 });
 
 test('extracts root, absolute, escaped, and relative runtime dependencies', () => {
@@ -40,11 +42,24 @@ test('extracts same-directory bare CSS runtime filenames', () => {
   ]);
 });
 
-test('runtime css keeps Astro assets local and externalizes production-root assets', () => {
-  const css = 'a{src:url("/_astro/font.A.woff2")}b{background:url(/editor-mock/waveform.svg)}';
+test('extracts production-root CSS dependencies so they can be pinned locally', () => {
+  const refs = extractRuntimeRefs(
+    'a{background:url(/editor-mock/waveform.svg)}b{background:url("/images/grid.webp")}',
+    'https://chatcut.io/_astro/index.TEST.css',
+  );
+  assert.deepEqual(refs, [
+    'https://chatcut.io/editor-mock/waveform.svg',
+    'https://chatcut.io/images/grid.webp',
+  ]);
+});
+
+test('runtime css keeps same-origin assets local instead of creating CORS requests', () => {
+  const css = 'a{src:url("/_astro/font.A.woff2")}b{background:url(/editor-mock/waveform.svg)}c{background:url(https://chatcut.io/images/grid.webp)}';
   const out = localizeRuntimeText(css);
   assert.match(out, /url\("\/_astro\/font\.A\.woff2"\)/);
-  assert.match(out, /url\(https:\/\/chatcut\.io\/editor-mock\/waveform\.svg\)/);
+  assert.match(out, /url\(\/editor-mock\/waveform\.svg\)/);
+  assert.match(out, /url\(\/images\/grid\.webp\)/);
+  assert.doesNotMatch(out, /https:\/\/chatcut\.io\/editor-mock\/waveform\.svg/);
 });
 
 test('runtime pinning scans served html but never immutable raw audit snapshots', () => {
