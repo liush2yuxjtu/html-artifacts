@@ -5,6 +5,7 @@ const MEDIA_EXT_RE = /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|
 const FONT_EXT_RE = /\.(?:woff2?|ttf|otf|eot)(?:[?#].*)?$/i;
 const CSS_EXT_RE = /\.css(?:[?#].*)?$/i;
 const JS_EXT_RE = /\.(?:m?js)(?:[?#].*)?$/i;
+const LOCALE_HOME_RE = /^\/(?:zh|zh-hant|es|ja)\/?$/;
 
 function decodeHtmlEntities(value) {
   return value
@@ -26,6 +27,16 @@ function toAbsolute(candidate, pageUrl) {
   if (!cleaned || cleaned.startsWith('data:') || cleaned.startsWith('blob:')) return null;
   try {
     return new URL(cleaned, pageUrl).toString();
+  } catch {
+    return null;
+  }
+}
+
+function toLocalRuntimeUrl(candidate) {
+  try {
+    const url = new URL(decodeHtmlEntities(candidate), ORIGIN + '/');
+    if (url.origin !== ORIGIN || !url.pathname.startsWith('/_astro/')) return null;
+    return `${url.pathname}${url.search}${url.hash}`;
   } catch {
     return null;
   }
@@ -153,6 +164,10 @@ export function rewritePageLinks(html) {
   const rewrite = (value, attr) => {
     const decoded = decodeHtmlEntities(value);
     if (/^(?:mailto:|tel:|javascript:|data:|blob:|#)/i.test(decoded)) return value;
+
+    const localRuntime = toLocalRuntimeUrl(decoded);
+    if (localRuntime) return localRuntime;
+
     let url;
     try {
       url = new URL(decoded, ORIGIN + '/');
@@ -163,10 +178,14 @@ export function rewritePageLinks(html) {
     if (url.origin !== ORIGIN) return value;
 
     if (attr.toLowerCase() === 'href') {
-      if (url.pathname === '/' || url.pathname === '/features' || /^\/features\/[^/]+\/?$/.test(url.pathname)) {
+      if (
+        url.pathname === '/' ||
+        LOCALE_HOME_RE.test(url.pathname) ||
+        url.pathname === '/features' ||
+        /^\/features\/[^/]+\/?$/.test(url.pathname)
+      ) {
         return `${url.pathname}${url.search}${url.hash}`;
       }
-      if (/\.(?:css|m?js)$/i.test(url.pathname)) return url.toString();
       return url.toString();
     }
 
@@ -177,9 +196,20 @@ export function rewritePageLinks(html) {
     out = rewriteAttrUrl(out, attr, rewrite);
   }
 
-  out = out.replace(/url\(\s*([\"']?)(\/(?!\/)[^\"')]+)\1\s*\)/gi, (_all, quote, value) => {
-    const absolute = new URL(value, ORIGIN + '/').toString();
-    return `url(${quote}${absolute}${quote})`;
+  out = out.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (all, quote, value) => {
+    const decoded = decodeHtmlEntities(value);
+    if (/^(?:data:|blob:|#)/i.test(decoded)) return all;
+    let url;
+    try {
+      url = new URL(decoded, ORIGIN + '/');
+    } catch {
+      return all;
+    }
+    if (url.origin !== ORIGIN) return all;
+    const target = url.pathname.startsWith('/_astro/')
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.toString();
+    return `url(${quote}${target}${quote})`;
   });
 
   out = out.replace(/srcset\s*=\s*["']([^"']+)["']/gi, (all, value) => {
@@ -234,6 +264,8 @@ export const mirrorInternals = {
   FONT_EXT_RE,
   CSS_EXT_RE,
   JS_EXT_RE,
+  LOCALE_HOME_RE,
   decodeHtmlEntities,
   toAbsolute,
+  toLocalRuntimeUrl,
 };
