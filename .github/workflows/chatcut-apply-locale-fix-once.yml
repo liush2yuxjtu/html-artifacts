@@ -1,4 +1,4 @@
-name: ChatCut apply locale fix one-shot
+name: ChatCut restore locale fallback one-shot
 
 on:
   push:
@@ -10,48 +10,23 @@ permissions:
   contents: write
 
 jobs:
-  patch-fix-branch:
+  restore-fix-branch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: fix/chatcut-final-acceptance
           fetch-depth: 0
-      - name: Patch locale routing and tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          build = Path('chatcut-mirror-src/vercel-build.mjs')
-          s = build.read_text()
-          for old, new in [
-            ("export const PAGES = ['/', '/features', ...BASELINE_FEATURE_PATHS];", "export const PAGES = ['/', ...HOME_ALIASES.filter(locale => locale !== 'en').map(locale => '/' + locale), '/features', ...BASELINE_FEATURE_PATHS];"),
-            ("    { src: '^/(?:en|zh|zh-hant|es|ja)/?$', status: 307, headers: { Location: '/' } },", "    { src: '^/en/?$', status: 307, headers: { Location: '/' } },"),
-            ("    localePolicy: 'English-only mirror: locale home aliases redirect to the canonical English homepage.',", "    localePolicy: 'Root keeps the verified playable English homepage; zh/es/ja/zh-hant are mirrored localized production homepages with the same-origin runtime snapshot.',"),
-          ]:
-            if old not in s: raise SystemExit(f'build contract not found: {old}')
-            s = s.replace(old, new, 1)
-          build.write_text(s)
-
-          test = Path('chatcut-mirror-src/tests/vercel-build.test.mjs')
-          t = test.read_text()
-          old = '''test('canonical locale fallbacks cannot redirect back into an unsupported locale', () => {\n  const first = outputConfig().routes[0];\n  for (const locale of HOME_ALIASES) {\n    assert.match('/' + locale, new RegExp(first.src));\n    assert.match('/' + locale + '/', new RegExp(first.src));\n  }\n  assert.equal(first.headers.Location, '/');\n  assert.equal(first.status, 307);\n  assert.equal(new RegExp(first.src).test('/'), false);\n  assert.equal(new RegExp(first.src).test('/zh/unknown'), false);\n});'''
-          new = '''test('serves real localized homepages while keeping /en canonical', () => {\n  const routes = outputConfig().routes;\n  const english = routes[0];\n  assert.match('/en', new RegExp(english.src));\n  assert.match('/en/', new RegExp(english.src));\n  assert.equal(english.headers.Location, '/');\n  assert.equal(english.status, 307);\n  for (const locale of HOME_ALIASES.filter(locale => locale !== 'en')) {\n    const expected = '/' + locale;\n    assert.ok(PAGES.includes(expected), expected);\n    const route = routes.find(item => item.dest && new RegExp(item.src).test(expected));\n    assert.ok(route, expected + ' route');\n  }\n});'''
-          if old not in t: raise SystemExit('locale routing test contract not found')
-          t = t.replace(old, new, 1)
-          t = t.replace('assert.equal(PAGES.length, 12);', 'assert.equal(PAGES.length, 16);', 1)
-          t = t.replace('assert.equal(outputConfig().routes.filter(x => x.dest).length, 13);', 'assert.equal(outputConfig().routes.filter(x => x.dest).length, 17);', 1)
-          test.write_text(t)
-          PY
-          node --test chatcut-mirror-src/tests/*.test.mjs
-      - name: Commit fix branch
+      - name: Restore canonical locale fallback
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'ChatGPT Mac mini QA'
           git config user.email 'actions@users.noreply.github.com'
-          git add chatcut-mirror-src/vercel-build.mjs chatcut-mirror-src/tests/vercel-build.test.mjs
-          git diff --cached --check
-          git commit -m 'fix(chatcut): preserve localized preview homepages'
+          git revert --no-edit d1e896a7eee83293eaa932e73ed90cfbe7ce2e66
+          if [ -f .github/workflows/chatcut-fix-localized-home-once.yml ]; then
+            git rm .github/workflows/chatcut-fix-localized-home-once.yml
+            git commit -m 'chore(chatcut): remove one-shot locale workflow'
+          fi
+          node --test chatcut-mirror-src/tests/*.test.mjs chatcut-production-mirror/tests/*.test.mjs
           git push origin HEAD:fix/chatcut-final-acceptance
