@@ -60,13 +60,25 @@ export function extractRuntimeRefs(source, parentUrl = `${ORIGIN}/`) {
   return [...found].sort();
 }
 
+export function shouldScanRuntimeHtml(relativePath) {
+  const normalized = String(relativePath).split(path.sep).join('/').replace(/^\.\//, '');
+  if (!normalized.endsWith('.html')) return false;
+  // _raw is immutable audit evidence from the upstream source. It intentionally
+  // preserves hydration/module references and must never drive served runtime pinning.
+  if (normalized.startsWith('_raw/') || normalized.startsWith('_meta/')) return false;
+  return true;
+}
+
 async function listHtmlFiles(dir) {
   const out = [];
   async function walk(current) {
     for (const entry of await fs.readdir(current, { withFileTypes: true })) {
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) await walk(full);
-      else if (entry.isFile() && entry.name.endsWith('.html')) out.push(full);
+      else if (entry.isFile()) {
+        const relative = path.relative(dir, full);
+        if (shouldScanRuntimeHtml(relative)) out.push(full);
+      }
     }
   }
   await walk(dir);
