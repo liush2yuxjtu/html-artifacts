@@ -42,7 +42,13 @@ def scroll_journey(page):
     # A section list alone can skip the FAQ island on tall mobile layouts.
     for island in page.locator("astro-island[client='visible']").all():
         island.evaluate("el => (el.querySelector('section,nav,div,button,details') || el).scrollIntoView({block:'center',behavior:'instant'})")
-        page.wait_for_timeout(450)
+        # Keep the island in view until hydration commits. A fixed 450 ms dwell
+        # can leave slow visible islands before their observer callback runs.
+        uid = island.get_attribute("uid")
+        try:
+            page.wait_for_function("uid => !Array.from(document.querySelectorAll('astro-island')).find(el => el.getAttribute('uid') === uid)?.hasAttribute('ssr')", arg=uid, timeout=10000)
+        except PlaywrightTimeoutError:
+            steps.append({"selector": "astro-island[uid=" + str(uid) + "]", "exists": True, "pending": True})
     page.evaluate("() => window.scrollTo({top:0, behavior:'instant'})")
     page.wait_for_timeout(300)
     return steps
@@ -200,6 +206,12 @@ def run_once(browser, target: str, out: Path, mobile: bool=False, cpu: int=1):
         if not interaction_ok: failures.append("expert-interaction-failed")
         if not all(report["controls"].values()): failures.append("missing-demo-control")
 
+    report["non_media_request_failures"] = [r for r in failed if r["type"] != "media"]
+    report["media_request_errors"] = [r for r in failed if r["type"] == "media" and r["error"] != "net::ERR_ABORTED"]
+    if report["non_media_request_failures"]: failures.append("non-media-request-failed")
+    if report["media_request_errors"]: failures.append("media-request-failed")
+    report["viewport"] = viewport
+    report["cpu_throttle"] = cpu
     report["hydration_diagnostics"] = page.evaluate("() => window.__ccHydrationErrors || []")
     (out/"report.json").write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding="utf-8")
     context.close()

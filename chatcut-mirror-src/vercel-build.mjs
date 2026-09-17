@@ -58,6 +58,16 @@ export function prepareVisibleControls(html) {
   const statusLine = "const status = ensureStatus(root, 'motion', dock, 'Ready · generate these graphics in place');";
   return html.replace(statusLine, statusLine + "\n    if (dock && status && status.parentElement !== dock) dock.append(status);");
 }
+// Keep dynamically constructed playback-image URLs on the mirrored origin.
+// Preserve remote video URLs and unknown paths; only map assets actually packaged.
+export function localizePlaybackFactory(source, imageMap) {
+  const marker = 'p="https://cdn.chatcut.dev/playback",a=(t,i)=>';
+  if (!source.includes(marker)) return source;
+  const pattern = /a=\(t,i\)=>(`[^`]+`)/;
+  if (!pattern.test(source)) throw new Error('Playback URL factory contract changed.');
+  return source.replace(pattern, (_, expression) =>
+    `a=(t,i)=>{const u=${expression};return (${JSON.stringify(imageMap)})[u]||u}`);
+}
 export function outputConfig() {
   return { version: 3, routes: [
     { src: '^/(?:en|zh|zh-hant|es|ja)/?$', status: 307, headers: { Location: '/' } },
@@ -89,7 +99,7 @@ const assets = [];
 const staticMedia = new Set();
 const remoteImages = new Set();
 function collectCdnImages(text) {
-  for (const m of text.matchAll(/https:\/\/cdn\.chatcut\.dev\/[^"'<>\s&)]+\.(?:svg|png|webp|jpe?g|gif|avif|ico)/g)) {
+  for (const m of text.matchAll(/https:\/\/(?:cdn\.chatcut\.dev|chatcut-beta-mainbucketbucket-bdabrmdk\.s3\.us-east-2\.amazonaws\.com)\/[^"'<>\s&)]+\.(?:svg|png|webp|jpe?g|gif|avif|ico)/g)) {
     if (!m[0].includes('${')) remoteImages.add(m[0]);
   }
 }
@@ -174,6 +184,7 @@ export async function buildVercel() {
   console.log('Capturing original motion-template response and runtime image dependencies');
   const data = await fetchBytes(ORIGIN + '/landing-data/motion-templates/popular');
   if (!Array.isArray(JSON.parse(data.toString('utf8')).templates)) throw new Error('Invalid real motion template response');
+  collectImages(data.toString('utf8'));
   await write(path.join(STATIC, 'landing-data/motion-templates/popular.json'), data);
   const imageQueue = [...staticMedia];
   let cursor = 0;
@@ -211,10 +222,11 @@ export async function buildVercel() {
     for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
       const file = path.join(dir, entry.name);
       if (entry.isDirectory()) { await rewriteLocalImages(file); continue; }
-      if (!/\.(?:html|js|css)$/.test(file)) continue;
+      if (!/\.(?:html|js|css|json)$/.test(file)) continue;
       let content = await fs.readFile(file, 'utf8');
       for (const media of imageQueue) content = content.split(ORIGIN + media).join(media);
       for (const [url, local] of cdnMap) content = content.split(url).join(local);
+      content = localizePlaybackFactory(content, Object.fromEntries(cdnMap));
       // Do not send already-localized runtime resources back to production after hydration.
       const localPaths = JSON.stringify([...new Set([...PAGES, '/intent.html', '/intent', ...imageQueue, ...cdnMap.values()])]);
       content = content.replace("return 'https://chatcut.io' + value;",
