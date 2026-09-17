@@ -21,7 +21,7 @@ test('baseline includes every audited English feature page', () => {
   assert.equal(BASELINE_FEATURE_PATHS.some(x => /\/(?:zh|zh-hant|es|ja)\//.test(x)), false);
 });
 
-test('download policy includes public media and excludes fonts/runtime bundles', () => {
+test('download policy includes public media and leaves Astro runtime to the runtime pin step', () => {
   assert.equal(shouldDownloadMedia('https://cdn.chatcut.dev/x.mp4'), true);
   assert.equal(shouldDownloadMedia('https://chatcut.io/x.webp'), true);
   assert.equal(shouldDownloadMedia('https://chatcut.io/x.svg'), true);
@@ -35,18 +35,19 @@ test('raw snapshots use stable audit paths', () => {
   assert.equal(outputPathForRawSnapshot('/features/ai-music'), '_raw/features/ai-music.source.html');
 });
 
-test('vercel config runs tests before full mirror deploy and proxies Astro runtime same-origin', async () => {
+test('vercel config runs tests before full mirror deploy and serves Astro runtime from dist', async () => {
   const vercel = JSON.parse(await fs.readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
   assert.equal(vercel.buildCommand, 'npm run ci:predeploy');
   assert.equal(vercel.outputDirectory, 'dist');
-  assert.ok(vercel.rewrites?.some(rule =>
-    rule.source === '/_astro/:path*' && rule.destination === 'https://chatcut.io/_astro/:path*'
-  ));
+  assert.equal(vercel.rewrites, undefined);
+  const pkg = JSON.parse(await fs.readFile(new URL('../package.json', import.meta.url), 'utf8'));
+  assert.match(pkg.scripts.build, /pin-runtime\.mjs/);
+  assert.match(pkg.scripts['mirror:full'], /pin-runtime\.mjs/);
   const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
   assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
 });
 
-test('normalizes production Astro runtime URLs to the same-origin proxy', () => {
+test('normalizes production Astro runtime URLs to local pinned paths', () => {
   const html = `<script src="https://chatcut.io/_astro/a.js"></script><script>const x='https:\\/\\/chatcut.io\\/_astro\\/b.js'</script>`;
   const out = rewriteRuntimeAssetUrls(html);
   assert.match(out, /src="\/_astro\/a\.js"/);
