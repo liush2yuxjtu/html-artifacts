@@ -2,11 +2,5 @@
   "buildCommand": "npm run ci:predeploy",
   "outputDirectory": "dist",
   "framework": null,
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/_astro/:path*",
-      "destination": "https://chatcut.io/_astro/:path*"
-    }
-  ]
+  "cleanUrls": true
 }
