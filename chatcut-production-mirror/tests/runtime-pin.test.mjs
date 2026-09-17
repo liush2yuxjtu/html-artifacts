@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extractRuntimeRefs, normalizeRuntimeUrl, runtimeOutputPath } from '../scripts/pin-runtime.mjs';
+import { extractRuntimeRefs, normalizeRuntimeUrl, runtimeOutputPath, shouldScanRuntimeHtml } from '../scripts/pin-runtime.mjs';
 
 test('normalizes only ChatCut Astro runtime URLs', () => {
   assert.equal(normalizeRuntimeUrl('/_astro/index.ABC.css'), 'https://chatcut.io/_astro/index.ABC.css');
@@ -28,4 +28,13 @@ test('extracts root, absolute, escaped, and relative runtime dependencies', () =
     'https://chatcut.io/_astro/root.A.js',
     'https://chatcut.io/_astro/theme.C.css',
   ]);
+});
+
+test('runtime pinning scans served html but never immutable raw audit snapshots', () => {
+  assert.equal(shouldScanRuntimeHtml('index.html'), true);
+  assert.equal(shouldScanRuntimeHtml('features/ai-motion-graphics/index.html'), true);
+  assert.equal(shouldScanRuntimeHtml('_raw/home.source.html'), false);
+  assert.equal(shouldScanRuntimeHtml('_raw/features/ai-motion-graphics.source.html'), false);
+  assert.equal(shouldScanRuntimeHtml('_meta/reference.html'), false);
+  assert.equal(shouldScanRuntimeHtml('_meta/runtime-manifest.json'), false);
 });
