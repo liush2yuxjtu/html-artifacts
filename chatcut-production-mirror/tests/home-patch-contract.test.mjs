@@ -39,3 +39,13 @@ test('homepage patch stylesheet only uses cc-prefixed custom state classes for n
   assert.match(css, /\.cc-video-reference-overlay/);
   assert.match(css, /\.cc-music-source-row/);
 });
+
+test('best moments presentation layers cannot steal clicks from the local send control', async () => {
+  const css = await fs.readFile(new URL('../patches/home.css', import.meta.url), 'utf8');
+  assert.match(css, /#best-moments \.bm-prompt-card\{[^}]*z-index:80!important;[^}]*pointer-events:auto!important/);
+  for (const selector of [
+    '.bm-final-row', '.bm-final-video-card', '.bm-scan-frame',
+    '.bm-editor-timeline-surface', '.bm-editor-timeline-chrome',
+  ]) assert.ok(css.includes(selector), selector);
+  assert.match(css, /pointer-events:none!important/);
+});
