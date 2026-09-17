@@ -143,6 +143,52 @@ export function sanitizeHtml(html) {
   );
 }
 
+function isAstroRuntimeReference(tag) {
+  const decoded = cleanCandidate(tag).toLowerCase();
+  return decoded.includes('/_astro/') || decoded.includes(`${ORIGIN}/_astro/`);
+}
+
+function unwrapTag(html, tagName) {
+  const pair = new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}\\s*>`, 'gi');
+  let out = html;
+  let previous;
+  do {
+    previous = out;
+    out = out.replace(pair, '$1');
+  } while (out !== previous);
+  out = out.replace(new RegExp(`<${tagName}\\b[^>]*/>`, 'gi'), '');
+  return out;
+}
+
+export function freezeAstroHydration(html) {
+  let out = html;
+
+  // Keep the server-rendered island/slot children, but remove the hydration wrappers
+  // whose hashed JS modules can disappear from the live origin after a new deploy.
+  out = unwrapTag(out, 'astro-island');
+  out = unwrapTag(out, 'astro-slot');
+
+  // Astro modulepreloads/runtime modules are not needed for a frozen SSR mirror.
+  out = out.replace(/<link\b[^>]*>/gi, (tag) => {
+    if (!isAstroRuntimeReference(tag)) return tag;
+    const rel = tag.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase() || '';
+    const href = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1] || '';
+    if (rel.includes('modulepreload') || JS_EXT_RE.test(cleanCandidate(href))) return '';
+    return tag;
+  });
+
+  out = out.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, (tag) => {
+    const lower = tag.toLowerCase();
+    if (!isAstroRuntimeReference(tag)) return tag;
+    const type = tag.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase() || '';
+    const src = tag.match(/\bsrc\s*=\s*["']([^"']+)["']/i)?.[1] || '';
+    if (type === 'module' || JS_EXT_RE.test(cleanCandidate(src)) || lower.includes('astro-island')) return '';
+    return tag;
+  });
+
+  return out;
+}
+
 function rewriteAttrUrl(html, attr, replacer) {
   const re = new RegExp(`(${attr}\\s*=\\s*["'])([^"']+)(["'])`, 'gi');
   return html.replace(re, (_all, prefix, value, suffix) => `${prefix}${replacer(value, attr)}${suffix}`);
