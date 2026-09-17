@@ -4,16 +4,17 @@ const { chromium } = require('playwright');
 
 const rawBaseUrl = process.env.CHATCUT_PREVIEW_URL || 'https://chatcut-production-mirror-pr3.vercel.app';
 const baseUrl = rawBaseUrl.replace(/\/$/, '');
+const baseOrigin = new URL(baseUrl).origin;
 const artifactDir = path.resolve(process.env.CHATCUT_PREVIEW_ARTIFACT_DIR || 'artifacts/preview-qa');
 const browserExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined;
 
-const extraHTTPHeaders = {};
+const vercelProtectionHeaders = {};
 if (process.env.VERCEL_AUTOMATION_BYPASS_SECRET) {
-  extraHTTPHeaders['x-vercel-protection-bypass'] = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
-  extraHTTPHeaders['x-vercel-set-bypass-cookie'] = 'true';
+  vercelProtectionHeaders['x-vercel-protection-bypass'] = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
+  vercelProtectionHeaders['x-vercel-set-bypass-cookie'] = 'true';
 }
 if (process.env.VERCEL_TRUSTED_OIDC_TOKEN) {
-  extraHTTPHeaders['x-vercel-trusted-oidc-idp-token'] = process.env.VERCEL_TRUSTED_OIDC_TOKEN;
+  vercelProtectionHeaders['x-vercel-trusted-oidc-idp-token'] = process.env.VERCEL_TRUSTED_OIDC_TOKEN;
 }
 
 function assert(condition, message) {
@@ -27,8 +28,27 @@ function routeUrl(route) {
 function isRelevantConsoleError(message) {
   const text = message.text();
   if (message.type() !== 'error') return false;
-  // Ignore a browser-only media decode error if the page still renders; everything else is acceptance signal.
   return !/media.*decode|PIPELINE_ERROR_DECODE/i.test(text);
+}
+
+async function installProtectionBypass(context) {
+  if (Object.keys(vercelProtectionHeaders).length === 0) return;
+  await context.route('**/*', async (route) => {
+    const request = route.request();
+    let requestOrigin;
+    try {
+      requestOrigin = new URL(request.url()).origin;
+    } catch {
+      return route.continue();
+    }
+    if (requestOrigin !== baseOrigin) return route.continue();
+    await route.continue({
+      headers: {
+        ...request.headers(),
+        ...vercelProtectionHeaders,
+      },
+    });
+  });
 }
 
 async function settle(page) {
@@ -70,6 +90,7 @@ async function main() {
     consoleErrors: [],
     pageErrors: [],
     requestFailures: [],
+    sameOriginHttpErrors: [],
     interaction: null,
     mobile: null,
   };
@@ -83,8 +104,8 @@ async function main() {
   try {
     const context = await browser.newContext({
       viewport: { width: 1440, height: 1000 },
-      extraHTTPHeaders,
     });
+    await installProtectionBypass(context);
     const page = await context.newPage();
 
     page.on('console', (message) => {
@@ -92,6 +113,13 @@ async function main() {
       report.consoleErrors.push({ type: message.type(), text: message.text() });
     });
     page.on('pageerror', (error) => report.pageErrors.push(String(error)));
+    page.on('response', (response) => {
+      let origin;
+      try { origin = new URL(response.url()).origin; } catch { return; }
+      if (origin === baseOrigin && response.status() >= 400) {
+        report.sameOriginHttpErrors.push({ url: response.url(), status: response.status() });
+      }
+    });
     page.on('requestfailed', (request) => {
       const failure = request.failure();
       const url = request.url();
@@ -129,15 +157,35 @@ async function main() {
     const mobile = await context.newPage();
     await mobile.setViewportSize({ width: 390, height: 844 });
     const mobileHome = await openChecked(mobile, '/', 'mobile homepage');
-    const overflow = await mobile.evaluate(() => ({
-      innerWidth: window.innerWidth,
-      scrollWidth: document.documentElement.scrollWidth,
-    }));
-    assert(overflow.scrollWidth <= overflow.innerWidth + 2, `mobile homepage: horizontal overflow ${overflow.scrollWidth}px > ${overflow.innerWidth}px`);
+    const overflow = await mobile.evaluate(() => {
+      const viewportWidth = window.innerWidth;
+      const offenders = [...document.querySelectorAll('body *')]
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            tag: element.tagName.toLowerCase(),
+            id: element.id || '',
+            className: typeof element.className === 'string' ? element.className.slice(0, 160) : '',
+            left: Math.round(rect.left),
+            right: Math.round(rect.right),
+            width: Math.round(rect.width),
+          };
+        })
+        .filter((item) => item.right > viewportWidth + 2 || item.left < -2)
+        .sort((a, b) => Math.max(b.right - viewportWidth, -b.left) - Math.max(a.right - viewportWidth, -a.left))
+        .slice(0, 12);
+      return {
+        innerWidth: viewportWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        offenders,
+      };
+    });
     report.mobile = { ...overflow, status: mobileHome.status, finalUrl: mobileHome.finalUrl };
     await mobile.screenshot({ path: path.join(artifactDir, 'mobile-home.png'), fullPage: true });
     await mobile.close();
+    assert(overflow.scrollWidth <= overflow.innerWidth + 2, `mobile homepage: horizontal overflow ${overflow.scrollWidth}px > ${overflow.innerWidth}px; offenders=${JSON.stringify(overflow.offenders)}`);
 
+    assert(report.sameOriginHttpErrors.length === 0, `same-origin HTTP errors: ${report.sameOriginHttpErrors.map((entry) => `${entry.status} ${entry.url}`).join(' | ')}`);
     assert(report.pageErrors.length === 0, `browser page errors: ${report.pageErrors.join(' | ')}`);
     assert(report.consoleErrors.length === 0, `browser console errors: ${report.consoleErrors.map((entry) => entry.text).join(' | ')}`);
 
