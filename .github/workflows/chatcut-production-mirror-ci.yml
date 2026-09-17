@@ -11,6 +11,10 @@ on:
       - 'chatcut-production-mirror/**'
       - '.github/workflows/chatcut-production-mirror-ci.yml'
 
+permissions:
+  contents: read
+  id-token: write
+
 concurrency:
   group: chatcut-mirror-${{ github.ref }}
   cancel-in-progress: true
@@ -28,3 +32,44 @@ jobs:
           node-version: '24'
       - name: Shift-left tests + mirror contract
         run: npm run ci:check
+
+  preview-browser:
+    if: github.event_name == 'pull_request'
+    needs: test-build-verify
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chatcut-production-mirror
+    env:
+      CHATCUT_PREVIEW_URL: https://chatcut-production-mirror-pr${{ github.event.pull_request.number }}.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright
+        run: npm install --prefix /tmp/chatcut-preview-qa --no-save playwright@1.57.0
+      - name: Install Chromium
+        run: /tmp/chatcut-preview-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Mint GitHub Actions OIDC token
+        id: oidc
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            core.setOutput('token', token);
+      - name: Browser acceptance on protected Vercel preview
+        env:
+          NODE_PATH: /tmp/chatcut-preview-qa/node_modules
+          VERCEL_TRUSTED_OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: npm run preview:qa
+      - name: Upload preview browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatcut-preview-browser-${{ github.event.pull_request.number }}
+          path: chatcut-production-mirror/artifacts/preview-qa
+          if-no-files-found: warn
+          retention-days: 7
