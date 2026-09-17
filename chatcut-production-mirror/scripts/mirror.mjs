@@ -15,6 +15,7 @@ import {
   rewriteMediaUrls,
   injectHomepagePatch,
 } from './mirror-lib.mjs';
+import { pinRuntimeUrls } from './pin-runtime.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = path.join(ROOT, 'dist');
@@ -86,6 +87,16 @@ async function fetchWithRetry(url, { attempts = 3, timeoutMs = 30000 } = {}) {
     }
   }
   throw new Error(`Failed to fetch ${url}: ${lastError?.message ?? lastError}`);
+}
+
+async function fetchPageAndPinRuntime(pathname) {
+  const pageUrl = toPageUrl(pathname);
+  const html = await fetchWithRetry(pageUrl);
+  const { stylesheets } = extractAssetUrls(html, pageUrl);
+  // Pin the page's Astro CSS tree immediately, before large media downloads can
+  // outlive an upstream deploy and leave this exact HTML pointing at purged hashes.
+  if (stylesheets.length) await pinRuntimeUrls(stylesheets, DIST);
+  return html;
 }
 
 async function downloadBinaryWithRetry(url, target, { attempts = 3, timeoutMs = 60000 } = {}) {
@@ -205,7 +216,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
 
   const indexPaths = ['/', '/features'];
   for (const pathname of indexPaths) {
-    const html = await fetchWithRetry(toPageUrl(pathname));
+    const html = await fetchPageAndPinRuntime(pathname);
     pageHtml.set(pathname, html);
   }
 
@@ -215,7 +226,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
 
   for (const pathname of allPaths) {
     let raw = pageHtml.get(pathname);
-    if (!raw) raw = await fetchWithRetry(toPageUrl(pathname));
+    if (!raw) raw = await fetchPageAndPinRuntime(pathname);
     pageHtml.set(pathname, raw);
     await writeText(outputPathForRawSnapshot(pathname), raw);
 
@@ -262,7 +273,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     media: mediaResults,
     stylesheets: [...allStylesheets].sort(),
     scripts: [...allScripts].sort(),
-    runtimePolicy: 'Astro hydration is frozen to server-rendered markup; CSS/font runtime dependencies are pinned into dist/_astro.',
+    runtimePolicy: 'Astro hydration is frozen to server-rendered markup; CSS/font runtime dependencies are pinned into dist/_astro during page capture.',
   }, null, 2));
 
   const summary = {
