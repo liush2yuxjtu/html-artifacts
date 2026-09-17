@@ -39,7 +39,7 @@ const pagePinAfter = `async function fetchPageAndPinRuntime(pathname) {
     } catch (error) {
       lastRuntimeError = error;
       if (attempt < 4) {
-        console.warn(`Runtime pin drift for ${pathname} (attempt ${attempt}/4): ${error.message}`);
+        console.warn(\`Runtime pin drift for \${pathname} (attempt \${attempt}/4): \${error.message}\`);
         await new Promise(resolve => setTimeout(resolve, 750 * attempt));
       }
     }
@@ -48,12 +48,12 @@ const pagePinAfter = `async function fetchPageAndPinRuntime(pathname) {
 }`;
 
 const verifierBefore = `    if (!item.output.startsWith('/_astro/')) {
-      failures.push(\`runtime asset is outside /_astro: ${item.output}\`);
+      failures.push(\`runtime asset is outside /_astro: \${item.output}\`);
       continue;
     }`;
 
 const verifierAfter = `    if (!item.output.startsWith('/') || item.output.startsWith('//') || item.output.includes('..')) {
-      failures.push(\`runtime asset output is not a safe local path: ${item.output}\`);
+      failures.push(\`runtime asset output is not a safe local path: \${item.output}\`);
       continue;
     }`;
 
