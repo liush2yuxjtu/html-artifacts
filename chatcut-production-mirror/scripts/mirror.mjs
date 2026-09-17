@@ -17,6 +17,8 @@ const ORIGIN = 'https://chatcut.io';
 const MEDIA_RE = /\.(?:avif|gif|jpe?g|png|svg|webp|mp4|webm|mov|m4v|mp3|wav|m4a|ogg|aac)(?:[?#].*)?$/i;
 const FONT_RE = /\.(?:woff2?|ttf|otf|eot)(?:[?#].*)?$/i;
 
+export const LOCALE_HOME_PATHS = Object.freeze(['/zh', '/es', '/ja', '/zh-hant']);
+
 export const BASELINE_FEATURE_PATHS = Object.freeze([
   '/features/ai-video-editor',
   '/features/ai-motion-graphics',
@@ -156,7 +158,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
 
   const discovered = discoverFeaturePaths(pageHtml.get('/features'));
   const featurePaths = [...new Set([...BASELINE_FEATURE_PATHS, ...discovered])].sort();
-  const allPaths = ['/', '/features', ...featurePaths];
+  const allPaths = ['/', ...LOCALE_HOME_PATHS, '/features', ...featurePaths];
 
   for (const pathname of allPaths) {
     let raw = pageHtml.get(pathname);
@@ -180,7 +182,9 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     let served = sanitizeHtml(raw);
     served = rewritePageLinks(served);
     if (mediaMode === 'local') served = rewriteMediaUrls(served, mediaMap);
-    if (pathname === '/') served = injectHomepagePatch(served, homepagePatchScript);
+    if (pathname === '/' || LOCALE_HOME_PATHS.includes(pathname)) {
+      served = injectHomepagePatch(served, homepagePatchScript);
+    }
     await writeText(pageOutputPath(pathname), served);
   }
 
@@ -204,11 +208,12 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     media: mediaResults,
     stylesheets: [...allStylesheets].sort(),
     scripts: [...allScripts].sort(),
-    fontPolicy: 'Font binaries are intentionally not copied; production stylesheets load them from the original host.',
+    fontPolicy: 'Astro runtime CSS, JS, and fonts stay under same-origin /_astro URLs and are proxied to production by Vercel.',
   }, null, 2));
 
   return {
     pages: pageManifest.length,
+    localizedHomePages: LOCALE_HOME_PATHS.length,
     featurePages: featurePaths.length,
     mediaAssets: allMedia.size,
     downloadedMedia: mediaResults.filter(x => x.status === 'downloaded').length,

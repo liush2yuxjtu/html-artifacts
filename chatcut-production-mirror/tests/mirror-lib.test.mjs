@@ -55,6 +55,7 @@ test('asset output path is deterministic, host namespaced and never emits font f
 
 test('maps page routes to directory index files', () => {
   assert.equal(pageOutputPath('/'), 'index.html');
+  assert.equal(pageOutputPath('/zh'), 'zh/index.html');
   assert.equal(pageOutputPath('/features'), 'features/index.html');
   assert.equal(pageOutputPath('/features/ai-music'), 'features/ai-music/index.html');
 });
@@ -76,13 +77,22 @@ test('sanitizes analytics and auth redirect scripts but keeps Astro product isla
   assert.equal(out.includes('<astro-island'), true);
 });
 
-test('rewrites same-origin non-mirror links to live ChatCut and preserves mirror routes', () => {
-  const html = `<a href="/">Home</a><a href="/features/ai-music">Music</a><a href="/pricing">Pricing</a><script src="/_astro/x.js"></script>`;
+test('rewrites same-origin non-mirror links to live ChatCut and preserves mirror plus locale routes', () => {
+  const html = `<a href="/">Home</a><a href="/zh">中文</a><a href="/features/ai-music">Music</a><a href="/pricing">Pricing</a><script src="/_astro/x.js"></script>`;
   const out = rewritePageLinks(html);
   assert.match(out, /href="\/"/);
+  assert.match(out, /href="\/zh"/);
   assert.match(out, /href="\/features\/ai-music"/);
   assert.match(out, /href="https:\/\/chatcut\.io\/pricing"/);
-  assert.match(out, /src="https:\/\/chatcut\.io\/_astro\/x\.js"/);
+  assert.match(out, /src="\/_astro\/x\.js"/);
+});
+
+test('rewrites absolute production Astro runtime URLs to same-origin proxy paths', () => {
+  const html = `<script src="https://chatcut.io/_astro/x.js"></script><link href="https://chatcut.io/_astro/x.css"><astro-island component-url="https://chatcut.io/_astro/Navbar.js"></astro-island>`;
+  const out = rewritePageLinks(html);
+  assert.match(out, /src="\/_astro\/x\.js"/);
+  assert.match(out, /href="\/_astro\/x\.css"/);
+  assert.match(out, /component-url="\/_astro\/Navbar\.js"/);
 });
 
 test('rewrites media URLs using exact URL map without touching unrelated URLs', () => {
@@ -105,15 +115,16 @@ test('injects homepage patch exactly once', () => {
   assert.equal((twice.match(/\/patches\/demo-session\.js/g) ?? []).length, 0);
 });
 
-test('absolutizes Astro island module attributes against production origin', () => {
+test('keeps Astro island module attributes on the preview origin', () => {
   const out = rewritePageLinks(`<astro-island component-url="/_astro/Navbar.js" renderer-url="/_astro/client.js" before-hydration-url="/_astro/pre.js"></astro-island>`);
-  assert.match(out, /component-url="https:\/\/chatcut\.io\/_astro\/Navbar\.js"/);
-  assert.match(out, /renderer-url="https:\/\/chatcut\.io\/_astro\/client\.js"/);
-  assert.match(out, /before-hydration-url="https:\/\/chatcut\.io\/_astro\/pre\.js"/);
+  assert.match(out, /component-url="\/_astro\/Navbar\.js"/);
+  assert.match(out, /renderer-url="\/_astro\/client\.js"/);
+  assert.match(out, /before-hydration-url="\/_astro\/pre\.js"/);
 });
 
-test('absolutizes root-relative CSS url assets in copied inline styles', () => {
-  const out = rewritePageLinks(`<span style="--frame:url(/best-moments/ai-editing/high-frames/frame-01.jpg)"></span>`);
+test('keeps Astro CSS runtime local but absolutizes other root-relative CSS assets', () => {
+  const out = rewritePageLinks(`<span style="--font:url(/_astro/inter.woff2);--frame:url(/best-moments/ai-editing/high-frames/frame-01.jpg)"></span>`);
+  assert.match(out, /url\(\/_astro\/inter\.woff2\)/);
   assert.match(out, /url\(https:\/\/chatcut\.io\/best-moments\/ai-editing\/high-frames\/frame-01\.jpg\)/);
 });
 
