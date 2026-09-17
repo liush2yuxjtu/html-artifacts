@@ -93,6 +93,7 @@ async function main() {
     sameOriginHttpErrors: [],
     interaction: null,
     mobile: null,
+    locale: null,
   };
 
   const browser = await chromium.launch({
@@ -185,6 +186,23 @@ async function main() {
     await mobile.close();
     assert(overflow.scrollWidth <= overflow.innerWidth + 2, `mobile homepage: horizontal overflow ${overflow.scrollWidth}px > ${overflow.innerWidth}px; offenders=${JSON.stringify(overflow.offenders)}`);
 
+    // Reproduce the user's browser-language case explicitly. The source site has
+    // a locale bootstrap that can redirect zh-CN browsers from / to /zh, but this
+    // review mirror intentionally ships only the English route set.
+    const localeContext = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      locale: 'zh-CN',
+    });
+    await installProtectionBypass(localeContext);
+    const localePage = await localeContext.newPage();
+    const localeHome = await openChecked(localePage, '/', 'zh-CN locale homepage');
+    const localePath = new URL(localeHome.finalUrl).pathname;
+    assert(localePath === '/', `zh-CN locale homepage: redirected away from root to ${localeHome.finalUrl}`);
+    assert(/Edit videos by telling AI what you want|YOUR AI VIDEO EDITOR/i.test(localeHome.body), 'zh-CN locale homepage: expected ChatCut hero copy was not found');
+    report.locale = { locale: 'zh-CN', status: localeHome.status, finalUrl: localeHome.finalUrl };
+    await localePage.screenshot({ path: path.join(artifactDir, 'zh-cn-home.png'), fullPage: true });
+    await localeContext.close();
+
     assert(report.sameOriginHttpErrors.length === 0, `same-origin HTTP errors: ${report.sameOriginHttpErrors.map((entry) => `${entry.status} ${entry.url}`).join(' | ')}`);
     assert(report.pageErrors.length === 0, `browser page errors: ${report.pageErrors.join(' | ')}`);
     assert(report.consoleErrors.length === 0, `browser console errors: ${report.consoleErrors.map((entry) => entry.text).join(' | ')}`);
@@ -193,6 +211,7 @@ async function main() {
     console.log(`PASS ChatCut preview browser QA: ${baseUrl}`);
     console.log(`Auth mode: ${report.authMode}`);
     console.log(`Routes: ${report.routes.map((entry) => `${entry.route}=${entry.status}`).join(', ')}`);
+    console.log(`Locale regression: ${report.locale.locale}=${report.locale.status} ${report.locale.finalUrl}`);
   } catch (error) {
     fs.writeFileSync(path.join(artifactDir, 'report.json'), `${JSON.stringify({ ...report, failure: String(error?.stack || error) }, null, 2)}\n`);
     throw error;
