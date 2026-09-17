@@ -26,7 +26,10 @@ export function normalizeRuntimeUrl(value, parentUrl = `${ORIGIN}/`) {
   } catch {
     return null;
   }
-  if (url.origin !== ORIGIN || !url.pathname.startsWith(ASTRO_PREFIX)) return null;
+  // Runtime text can reference hashed /_astro files and ordinary static assets
+  // such as /editor-mock/waveform.svg. Pin both when they are static files from
+  // ChatCut itself so the review deployment never depends on cross-origin CORS.
+  if (url.origin !== ORIGIN) return null;
   if (!RUNTIME_ASSET_RE.test(url.pathname)) return null;
   url.hash = '';
   return url.toString();
@@ -34,8 +37,8 @@ export function normalizeRuntimeUrl(value, parentUrl = `${ORIGIN}/`) {
 
 export function runtimeOutputPath(runtimeUrl) {
   const url = new URL(runtimeUrl);
-  if (url.origin !== ORIGIN || !url.pathname.startsWith(ASTRO_PREFIX)) {
-    throw new Error(`Not a ChatCut Astro runtime asset: ${runtimeUrl}`);
+  if (url.origin !== ORIGIN || !RUNTIME_ASSET_RE.test(url.pathname)) {
+    throw new Error(`Not a pinnable ChatCut runtime asset: ${runtimeUrl}`);
   }
   return stripQueryHash(url.pathname).replace(/^\/+/, '');
 }
@@ -57,8 +60,9 @@ export function extractRuntimeRefs(source, parentUrl = `${ORIGIN}/`) {
   for (const match of decoded.matchAll(/(?:^|[\s"'`(=:,])(\.\.?\/[A-Za-z0-9._~!$&()+,;=@%\/-]+\.(?:css|m?js|json|svg|woff2?|ttf|otf|eot|png|jpe?g|webp|avif|gif|wasm)(?:\?[^\s"'`<>)]+)?)/gim)) {
     consider(match[1]);
   }
-  // CSS bundlers also emit same-directory bare filenames: url(font.HASH.woff2).
-  // Resolve every url(...) candidate against the owning runtime asset.
+  // CSS bundlers emit both same-directory filenames and production-root assets.
+  // Resolve every url(...) candidate against the owning runtime asset; the
+  // normalizer only accepts supported same-origin static file extensions.
   for (const match of decoded.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
     consider(match[1]);
   }
@@ -120,12 +124,13 @@ export function localizeRuntimeText(text) {
     .replaceAll(`${ORIGIN}/_astro/`, '/_astro/')
     .replaceAll('https:\\/\\/chatcut.io\\/_astro\\/', '\\/_astro\\/');
 
-  // Runtime CSS sometimes points at production-root assets outside /_astro.
-  // Keep those on ChatCut's origin instead of accidentally resolving them on
-  // the protected review domain. /_astro stays local and pinned.
+  // Keep CSS dependencies on the review deployment. pinRuntimeUrls discovers
+  // these same-origin url(...) references and writes them to matching paths.
+  // Absolute ChatCut URLs become root-relative; already-root-relative URLs stay
+  // unchanged. Third-party URLs are intentionally left alone.
   return localizedAstro.replace(
-    /url\(\s*(["']?)(\/(?!_astro\/)[^"')]+)\1\s*\)/gi,
-    (_all, quote, value) => `url(${quote}${ORIGIN}${value}${quote})`,
+    /url\(\s*(["']?)https:\/\/chatcut\.io(\/[^"')]+)\1\s*\)/gi,
+    (_all, quote, value) => `url(${quote}${value}${quote})`,
   );
 }
 
