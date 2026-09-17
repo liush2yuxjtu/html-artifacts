@@ -199,6 +199,14 @@ export function rewritePageLinks(html) {
   out = out.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi, (all, quote, value) => {
     const decoded = decodeHtmlEntities(value);
     if (/^(?:data:|blob:|#)/i.test(decoded)) return all;
+    // Preserve dynamic CSS template expressions before URL serialization.
+    // Otherwise ${...} becomes encoded and generated image paths break.
+    if (decoded.includes('${')) {
+      const target = decoded.startsWith('/_astro/') ? decoded
+        : decoded.startsWith('/') && !decoded.startsWith('//') ? ORIGIN + decoded
+        : decoded;
+      return `url(${quote}${target}${quote})`;
+    }
     let url;
     try {
       url = new URL(decoded, ORIGIN + '/');
