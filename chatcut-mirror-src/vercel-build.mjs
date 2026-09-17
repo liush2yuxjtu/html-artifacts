@@ -87,7 +87,14 @@ async function fetchBytes(url) {
 const visited = new Set();
 const assets = [];
 const staticMedia = new Set();
+const remoteImages = new Set();
+function collectCdnImages(text) {
+  for (const m of text.matchAll(/https:\/\/cdn\.chatcut\.dev\/[^"'<>\s&)]+\.(?:svg|png|webp|jpe?g|gif|avif|ico)/g)) {
+    if (!m[0].includes('${')) remoteImages.add(m[0]);
+  }
+}
 function collectImages(html) {
+  collectCdnImages(html);
   for (const m of html.matchAll(/https:\/\/chatcut\.io(\/[^"'<>\s&)]+\.(?:svg|png|webp|jpe?g|gif|avif|ico))/g)) { if (!m[1].includes('${')) staticMedia.add(m[1]); }
 }
 function astroUrl(spec, base) {
@@ -117,6 +124,7 @@ async function mirrorAsset(url) {
   };
   if (/\.m?js$/.test(key)) {
     let source = stopAutoplayTranscript(synchronizeAstroHydration(guardProductionSession(bytes.toString('utf8'))));
+    collectCdnImages(source);
     for (const match of source.matchAll(/(["'`])(\/(?!\/)[^"'`\s${}<>]+\.(?:svg|png|webp|jpe?g|gif|avif|ico))\1/g)) staticMedia.add(match[2]);
     source = source.replace(/(["'`])((?:https:\/\/chatcut\.io)?(?:\.\.?\/|\/)[^"'`\s]+?)\1/g,
       (match, quote, spec) => { const rel = replaceSpec(spec); return rel ? quote + rel + quote : match; });
@@ -141,7 +149,7 @@ async function localizeHtml(html) {
   return html.replaceAll(ORIGIN + '/_astro/', '/_astro/');
 }
 export async function buildVercel() {
-  visited.clear(); assets.length = 0; staticMedia.clear();
+  visited.clear(); assets.length = 0; staticMedia.clear(); remoteImages.clear();
   staticMedia.add('/codex-plugin/chatgpt-mark.svg');
   staticMedia.add('/codex-plugin/claude-mark.svg');
   await fs.rm(OUT, { recursive: true, force: true });
@@ -184,6 +192,21 @@ export async function buildVercel() {
     }
   }
   await Promise.all(Array.from({ length: 6 }, imageWorker));
+  const cdnMap = new Map();
+  const remoteQueue = [...remoteImages];
+  let remoteCursor = 0;
+  async function cdnWorker() {
+    while (remoteCursor < remoteQueue.length) {
+      const url = remoteQueue[remoteCursor++];
+      const parsed = new URL(url);
+      const local = '/_media/' + parsed.hostname + parsed.pathname;
+      const bytes = await fetchBytes(url);
+      await write(path.join(STATIC, local.replace(/^\/+/, '')), bytes);
+      cdnMap.set(url, local);
+      assets.push({ path: local, sourceUrl: url, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') });
+    }
+  }
+  await Promise.all(Array.from({ length: 6 }, cdnWorker));
   async function rewriteLocalImages(dir) {
     for (const entry of await fs.readdir(dir, { withFileTypes: true })) {
       const file = path.join(dir, entry.name);
@@ -191,8 +214,9 @@ export async function buildVercel() {
       if (!/\.(?:html|js|css)$/.test(file)) continue;
       let content = await fs.readFile(file, 'utf8');
       for (const media of imageQueue) content = content.split(ORIGIN + media).join(media);
+      for (const [url, local] of cdnMap) content = content.split(url).join(local);
       // Do not send already-localized runtime resources back to production after hydration.
-      const localPaths = JSON.stringify([...new Set([...PAGES, '/intent.html', '/intent', ...imageQueue])]);
+      const localPaths = JSON.stringify([...new Set([...PAGES, '/intent.html', '/intent', ...imageQueue, ...cdnMap.values()])]);
       content = content.replace("return 'https://chatcut.io' + value;",
         `if (${localPaths}.includes(value.split(/[?#]/)[0])) return value; return 'https://chatcut.io' + value;`);
       await fs.writeFile(file, content);
