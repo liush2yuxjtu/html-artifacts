@@ -1,6 +1,13 @@
 {
-  "buildCommand": "npm run mirror:full",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm test && npm run mirror:full",
   "outputDirectory": "dist",
   "framework": null,
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/_astro/:path*",
+      "destination": "https://chatcut.io/_astro/:path*"
+    }
+  ]
 }
