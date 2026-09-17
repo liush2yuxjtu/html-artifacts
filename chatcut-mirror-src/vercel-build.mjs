@@ -12,7 +12,7 @@ const OUT = path.join(ROOT, '.vercel/output');
 const STATIC = path.join(OUT, 'static');
 const ORIGIN = 'https://chatcut.io';
 export const HOME_ALIASES = ['en', 'zh', 'zh-hant', 'es', 'ja'];
-export const PAGES = ['/', ...HOME_ALIASES.filter(locale => locale !== 'en').map(locale => '/' + locale), '/features', ...BASELINE_FEATURE_PATHS];
+export const PAGES = ['/', '/features', ...BASELINE_FEATURE_PATHS];
 export function sanitizeMirror(html) {
   return sanitizeHtml(html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, tag =>
     /runBrowserLocaleBootstrap|auth\/get-session/.test(tag) ? '' : tag);
@@ -70,7 +70,7 @@ export function localizePlaybackFactory(source, imageMap) {
 }
 export function outputConfig() {
   return { version: 3, routes: [
-    { src: '^/en/?$', status: 307, headers: { Location: '/' } },
+    { src: '^/(?:en|zh|zh-hant|es|ja)/?$', status: 307, headers: { Location: '/' } },
     ...PAGES.filter(p => p !== '/').map(p => ({ src: `^${p}/?$`, dest: `/${pageOutputPath(p)}` })),
     { src: '^/intent$', dest: '/intent.html' },
     { src: '^/landing-data/motion-templates/popular$', dest: '/landing-data/motion-templates/popular.json', headers: { 'Content-Type': 'application/json; charset=utf-8' } },
@@ -247,7 +247,7 @@ export async function buildVercel() {
     sourceDirty: Boolean(execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' }).trim()),
     homepageSha256: createHash('sha256').update(await fs.readFile(path.join(STATIC, 'index.html'))).digest('hex'),
     homepage: 'Checked-in production DOM with playable v2, hydration and hit-test fixes',
-    localePolicy: 'Root keeps the verified playable English homepage; zh/es/ja/zh-hant are mirrored localized production homepages with the same-origin runtime snapshot.',
+    localePolicy: 'English-only mirror: locale home aliases redirect to the canonical English homepage.',
     mediaPolicy: 'Original public ChatCut CDN media; required runtime JS/CSS is same-origin.',
     pages, assets
   };

@@ -9,19 +9,16 @@ test('removes production-only locale and session redirects without removing prod
   assert.match(output, /astro-island/);
   assert.match(output, /window.product=true/);
 });
-test('serves real localized homepages while keeping /en canonical', () => {
-  const routes = outputConfig().routes;
-  const english = routes[0];
-  assert.match('/en', new RegExp(english.src));
-  assert.match('/en/', new RegExp(english.src));
-  assert.equal(english.headers.Location, '/');
-  assert.equal(english.status, 307);
-  for (const locale of HOME_ALIASES.filter(locale => locale !== 'en')) {
-    const expected = '/' + locale;
-    assert.ok(PAGES.includes(expected), expected);
-    const route = routes.find(item => item.dest && new RegExp(item.src).test(expected));
-    assert.ok(route, expected + ' route');
+test('canonical locale fallbacks cannot redirect back into an unsupported locale', () => {
+  const first = outputConfig().routes[0];
+  for (const locale of HOME_ALIASES) {
+    assert.match('/' + locale, new RegExp(first.src));
+    assert.match('/' + locale + '/', new RegExp(first.src));
   }
+  assert.equal(first.headers.Location, '/');
+  assert.equal(first.status, 307);
+  assert.equal(new RegExp(first.src).test('/'), false);
+  assert.equal(new RegExp(first.src).test('/zh/unknown'), false);
 });
 test('preserves the full latest playable homepage and same-origin runtime on Vercel', async () => {
   const source = await fs.readFile(new URL('../../chatcut-playable/index.html', import.meta.url), 'utf8');
@@ -32,9 +29,9 @@ test('preserves the full latest playable homepage and same-origin runtime on Ver
   assert.throws(() => prepareHomepage('<h1>Fake page</h1>'), /checked-in homepage/);
 });
 test('keeps all previously supported feature pages and directory routes', () => {
-  assert.equal(PAGES.length, 16);
+  assert.equal(PAGES.length, 12);
   assert.ok(PAGES.includes('/features/ai-music'));
-  assert.equal(outputConfig().routes.filter(x => x.dest).length, 17);
+  assert.equal(outputConfig().routes.filter(x => x.dest).length, 13);
 });
 
 test('guards the production-only session lookup in hydrated navbar modules', () => {
