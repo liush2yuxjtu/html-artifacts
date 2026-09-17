@@ -57,6 +57,11 @@ export function extractRuntimeRefs(source, parentUrl = `${ORIGIN}/`) {
   for (const match of decoded.matchAll(/(?:^|[\s"'`(=:,])(\.\.?\/[A-Za-z0-9._~!$&()+,;=@%\/-]+\.(?:css|m?js|json|svg|woff2?|ttf|otf|eot|png|jpe?g|webp|avif|gif|wasm)(?:\?[^\s"'`<>)]+)?)/gim)) {
     consider(match[1]);
   }
+  // CSS bundlers also emit same-directory bare filenames: url(font.HASH.woff2).
+  // Resolve every url(...) candidate against the owning runtime asset.
+  for (const match of decoded.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) {
+    consider(match[1]);
+  }
   return [...found].sort();
 }
 
@@ -110,10 +115,18 @@ async function fetchBufferWithRetry(url, { attempts = 3, timeoutMs = 30_000 } = 
   throw new Error(`Failed to pin ${url}: ${lastError?.message ?? lastError}`);
 }
 
-function localizeRuntimeText(text) {
-  return text
+export function localizeRuntimeText(text) {
+  const localizedAstro = text
     .replaceAll(`${ORIGIN}/_astro/`, '/_astro/')
     .replaceAll('https:\\/\\/chatcut.io\\/_astro\\/', '\\/_astro\\/');
+
+  // Runtime CSS sometimes points at production-root assets outside /_astro.
+  // Keep those on ChatCut's origin instead of accidentally resolving them on
+  // the protected review domain. /_astro stays local and pinned.
+  return localizedAstro.replace(
+    /url\(\s*(["']?)(\/(?!_astro\/)[^"')]+)\1\s*\)/gi,
+    (_all, quote, value) => `url(${quote}${ORIGIN}${value}${quote})`,
+  );
 }
 
 async function readOrFetchRuntime(url, target) {
