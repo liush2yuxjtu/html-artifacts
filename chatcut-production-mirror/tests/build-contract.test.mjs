@@ -47,6 +47,15 @@ test('vercel config runs tests before full mirror deploy and serves Astro runtim
   assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
 });
 
+test('pins page runtime during capture before large media downloads', async () => {
+  const source = await fs.readFile(new URL('../scripts/mirror.mjs', import.meta.url), 'utf8');
+  const fetchAt = source.indexOf('const html = await fetchWithRetry(pageUrl)');
+  const pinAt = source.indexOf('await pinRuntimeUrls(stylesheets, DIST)');
+  const mediaAt = source.indexOf('const mediaResults = await downloadMedia');
+  assert.ok(fetchAt >= 0 && pinAt > fetchAt, 'page fetch must immediately lead to runtime pinning');
+  assert.ok(mediaAt > pinAt, 'runtime pinning must happen before large media downloads');
+});
+
 test('normalizes production Astro runtime URLs to local pinned paths', () => {
   const html = `<script src="https://chatcut.io/_astro/a.js"></script><script>const x='https:\\/\\/chatcut.io\\/_astro\\/b.js'</script>`;
   const out = rewriteRuntimeAssetUrls(html);
