@@ -60,10 +60,11 @@ test('maps page routes to directory index files', () => {
   assert.equal(pageOutputPath('/features/ai-music'), 'features/ai-music/index.html');
 });
 
-test('sanitizes analytics and auth redirect scripts but keeps Astro product islands before freezing', () => {
+test('sanitizes analytics, auth redirects, and locale redirects but keeps Astro product islands before freezing', () => {
   const html = `<!doctype html><html><head>
     <script src="https://www.googletagmanager.com/gtm.js?id=x"></script>
     <script>window.posthog?.capture('x')</script>
+    <script>function runBrowserLocaleBootstrap(){window.location.replace('/zh')}</script>
     <script type="module" src="/_astro/Navbar.js"></script>
   </head><body>
     <script>fetch('https://api.chatcut.io/auth/get-session').then(()=>window.location.replace('https://app.chatcut.io/'))</script>
@@ -73,6 +74,8 @@ test('sanitizes analytics and auth redirect scripts but keeps Astro product isla
   assert.equal(out.includes('googletagmanager'), false);
   assert.equal(out.includes('posthog'), false);
   assert.equal(out.includes('auth/get-session'), false);
+  assert.equal(out.includes('runBrowserLocaleBootstrap'), false);
+  assert.equal(out.includes("window.location.replace('/zh')"), false);
   assert.equal(out.includes('/_astro/Navbar.js'), true);
   assert.equal(out.includes('<astro-island'), true);
 });
