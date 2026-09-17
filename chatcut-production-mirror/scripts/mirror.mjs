@@ -53,6 +53,12 @@ function toPageUrl(pathname) {
   return new URL(pathname, ORIGIN).toString();
 }
 
+export function freshFetchUrl(url, nonce = `${Date.now()}-${process.pid}`) {
+  const fresh = new URL(url);
+  fresh.searchParams.set('__chatcut_mirror', nonce);
+  return fresh.toString();
+}
+
 async function ensureParent(filePath) {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 }
@@ -69,12 +75,15 @@ async function fetchWithRetry(url, { attempts = 3, timeoutMs = 30000 } = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const response = await fetch(url, {
+      const response = await fetch(freshFetchUrl(url, `${Date.now()}-${process.pid}-${attempt}`), {
         redirect: 'follow',
         signal: controller.signal,
+        cache: 'no-store',
         headers: {
           'user-agent': 'Mozilla/5.0 ChatCutInterviewMirror/1.0',
           accept: 'text/html,application/xhtml+xml',
+          'cache-control': 'no-cache',
+          pragma: 'no-cache',
         },
       });
       if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
@@ -93,8 +102,6 @@ async function fetchPageAndPinRuntime(pathname) {
   const pageUrl = toPageUrl(pathname);
   const html = await fetchWithRetry(pageUrl);
   const { stylesheets } = extractAssetUrls(html, pageUrl);
-  // Pin the page's Astro CSS tree immediately, before large media downloads can
-  // outlive an upstream deploy and leave this exact HTML pointing at purged hashes.
   if (stylesheets.length) await pinRuntimeUrls(stylesheets, DIST);
   return html;
 }
@@ -273,7 +280,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     media: mediaResults,
     stylesheets: [...allStylesheets].sort(),
     scripts: [...allScripts].sort(),
-    runtimePolicy: 'Astro hydration is frozen to server-rendered markup; CSS/font runtime dependencies are pinned into dist/_astro during page capture.',
+    runtimePolicy: 'Astro hydration is frozen to server-rendered markup; fresh HTML is cache-busted and CSS/font runtime dependencies are pinned during page capture.',
   }, null, 2));
 
   const summary = {
