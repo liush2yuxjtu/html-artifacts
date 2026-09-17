@@ -4,9 +4,10 @@
 .cc-local-send svg{width:15px;height:15px}
 .cc-local-send:hover{opacity:.88}.cc-local-send:active{transform:scale(.96)}
 #best-moments.cc-expert-awaiting .bm-stage *{animation-play-state:paused!important}
-#best-moments .bm-prompt-card{pointer-events:auto!important}
-#best-moments .bm-prompt-input{position:relative;padding-right:42px}
-#best-moments .bm-prompt-input>.cc-local-send{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:6}
+#best-moments .bm-prompt-card{z-index:80!important;pointer-events:auto!important}
+#best-moments .bm-prompt-input{position:relative;z-index:81!important;padding-right:42px}
+#best-moments .bm-final-row,#best-moments .bm-final-video-card,#best-moments .bm-scan-frame,#best-moments .bm-editor-timeline-surface,#best-moments .bm-editor-timeline-chrome{pointer-events:none!important}
+#best-moments .bm-prompt-input>.cc-local-send{position:absolute;right:7px;top:50%;transform:translateY(-50%);z-index:82}
 #best-moments .bm-prompt-input>.cc-local-send:active{transform:translateY(-50%) scale(.96)}
 #best-moments.cc-expert-running .bm-final-video-card{opacity:1}
 #motion-graphics.cc-motion-awaiting .agentic-thinking-card{opacity:.28;filter:saturate(.55) blur(.6px);transition:opacity .35s ease,filter .35s ease,transform .35s ease}
