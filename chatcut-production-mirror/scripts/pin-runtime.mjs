@@ -63,8 +63,6 @@ export function extractRuntimeRefs(source, parentUrl = `${ORIGIN}/`) {
 export function shouldScanRuntimeHtml(relativePath) {
   const normalized = String(relativePath).split(path.sep).join('/').replace(/^\.\//, '');
   if (!normalized.endsWith('.html')) return false;
-  // _raw is immutable audit evidence from the upstream source. It intentionally
-  // preserves hydration/module references and must never drive served runtime pinning.
   if (normalized.startsWith('_raw/') || normalized.startsWith('_meta/')) return false;
   return true;
 }
@@ -118,36 +116,41 @@ function localizeRuntimeText(text) {
     .replaceAll('https:\\/\\/chatcut.io\\/_astro\\/', '\\/_astro\\/');
 }
 
-export async function pinRuntimeAssets(distDir = DEFAULT_DIST) {
-  const htmlFiles = await listHtmlFiles(distDir);
+async function readOrFetchRuntime(url, target) {
+  try {
+    return { buffer: await fs.readFile(target), reused: true };
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  return { buffer: await fetchBufferWithRetry(url), reused: false };
+}
+
+export async function pinRuntimeUrls(initialUrls, distDir = DEFAULT_DIST) {
   const queued = [];
   const seen = new Set();
   const manifest = [];
-
-  const enqueue = (url) => {
+  const enqueue = (value, parentUrl = `${ORIGIN}/`) => {
+    const url = normalizeRuntimeUrl(value, parentUrl);
     if (!url || seen.has(url)) return;
     seen.add(url);
     queued.push(url);
   };
 
-  for (const htmlPath of htmlFiles) {
-    const html = await fs.readFile(htmlPath, 'utf8');
-    for (const url of extractRuntimeRefs(html, `${ORIGIN}/`)) enqueue(url);
-  }
+  for (const url of initialUrls) enqueue(url);
 
   for (let cursor = 0; cursor < queued.length; cursor += 1) {
     const url = queued[cursor];
     const output = runtimeOutputPath(url);
     const target = path.join(distDir, output);
-    const buffer = await fetchBufferWithRetry(url);
+    const { buffer, reused } = await readOrFetchRuntime(url, target);
     await fs.mkdir(path.dirname(target), { recursive: true });
 
     if (TEXT_ASSET_RE.test(stripQueryHash(url))) {
       const original = buffer.toString('utf8');
       const localized = localizeRuntimeText(original);
       await fs.writeFile(target, localized, 'utf8');
-      for (const dependency of extractRuntimeRefs(localized, url)) enqueue(dependency);
-    } else {
+      for (const dependency of extractRuntimeRefs(localized, url)) enqueue(dependency, url);
+    } else if (!reused) {
       await fs.writeFile(target, buffer);
     }
 
@@ -155,9 +158,22 @@ export async function pinRuntimeAssets(distDir = DEFAULT_DIST) {
       url,
       output: `/${output}`,
       bytes: buffer.byteLength,
+      reused,
     });
   }
 
+  return manifest;
+}
+
+export async function pinRuntimeAssets(distDir = DEFAULT_DIST) {
+  const htmlFiles = await listHtmlFiles(distDir);
+  const roots = new Set();
+  for (const htmlPath of htmlFiles) {
+    const html = await fs.readFile(htmlPath, 'utf8');
+    for (const url of extractRuntimeRefs(html, `${ORIGIN}/`)) roots.add(url);
+  }
+
+  const manifest = await pinRuntimeUrls([...roots], distDir);
   const metaDir = path.join(distDir, '_meta');
   await fs.mkdir(metaDir, { recursive: true });
   await fs.writeFile(path.join(metaDir, 'runtime-manifest.json'), `${JSON.stringify({
