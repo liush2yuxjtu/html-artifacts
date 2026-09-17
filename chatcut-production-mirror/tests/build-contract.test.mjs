@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, rewriteRuntimeAssetUrls, classifyMediaFailure, buildMediaMap } from '../scripts/mirror.mjs';
+import { BASELINE_FEATURE_PATHS, shouldDownloadMedia, outputPathForRawSnapshot, freshFetchUrl, rewriteRuntimeAssetUrls, classifyMediaFailure, buildMediaMap } from '../scripts/mirror.mjs';
 
 const expected = [
   '/features/ai-video-editor',
@@ -35,6 +35,13 @@ test('raw snapshots use stable audit paths', () => {
   assert.equal(outputPathForRawSnapshot('/features/ai-music'), '_raw/features/ai-music.source.html');
 });
 
+test('upstream html fetches use a cache-busting query without changing the route', () => {
+  const fresh = new URL(freshFetchUrl('https://chatcut.io/features/ai-music?x=1', 'test-nonce'));
+  assert.equal(fresh.pathname, '/features/ai-music');
+  assert.equal(fresh.searchParams.get('x'), '1');
+  assert.equal(fresh.searchParams.get('__chatcut_mirror'), 'test-nonce');
+});
+
 test('vercel config runs tests before full mirror deploy and serves Astro runtime from dist', async () => {
   const vercel = JSON.parse(await fs.readFile(new URL('../vercel.json', import.meta.url), 'utf8'));
   assert.equal(vercel.buildCommand, 'npm run ci:predeploy');
@@ -54,6 +61,8 @@ test('pins page runtime during capture before large media downloads', async () =
   const mediaAt = source.indexOf('const mediaResults = await downloadMedia');
   assert.ok(fetchAt >= 0 && pinAt > fetchAt, 'page fetch must immediately lead to runtime pinning');
   assert.ok(mediaAt > pinAt, 'runtime pinning must happen before large media downloads');
+  assert.match(source, /'cache-control': 'no-cache'/);
+  assert.match(source, /cache: 'no-store'/);
 });
 
 test('normalizes production Astro runtime URLs to local pinned paths', () => {
