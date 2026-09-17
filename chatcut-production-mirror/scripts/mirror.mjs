@@ -10,6 +10,7 @@ import {
   assetOutputPath,
   pageOutputPath,
   sanitizeHtml,
+  freezeAstroHydration,
   rewritePageLinks,
   rewriteMediaUrls,
   injectHomepagePatch,
@@ -232,6 +233,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   for (const { pathname } of pageManifest) {
     const raw = pageHtml.get(pathname);
     let served = sanitizeHtml(raw);
+    served = freezeAstroHydration(served);
     served = rewritePageLinks(served);
     served = rewriteRuntimeAssetUrls(served);
     if (mediaMode === 'local') served = rewriteMediaUrls(served, mediaMap);
@@ -260,7 +262,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
     media: mediaResults,
     stylesheets: [...allStylesheets].sort(),
     scripts: [...allScripts].sort(),
-    runtimePolicy: 'Astro runtime, CSS, and font dependencies are served through the same-origin /_astro proxy.',
+    runtimePolicy: 'Astro hydration is frozen to server-rendered markup; CSS/font runtime dependencies are pinned into dist/_astro.',
   }, null, 2));
 
   const summary = {
