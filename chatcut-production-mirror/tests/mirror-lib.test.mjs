@@ -6,6 +6,7 @@ import {
   assetOutputPath,
   pageOutputPath,
   sanitizeHtml,
+  freezeAstroHydration,
   rewritePageLinks,
   rewriteMediaUrls,
   injectHomepagePatch,
@@ -59,7 +60,7 @@ test('maps page routes to directory index files', () => {
   assert.equal(pageOutputPath('/features/ai-music'), 'features/ai-music/index.html');
 });
 
-test('sanitizes analytics and auth redirect scripts but keeps Astro product islands', () => {
+test('sanitizes analytics and auth redirect scripts but keeps Astro product islands before freezing', () => {
   const html = `<!doctype html><html><head>
     <script src="https://www.googletagmanager.com/gtm.js?id=x"></script>
     <script>window.posthog?.capture('x')</script>
@@ -74,6 +75,24 @@ test('sanitizes analytics and auth redirect scripts but keeps Astro product isla
   assert.equal(out.includes('auth/get-session'), false);
   assert.equal(out.includes('/_astro/Navbar.js'), true);
   assert.equal(out.includes('<astro-island'), true);
+});
+
+test('freezes Astro islands to SSR markup and removes only hydration runtime JS', () => {
+  const html = `<!doctype html><html><head>
+    <link rel="stylesheet" href="/_astro/index.css">
+    <link rel="modulepreload" href="/_astro/runtime.js">
+    <script type="module" src="/_astro/runtime.js"></script>
+    <script type="module">import '/_astro/bootstrap.js'; customElements.define('astro-island', class extends HTMLElement {})</script>
+  </head><body>
+    <astro-island component-url="/_astro/Missing.js" renderer-url="/_astro/client.js"><section><astro-slot><h2>Visible SSR copy</h2></astro-slot></section></astro-island>
+    <script>window.keepMe = true;</script>
+  </body></html>`;
+  const out = freezeAstroHydration(html);
+  assert.match(out, /<link rel="stylesheet" href="\/_astro\/index\.css">/);
+  assert.match(out, /<section><h2>Visible SSR copy<\/h2><\/section>/);
+  assert.match(out, /window\.keepMe = true/);
+  assert.doesNotMatch(out, /<astro-island|<astro-slot/);
+  assert.doesNotMatch(out, /Missing\.js|runtime\.js|bootstrap\.js|component-url|renderer-url|modulepreload/);
 });
 
 test('rewrites same-origin non-mirror links to live ChatCut and preserves mirror routes', () => {
