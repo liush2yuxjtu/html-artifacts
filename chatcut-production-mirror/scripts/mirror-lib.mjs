@@ -133,6 +133,7 @@ function shouldRemoveScript(tag) {
     'beacon.min.js',
     'gtm-',
     'auth/get-session',
+    'runbrowserlocalebootstrap',
   ];
   return trackingMarkers.some((marker) => lower.includes(marker));
 }
