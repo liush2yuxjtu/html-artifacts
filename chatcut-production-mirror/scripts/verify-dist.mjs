@@ -12,6 +12,7 @@ const REQUIRED_FILES = Object.freeze([
   'patches/home.js',
   '_meta/page-manifest.json',
   '_meta/asset-manifest.json',
+  '_meta/runtime-manifest.json',
 ]);
 
 function stripQueryHash(value) {
@@ -41,7 +42,7 @@ async function exists(filePath) {
 export function extractLocalResourcePaths(html) {
   const found = new Set();
   const patterns = [
-    /\b(?:src|poster)\s*=\s*["'](\/[^"']+)["']/gi,
+    /\b(?:src|poster|component-url|renderer-url|before-hydration-url)\s*=\s*["'](\/[^"']+)["']/gi,
     /\burl\(\s*["']?(\/[^)"']+)["']?\s*\)/gi,
     /<link\b[^>]*\bhref\s*=\s*["'](\/[^"']+)["'][^>]*>/gi,
   ];
@@ -86,6 +87,14 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
     failures.push(`invalid asset manifest: ${error.message}`);
   }
 
+  const runtimeManifestPath = path.join(distDir, '_meta/runtime-manifest.json');
+  let runtimeManifest;
+  try {
+    runtimeManifest = JSON.parse(await fs.readFile(runtimeManifestPath, 'utf8'));
+  } catch (error) {
+    failures.push(`invalid runtime manifest: ${error.message}`);
+  }
+
   if (assetManifest?.mediaMode === 'local') {
     const failedMedia = (assetManifest.media ?? []).filter(item => item?.status === 'failed');
     for (const item of failedMedia) {
@@ -96,6 +105,24 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
       if (!(await exists(localPathToFile(distDir, item.localPath)))) {
         failures.push(`downloaded media missing from dist: ${item.url} -> ${item.localPath}`);
       }
+    }
+  }
+
+  const runtimeAssets = runtimeManifest?.assets ?? [];
+  if (runtimeManifest && runtimeAssets.length === 0) {
+    failures.push('runtime manifest contains no pinned Astro assets');
+  }
+  for (const item of runtimeAssets) {
+    if (!item?.url || !item?.output) {
+      failures.push('runtime manifest contains malformed asset entry');
+      continue;
+    }
+    if (!item.output.startsWith('/_astro/')) {
+      failures.push(`runtime asset is outside /_astro: ${item.output}`);
+      continue;
+    }
+    if (!(await exists(localPathToFile(distDir, item.output)))) {
+      failures.push(`pinned runtime asset missing from dist: ${item.url} -> ${item.output}`);
     }
   }
 
@@ -119,7 +146,7 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
 
     for (const resourcePath of extractLocalResourcePaths(html)) {
       const clean = stripQueryHash(resourcePath);
-      if (clean === '/' || clean.startsWith('/features') || clean.startsWith('/_astro/')) continue;
+      if (clean === '/' || clean.startsWith('/features')) continue;
       if (!(await exists(localPathToFile(distDir, resourcePath)))) {
         failures.push(`broken local resource in ${relative}: ${resourcePath}`);
       }
@@ -143,6 +170,7 @@ export async function verifyDist(distDir = DEFAULT_DIST) {
     mirroredRoutes: routeToOutput.size,
     htmlFilesChecked: htmlFiles.size,
     mirroredMediaChecked: assetManifest?.mediaMode === 'local' ? (assetManifest.media ?? []).length : 0,
+    pinnedRuntimeAssets: runtimeAssets.length,
   };
 }
 
