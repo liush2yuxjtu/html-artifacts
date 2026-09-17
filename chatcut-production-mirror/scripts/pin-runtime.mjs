@@ -14,11 +14,11 @@ function stripQueryHash(value) {
 }
 
 function decodeEscapedSlashes(value) {
-  return String(value).replaceAll('\\/', '/').replaceAll('&amp;', '&');
+  return String(value).replace(/\\\//g, '/').replaceAll('&amp;', '&');
 }
 
 export function normalizeRuntimeUrl(value, parentUrl = `${ORIGIN}/`) {
-  const decoded = decodeEscapedSlashes(value).trim().replace(/[),;]+$/g, '');
+  const decoded = decodeEscapedSlashes(value).trim().replace(/["'),;]+$/g, '');
   if (!decoded || decoded.startsWith('data:') || decoded.startsWith('blob:')) return null;
   let url;
   try {
@@ -48,13 +48,13 @@ export function extractRuntimeRefs(source, parentUrl = `${ORIGIN}/`) {
     if (normalized) found.add(normalized);
   };
 
-  for (const match of decoded.matchAll(/https:\/\/chatcut\.io\/_astro\/[A-Za-z0-9._~!$&'()+,;=@%\/-]+(?:\?[^\s"'`<>)]+)?/gi)) {
+  for (const match of decoded.matchAll(/https:\/\/chatcut\.io\/_astro\/[A-Za-z0-9._~!$&()+,;=@%\/-]+(?:\?[^\s"'`<>)]+)?/gi)) {
     consider(match[0]);
   }
-  for (const match of decoded.matchAll(/(?:^|[\s"'`(=:,])((?:\/_astro\/)[A-Za-z0-9._~!$&'()+,;=@%\/-]+(?:\?[^\s"'`<>)]+)?)/gim)) {
+  for (const match of decoded.matchAll(/(?:^|[^A-Za-z0-9.:/])((?:\/_astro\/)[A-Za-z0-9._~!$&()+,;=@%\/-]+(?:\?[^\s"'`<>)]+)?)/gim)) {
     consider(match[1]);
   }
-  for (const match of decoded.matchAll(/(?:^|[\s"'`(=:,])(\.\.?\/[A-Za-z0-9._~!$&'()+,;=@%\/-]+\.(?:css|m?js|json|svg|woff2?|ttf|otf|eot|png|jpe?g|webp|avif|gif|wasm)(?:\?[^\s"'`<>)]+)?)/gim)) {
+  for (const match of decoded.matchAll(/(?:^|[\s"'`(=:,])(\.\.?\/[A-Za-z0-9._~!$&()+,;=@%\/-]+\.(?:css|m?js|json|svg|woff2?|ttf|otf|eot|png|jpe?g|webp|avif|gif|wasm)(?:\?[^\s"'`<>)]+)?)/gim)) {
     consider(match[1]);
   }
   return [...found].sort();
