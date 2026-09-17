@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Live Project Registry</title>
+<style>
+:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f7f8fb}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1180px;margin:0 auto;padding:40px 24px 64px}.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#6b7280;font-weight:700}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin:8px 0 28px}.hero h1{font-size:38px;line-height:1.05;margin:0}.hero p{margin:8px 0 0;color:#6b7280}.meta{font-size:13px;color:#6b7280;text-align:right}.card{background:white;border:1px solid #e5e7eb;border-radius:18px;box-shadow:0 8px 32px rgba(17,24,39,.06);overflow:hidden}.toolbar{padding:16px 18px;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;align-items:center;justify-content:space-between}.statusline{font-size:13px;color:#6b7280}.refresh{border:1px solid #d1d5db;background:#fff;border-radius:10px;padding:8px 12px;font-weight:650;cursor:pointer}table{width:100%;border-collapse:collapse}th,td{padding:15px 18px;text-align:left;border-bottom:1px solid #eef0f3;vertical-align:top}th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#6b7280;background:#fafafa;position:sticky;top:0}td{font-size:14px}.name{font-weight:750}.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700;background:#ecfdf5;color:#047857}.dot{width:7px;height:7px;border-radius:50%;background:currentColor}a{color:#2563eb;text-decoration:none}a:hover{text-decoration:underline}.url{max-width:360px;word-break:break-all}.muted{color:#9ca3af}.error{padding:28px;color:#991b1b;background:#fef2f2}.foot{margin-top:14px;color:#9ca3af;font-size:12px}@media(max-width:760px){.hero{display:block}.meta{text-align:left;margin-top:12px}.card{overflow:auto}.url{min-width:280px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Canonical live endpoints</div>
+  <div class="hero">
+    <div><h1>Live Project Registry</h1><p>Recent active projects and their current production / preview URLs.</p></div>
+    <div class="meta" id="meta">Loading…</div>
+  </div>
+  <div class="card">
+    <div class="toolbar"><div class="statusline" id="status">Reading grokbot project registry…</div><button class="refresh" onclick="load()">Refresh</button></div>
+    <div id="content"></div>
+  </div>
+  <div class="foot">Source of truth: grokbot Project Registry API. This page intentionally does not hardcode project rows.</div>
+</div>
+<script>
+const API='https://grokbot.tail6a877d.ts.net/project-registry/v1/projects';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const link=u=>u?`<a href="${esc(u)}" target="_blank" rel="noreferrer">${esc(u)}</a>`:'<span class="muted">—</span>';
+async function load(){const status=document.getElementById('status'),content=document.getElementById('content'),meta=document.getElementById('meta');status.textContent='Refreshing…';try{const r=await fetch(API,{cache:'no-store'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const d=await r.json();const rows=(d.projects||[]).map(p=>`<tr><td class="name">${esc(p.name)}</td><td><span class="badge"><span class="dot"></span>${esc(p.status||'UNKNOWN')}</span></td><td class="url">${link(p.liveUrl)}</td><td class="url">${link(p.previewUrl)}</td></tr>`).join('');content.innerHTML=`<table><thead><tr><th>Project</th><th>Status</th><th>Live URL</th><th>Preview URL</th></tr></thead><tbody>${rows}</tbody></table>`;status.textContent=`${(d.projects||[]).length} projects loaded`;meta.textContent=`Registry v${d.version||'?'} · Updated ${d.updatedAt?new Date(d.updatedAt).toLocaleString():'unknown'}`;}catch(e){status.textContent='Registry unavailable';content.innerHTML=`<div class="error">Could not load live registry: ${esc(e.message)}</div>`;meta.textContent='Live data unavailable';}}
+load();
+setInterval(load,60000);
+</script>
+</body>
+</html>
