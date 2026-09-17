@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/*.test.mjs",
-    "build": "node scripts/mirror.mjs && node scripts/pin-runtime.mjs",
-    "mirror:full": "MIRROR_MEDIA_MODE=local node scripts/mirror.mjs && node scripts/pin-runtime.mjs",
+    "prepare:runtime": "node scripts/prepare-runtime-guards.mjs",
+    "test": "npm run prepare:runtime && node --test tests/*.test.mjs",
+    "build": "npm run prepare:runtime && node scripts/mirror.mjs && node scripts/pin-runtime.mjs",
+    "mirror:full": "npm run prepare:runtime && MIRROR_MEDIA_MODE=local node scripts/mirror.mjs && node scripts/pin-runtime.mjs",
     "verify:dist": "node scripts/verify-dist.mjs",
     "preview:qa": "node scripts/preview-qa.cjs",
     "ci:check": "npm test && npm run build && npm run verify:dist",
