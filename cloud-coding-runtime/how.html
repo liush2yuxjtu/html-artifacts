@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>在 ChatGPT Chat 中启用完整云端 Coding</title>
+<title>复制这套 ChatGPT Chat 云端 Coding 工作环境</title>
 <meta name="description" content="用 Grokbot + Tailscale + 本地 MCP + Airtable，把 Bash、浏览器、真实本地数据、凭证和端到端测试接入 ChatGPT Chat。" />
 <style>
 :root{--bg:#f7f8fb;--card:#fff;--ink:#111827;--muted:#667085;--line:#d8dee9;--blue:#2563eb;--green:#059669;--amber:#d97706;--purple:#7c3aed;--dark:#0f172a}
@@ -47,8 +47,8 @@ details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-
 <div class="wrap">
 <section class="hero">
   <div class="eyebrow">Personal Cloud Coding Fabric</div>
-  <h1>在 ChatGPT Chat 中启用完整云端 Coding</h1>
-  <p class="lead">目标不是把私密数据搬上云，而是让 ChatGPT 通过一个云端执行环境获得 Bash、Git、工作区、浏览器和端到端测试能力；需要真实数据或凭证时，再通过安全隧道调用本地 MCP。</p>
+  <h1>复制这套 ChatGPT Chat 云端 Coding 工作环境</h1>
+  <p class="lead">这是给团队成员复制并复现同一套云端 Coding 工作方式的指南：用自己的 Grokbot、Tailnet、本地 MCP 和 Airtable 接入 ChatGPT Chat，获得 Bash、Git、浏览器、真实数据访问和端到端测试能力。不是给第二台机器做镜像。</p>
   <div class="actions">
     <button class="primary" onclick="copyPrompt()">复制最终提示词</button>
     <a class="btn secondary" href="#steps">开始配置</a>
@@ -167,7 +167,7 @@ details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-
 <section class="card span12">
   <span class="tag">Prompt</span>
   <h2 style="margin-top:8px">复制给 ChatGPT 的启动提示词</h2>
-  <pre id="prompt">按照下面两个链接，在你的账号上启用完整的 ChatGPT Chat 云端 Coding 能力。
+  <pre id="prompt">按照下面两个链接，在你的账号上复制并复现这套完整的 ChatGPT Chat 云端 Coding 工作环境；用你自己的 Grokbot、Tailnet、本地 MCP、凭证和 Airtable，完成真实端到端验收。
 
 1. 交互式指南：
 https://liush2yuxjtu.github.io/html-artifacts/cloud-coding-runtime/how.html
@@ -193,7 +193,7 @@ ChatGPT Chat
 - Airtable 只作为跨设备控制平面和状态索引，不作为原始私密数据存储。
 - 最终从 ChatGPT Chat 侧暴露稳定能力：bash、git、browser、webapp_test、local_data、secret、deploy。
 - 每一步都要真实验收，不要用“配置存在”“build green”“服务启动”代替端到端 runtime evidence。
-- 若已有 Grokbot / Tailnet / Mac mini / Airtable / MCP 基础设施，先复用和审计，再补缺口。
+- 若你已有 Grokbot / Tailnet / 本地机器 / Airtable / MCP 基础设施，先复用和审计，再补缺口；不要复制我的私密数据、凭证或机器身份。
 - 完成后给出：当前架构、已验证能力、未验证能力、风险、真实 runtime evidence，以及下一步最小补齐项。</pre>
   <button class="primary" onclick="copyPrompt()">复制提示词</button>
 </section>
