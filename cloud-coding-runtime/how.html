@@ -147,21 +147,23 @@ details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-
 
 <section class="card span12">
   <span class="tag">Acceptance</span>
-  <h2 style="margin-top:8px">验收：不是“配置过”，而是每项真的能跑</h2>
+  <h2 style="margin-top:8px">验收标准：每项都要有操作、通过条件和证据</h2>
+  <p class="muted">不要把“配置存在”“进程启动”“build green”“deployment READY”当成完成。缺少可复查 evidence 的能力一律标记为 <strong>UNVERIFIED</strong>。</p>
   <div class="progress"><div class="bar" id="bar"></div></div>
   <p class="muted" id="progressText">0 / 10 已完成</p>
   <div class="checklist" id="checks">
-    <label><input type="checkbox"> ChatGPT 能调用云端 Bash 并返回真实 stdout/stderr</label>
-    <label><input type="checkbox"> Git clone / edit / commit 在持久 workspace 中可用</label>
-    <label><input type="checkbox"> 匿名浏览器能打开公开网页并截图/读取页面</label>
-    <label><input type="checkbox"> 持久登录浏览器重启任务后仍保持已授权 session</label>
-    <label><input type="checkbox"> 自动化测试浏览器每次使用干净隔离 context</label>
-    <label><input type="checkbox"> 云端能通过 Tailnet 调用本地 MCP</label>
-    <label><input type="checkbox"> 本地私密数据无需完整复制到云端即可用于测试</label>
-    <label><input type="checkbox"> 凭证可按任务解析和使用，且不会写入 repo/log/artifact</label>
-    <label><input type="checkbox"> Airtable 能完成跨设备 handoff / shared context 同步</label>
-    <label><input type="checkbox"> 一次真实项目能完成：代码修改 → 本地真实数据 → E2E → 证据 → 部署</label>
+    <label><input type="checkbox"><span><strong>1. Bash：</strong>从 ChatGPT 执行 <code>pwd</code>、<code>uname -a</code>、<code>git --version</code> 和一个失败命令；必须拿到真实 stdout/stderr/exit code；保存执行时间与环境标识。</span></label>
+    <label><input type="checkbox"><span><strong>2. Git + 持久工作区：</strong>clone → 修改 → commit → 结束会话 → 重新进入；repo、文件与 commit 仍存在；保存 repo URL、commit SHA、<code>git status</code>、<code>git log -1</code>。</span></label>
+    <label><input type="checkbox"><span><strong>3. 匿名浏览器：</strong>访问公开网页、读取标题/正文并截图；不能依赖个人登录态；保存 URL、页面标题和截图/文本结果。</span></label>
+    <label><input type="checkbox"><span><strong>4. 持久登录浏览器：</strong>登录测试 SaaS，结束任务后再次打开仍保持授权 session；不得与匿名/E2E profile 共用；证据中禁止保存密码/Cookie/token 明文。</span></label>
+    <label><input type="checkbox"><span><strong>5. 隔离 E2E 浏览器：</strong>同一测试连续跑两次；第二次不得继承第一次 cookie/localStorage/sessionStorage；保存两次 run ID、断言、报告及失败截图/视频。</span></label>
+    <label><input type="checkbox"><span><strong>6. Tailnet → 本地 MCP：</strong>从云端调用仅本地可访问的 MCP；断开 Tailnet 后必须失败，恢复后成功；保存 hostname/IP、tool 名称和成功/失败证据。</span></label>
+    <label><input type="checkbox"><span><strong>7. 私密数据不复制上云：</strong>通过本地 MCP 使用带唯一 marker 的测试数据；云端 repo/workspace/artifact 中不得出现完整源数据副本；保存 marker 调用结果和云端文件扫描结果。</span></label>
+    <label><input type="checkbox"><span><strong>8. Secret 按任务解析：</strong>用 secret resolver 完成真实 API 调用；secret 不得出现在 ChatGPT、history、Git diff、日志、artifact、截图或 Airtable；保存 API 成功摘要、secret 指纹和泄漏扫描结果。</span></label>
+    <label><input type="checkbox"><span><strong>9. Airtable Handoff：</strong>设备/成员 A 创建 handoff，B 在没有原聊天历史的情况下继续并写回结果；保存 record ID、创建/接收/完成时间和结果摘要。</span></label>
+    <label><input type="checkbox"><span><strong>10. 真实项目闭环：</strong>ChatGPT 完成代码修改 → commit → 本地真实/生产类数据 → E2E → evidence → deploy/preview → 浏览器验证；保存 commit SHA、测试报告、MCP 摘要、deployment URL/ID 和最终断言。</span></label>
   </div>
+  <div class="callout ok" style="margin-top:16px"><strong>READY 门槛：</strong>10 项全部通过；无 secret 泄漏；无整库/整目录私密数据复制；三类浏览器隔离；Tailnet 断开测试证明无公网旁路；至少完成 1 次真实项目闭环。最终必须输出“能力 / 状态 / evidence / 风险 / 下一步”表格。</div>
 </section>
 
 <section class="card span12">
