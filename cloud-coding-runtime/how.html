@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>在 ChatGPT Chat 中启用完整云端 Coding</title>
+<meta name="description" content="用 Grokbot + Tailscale + 本地 MCP + Airtable，把 Bash、浏览器、真实本地数据、凭证和端到端测试接入 ChatGPT Chat。" />
+<style>
+:root{--bg:#f7f8fb;--card:#fff;--ink:#111827;--muted:#667085;--line:#d8dee9;--blue:#2563eb;--green:#059669;--amber:#d97706;--purple:#7c3aed;--dark:#0f172a}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 72px}
+.hero{background:linear-gradient(135deg,#eef6ff,#f7f3ff);border:1px solid #cfe0ff;border-radius:24px;padding:38px;box-shadow:0 18px 50px rgba(37,99,235,.08)}
+.eyebrow{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+h1{font-size:clamp(34px,6vw,64px);line-height:1.03;margin:10px 0 14px;letter-spacing:-.03em}
+.lead{font-size:20px;line-height:1.65;max-width:860px;color:#344054}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+button,.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}
+.primary{background:var(--dark);color:#fff}.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;margin-top:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 6px 24px rgba(15,23,42,.04)}
+.span12{grid-column:span 12}.span8{grid-column:span 8}.span6{grid-column:span 6}.span4{grid-column:span 4}
+@media(max-width:860px){.span8,.span6,.span4{grid-column:span 12}.hero{padding:26px}}
+h2{font-size:28px;margin:0 0 12px}h3{margin:0 0 8px;font-size:19px}
+.muted{color:var(--muted)}.tag{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#eef2ff;color:#3730a3}
+.arch{display:grid;gap:12px;align-items:center;text-align:center}
+.node{border:1px solid var(--line);background:#fff;border-radius:14px;padding:15px;font-weight:800}
+.node.blue{background:#eff6ff;border-color:#bfdbfe}.node.green{background:#ecfdf5;border-color:#a7f3d0}.node.amber{background:#fffbeb;border-color:#fde68a}.node.purple{background:#f5f3ff;border-color:#ddd6fe}
+.arrow{font-size:24px;color:#64748b}
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.lanes{grid-template-columns:1fr}}
+.lane{padding:14px;border-radius:14px;border:1px solid var(--line);background:#fafafa}
+.step{display:flex;gap:14px;align-items:flex-start;padding:15px 0;border-top:1px solid #eef0f4}.step:first-of-type{border-top:0}
+.num{min-width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#111827;color:#fff;font-weight:800}
+.checklist label{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px}.checklist label:hover{background:#f8fafc}
+.checklist input{margin-top:4px;transform:scale(1.15)}
+.progress{height:10px;border-radius:999px;background:#e5e7eb;overflow:hidden}.bar{height:100%;width:0;background:#111827;transition:.2s}
+pre{white-space:pre-wrap;word-break:break-word;background:#0f172a;color:#e5e7eb;padding:18px;border-radius:14px;line-height:1.55;overflow:auto}
+details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-weight:800}
+.callout{border-left:4px solid var(--amber);background:#fffbeb;padding:14px 16px;border-radius:10px}
+.ok{border-left-color:var(--green);background:#ecfdf5}
+.footer{margin-top:28px;color:var(--muted);font-size:13px}
+.small{font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero">
+  <div class="eyebrow">Personal Cloud Coding Fabric</div>
+  <h1>在 ChatGPT Chat 中启用完整云端 Coding</h1>
+  <p class="lead">目标不是把私密数据搬上云，而是让 ChatGPT 通过一个云端执行环境获得 Bash、Git、工作区、浏览器和端到端测试能力；需要真实数据或凭证时，再通过安全隧道调用本地 MCP。</p>
+  <div class="actions">
+    <button class="primary" onclick="copyPrompt()">复制最终提示词</button>
+    <a class="btn secondary" href="#steps">开始配置</a>
+    <a class="btn secondary" href="https://github.com/liush2yuxjtu/html-artifacts/blob/main/cloud-coding-runtime/how.md">查看 how.md</a>
+  </div>
+</section>
+
+<div class="grid">
+<section class="card span8">
+  <span class="tag">Architecture</span>
+  <h2 style="margin-top:8px">一张图看懂</h2>
+  <div class="arch">
+    <div class="node blue">ChatGPT Chat<br><span class="muted small">统一 AI 入口</span></div>
+    <div class="arrow">↓ MCP / Tools</div>
+    <div class="node purple">Grokbot 云端运行时<br><span class="muted small">Bash · Git · Workspace · Browser · Agent · E2E</span></div>
+    <div class="arrow">↓ Tailscale / Tailnet</div>
+    <div class="node green">本地机器 / Mac mini<br><span class="muted small">Local MCP · 私密数据 · 凭证 · 本地服务</span></div>
+    <div class="arrow">↔</div>
+    <div class="node amber">Airtable 控制平面<br><span class="muted small">Projects · Handoffs · Shared Context · Runs · Secrets Index</span></div>
+  </div>
+</section>
+
+<section class="card span4">
+  <span class="tag">Rule</span>
+  <h2 style="margin-top:8px">核心原则</h2>
+  <div class="callout ok"><strong>数据留在本地，计算去找数据。</strong><br><br>云端只获得完成当前任务所需的、最小范围的工具调用能力。</div>
+  <p class="muted">不要把整个 <code>.env</code>、Keychain、数据库 dump、用户目录或浏览器 profile 长期复制到云端。</p>
+</section>
+
+<section class="card span12">
+  <span class="tag">Capabilities</span>
+  <h2 style="margin-top:8px">需要准备的 6 个能力</h2>
+  <div class="lanes">
+    <div class="lane"><h3>1. 云端执行</h3><p class="muted">Bash、Git、构建、测试、部署和持久化工作区。</p></div>
+    <div class="lane"><h3>2. 私有网络</h3><p class="muted">Tailscale Tailnet 连接云端与本地设备。</p></div>
+    <div class="lane"><h3>3. 本地 MCP</h3><p class="muted">文件、数据库、本地 API、测试数据和内部服务的受控访问。</p></div>
+    <div class="lane"><h3>4. 三类浏览器</h3><p class="muted">匿名、持久登录、一次性自动化 E2E 浏览器。</p></div>
+    <div class="lane"><h3>5. 凭证代理</h3><p class="muted">按任务解析和使用凭证，而不是永久复制凭证。</p></div>
+    <div class="lane"><h3>6. 跨设备状态</h3><p class="muted">Airtable 保存项目、handoff、运行记录、笔记与证据索引。</p></div>
+  </div>
+</section>
+
+<section id="steps" class="card span8">
+  <span class="tag">Setup</span>
+  <h2 style="margin-top:8px">逐步启用</h2>
+  <div class="step"><div class="num">1</div><div><h3>准备 Grokbot 云端运行时</h3><p class="muted">确认可从 ChatGPT 调用 Bash、Git、持久工作目录、浏览器和自动化测试。硬件规格以你当前 Grokbot 实例的实际状态为准，不在这里假设。</p></div></div>
+  <div class="step"><div class="num">2</div><div><h3>把 Grokbot 加入 Tailnet</h3><p class="muted">优先使用 Tailnet 内部访问。只有确实需要互联网主动访问本地服务时才使用 Funnel。</p><p><a href="https://tailscale.com/docs/features/tailscale-serve" target="_blank">Tailscale Serve</a> · <a href="https://tailscale.com/docs/features/tailscale-funnel" target="_blank">Tailscale Funnel</a></p></div></div>
+  <div class="step"><div class="num">3</div><div><h3>在本地暴露最小 MCP 能力</h3><p class="muted">例如 <code>read_project_file(path)</code>、<code>query_database(readonly_sql)</code>、<code>get_test_fixture(id)</code>、<code>resolve_secret(name)</code>。默认只读，写操作单独授权。</p></div></div>
+  <div class="step"><div class="num">4</div><div><h3>分离三类浏览器</h3><p class="muted">匿名浏览器用于公共网页；持久登录浏览器保存 SaaS session；自动化测试浏览器每次创建干净 context，避免污染你的日常登录状态。</p></div></div>
+  <div class="step"><div class="num">5</div><div><h3>接入 Airtable 控制平面</h3><p class="muted">用来同步 Projects、Handoffs、Shared Context、Agent Runs、Secrets Index、运行证据和环境状态。不要把大文件或原始敏感数据塞进 Airtable。</p></div></div>
+  <div class="step"><div class="num">6</div><div><h3>把统一能力注册回 ChatGPT Chat</h3><p class="muted">ChatGPT 最终只需要看到稳定工具：<code>bash</code>、<code>browser</code>、<code>webapp_test</code>、<code>local_data</code>、<code>secret</code>、<code>git</code>、<code>deploy</code>。底层机器和路由由运行时处理。</p></div></div>
+</section>
+
+<section class="card span4">
+  <span class="tag">Browser</span>
+  <h2 style="margin-top:8px">浏览器隔离</h2>
+  <details open><summary>匿名浏览器</summary><p class="muted">无登录态、干净 profile。用于公共网页、抓取、视觉检查。</p></details>
+  <details open><summary>持久登录浏览器</summary><p class="muted">保存 GitHub、Vercel、Airtable 等会话。登录/2FA/CAPTCHA 可以由 Human takeover 完成。</p></details>
+  <details open><summary>自动化 E2E 浏览器</summary><p class="muted">每次测试隔离 context。用于 Playwright/webapp testing、注册流、破坏性或可重复自动化。</p></details>
+</section>
+
+<section class="card span6">
+  <span class="tag">Security</span>
+  <h2 style="margin-top:8px">Tailnet vs Funnel</h2>
+  <p><strong>默认：Tailnet / Serve。</strong> 只允许 tailnet 内的设备访问本地服务。</p>
+  <p><strong>必要时：Funnel。</strong> Funnel 会把指定本地服务暴露到公网，所以只应用在确实需要公网 webhook / callback / externally reachable MCP endpoint 的服务上，并限制路径、端口和权限。</p>
+  <div class="callout">不要把“用了 Tailscale”理解为“所有 Funnel 服务都是私有的”。Funnel 是公网入口；Serve 才是 tailnet 内部共享。</div>
+</section>
+
+<section class="card span6">
+  <span class="tag">Contract</span>
+  <h2 style="margin-top:8px">建议 Runtime Contract</h2>
+<pre>runtime:
+  shell:
+    bash: true
+  workspace:
+    persistent: true
+    git: true
+  network:
+    tailnet: true
+  browsers:
+    anonymous: ephemeral
+    authenticated: persistent
+    testing: isolated
+  local_resources:
+    filesystem: mcp
+    database: mcp
+    services: mcp
+  secrets:
+    source: local
+    exposure: per-task
+    cloud_persistence: forbidden
+  state:
+    control_plane: airtable</pre>
+</section>
+
+<section class="card span12">
+  <span class="tag">Acceptance</span>
+  <h2 style="margin-top:8px">验收：不是“配置过”，而是每项真的能跑</h2>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <p class="muted" id="progressText">0 / 10 已完成</p>
+  <div class="checklist" id="checks">
+    <label><input type="checkbox"> ChatGPT 能调用云端 Bash 并返回真实 stdout/stderr</label>
+    <label><input type="checkbox"> Git clone / edit / commit 在持久 workspace 中可用</label>
+    <label><input type="checkbox"> 匿名浏览器能打开公开网页并截图/读取页面</label>
+    <label><input type="checkbox"> 持久登录浏览器重启任务后仍保持已授权 session</label>
+    <label><input type="checkbox"> 自动化测试浏览器每次使用干净隔离 context</label>
+    <label><input type="checkbox"> 云端能通过 Tailnet 调用本地 MCP</label>
+    <label><input type="checkbox"> 本地私密数据无需完整复制到云端即可用于测试</label>
+    <label><input type="checkbox"> 凭证可按任务解析和使用，且不会写入 repo/log/artifact</label>
+    <label><input type="checkbox"> Airtable 能完成跨设备 handoff / shared context 同步</label>
+    <label><input type="checkbox"> 一次真实项目能完成：代码修改 → 本地真实数据 → E2E → 证据 → 部署</label>
+  </div>
+</section>
+
+<section class="card span12">
+  <span class="tag">Prompt</span>
+  <h2 style="margin-top:8px">复制给 ChatGPT 的启动提示词</h2>
+  <pre id="prompt">按照下面两个链接，在你的账号上启用完整的 ChatGPT Chat 云端 Coding 能力。
+
+1. 交互式指南：
+https://liush2yuxjtu.github.io/html-artifacts/cloud-coding-runtime/how.html
+
+2. Markdown 配置说明：
+https://github.com/liush2yuxjtu/html-artifacts/blob/main/cloud-coding-runtime/how.md
+
+目标不是简单安装工具，而是完成并验证一个可实际使用的 Personal Cloud Coding Fabric：
+
+ChatGPT Chat
+→ Grokbot 云端 Coding Runtime
+→ Bash / Git / Persistent Workspace / 三类 Browser / Web App Testing
+→ Tailscale Tailnet
+→ 本地 MCP / 私密数据 / 凭证 / 本地服务
+→ Airtable 跨设备 Control Plane。
+
+执行要求：
+- 优先读取现有配置和真实运行状态，不要从零重建已经存在的基础设施。
+- 私密数据默认留在本地；云端通过受控 MCP / Tailnet 调用，不要把完整 .env、Keychain、数据库 dump 或浏览器 profile 复制到云端。
+- 默认使用 Tailnet/Serve 做私有访问；只有公网回调确实需要时才使用 Funnel。
+- 把浏览器明确分成：匿名浏览器、持久登录浏览器、隔离自动化 E2E 浏览器。
+- 凭证按任务解析使用，不进入 repo、日志、artifact 或长期云端文件。
+- Airtable 只作为跨设备控制平面和状态索引，不作为原始私密数据存储。
+- 最终从 ChatGPT Chat 侧暴露稳定能力：bash、git、browser、webapp_test、local_data、secret、deploy。
+- 每一步都要真实验收，不要用“配置存在”“build green”“服务启动”代替端到端 runtime evidence。
+- 若已有 Grokbot / Tailnet / Mac mini / Airtable / MCP 基础设施，先复用和审计，再补缺口。
+- 完成后给出：当前架构、已验证能力、未验证能力、风险、真实 runtime evidence，以及下一步最小补齐项。</pre>
+  <button class="primary" onclick="copyPrompt()">复制提示词</button>
+</section>
+
+<section class="card span12">
+  <span class="tag">Sources</span>
+  <h2 style="margin-top:8px">官方参考</h2>
+  <p><a href="https://tailscale.com/docs/features/tailscale-serve" target="_blank">Tailscale Serve</a> — tailnet 内部共享本地服务。</p>
+  <p><a href="https://tailscale.com/docs/features/tailscale-funnel" target="_blank">Tailscale Funnel</a> — 将指定本地服务通过 HTTPS 暴露到公网。</p>
+  <p><a href="https://tailscale.com/docs/features/access-control" target="_blank">Tailscale Access Control</a> — 用 Grants / ACL 控制最小访问权限。</p>
+</section>
+</div>
+
+<p class="footer">此页面是运行架构与验收指南。任何云主机 CPU / RAM / 浏览器持久化等具体能力，都应以当前实例真实检查结果为准。</p>
+</div>
+<script>
+const checks=[...document.querySelectorAll('#checks input')];
+function update(){
+  const done=checks.filter(x=>x.checked).length;
+  document.getElementById('bar').style.width=(done/checks.length*100)+'%';
+  document.getElementById('progressText').textContent=done+' / '+checks.length+' 已完成';
+  localStorage.setItem('cloudCodingChecks',JSON.stringify(checks.map(x=>x.checked)));
+}
+try{const saved=JSON.parse(localStorage.getItem('cloudCodingChecks')||'[]');checks.forEach((x,i)=>x.checked=!!saved[i])}catch(e){}
+checks.forEach(x=>x.addEventListener('change',update));update();
+async function copyPrompt(){
+  const text=document.getElementById('prompt').innerText;
+  try{await navigator.clipboard.writeText(text);alert('已复制提示词');}
+  catch(e){const t=document.createElement('textarea');t.value=text;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('已复制提示词');}
+}
+</script>
+</body>
+</html>
