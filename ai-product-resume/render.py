@@ -138,6 +138,25 @@ def verify_live(url: str, out_dir: Path) -> None:
         page.screenshot(path=str(out_dir / "live-desktop.png"), full_page=True)
         page.set_viewport_size({"width": 390, "height": 844})
         page.goto(url, wait_until="networkidle")
+        mobile_checks = page.evaluate(
+            """() => {
+              const resume = document.querySelector('.resume').getBoundingClientRect();
+              const content = getComputedStyle(document.querySelector('.content'));
+              const sidebar = getComputedStyle(document.querySelector('.sidebar'));
+              return {
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                resumeWidth: resume.width,
+                gridColumns: content.gridTemplateColumns,
+                sidebarBorderLeft: sidebar.borderLeftWidth,
+                hasHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
+              };
+            }"""
+        )
+        if mobile_checks["hasHorizontalOverflow"] or mobile_checks["resumeWidth"] > 390:
+            raise RuntimeError(f"mobile layout overflow: {mobile_checks}")
+        if mobile_checks["sidebarBorderLeft"] != "0px":
+            raise RuntimeError(f"mobile sidebar did not collapse: {mobile_checks}")
         page.screenshot(path=str(out_dir / "live-mobile.png"), full_page=True)
 
         report = {
@@ -149,6 +168,7 @@ def verify_live(url: str, out_dir: Path) -> None:
             "pdf_bytes": len(pdf.body()),
             "snapshot_status": snap.status,
             "snapshot_bytes": len(snap.body()),
+            "mobile_checks": mobile_checks,
             "errors": errors,
         }
         (out_dir / "live-report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
