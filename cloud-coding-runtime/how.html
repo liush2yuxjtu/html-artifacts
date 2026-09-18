@@ -41,6 +41,37 @@ details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-
 .ok{border-left-color:var(--green);background:#ecfdf5}
 .footer{margin-top:28px;color:var(--muted);font-size:13px}
 .small{font-size:13px}
+
+.lab{background:#0b1220;color:#e5e7eb;border-color:#1f2937;overflow:hidden}
+.lab h2,.lab h3{color:#fff}.lab .muted{color:#94a3b8}
+.lab-grid{display:grid;grid-template-columns:300px 1fr;gap:14px}
+@media(max-width:860px){.lab-grid{grid-template-columns:1fr}}
+.runtime-list{display:grid;gap:8px}
+.runtime-item{width:100%;text-align:left;background:#111827;color:#e5e7eb;border:1px solid #263244;padding:12px;border-radius:12px;display:flex;align-items:center;justify-content:space-between}
+.runtime-item:hover{border-color:#64748b}.runtime-item.active{border-color:#60a5fa;background:#10203b}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:#64748b;margin-right:8px}
+.dot.on{background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.12)}
+.dot.warn{background:#f59e0b}.dot.off{background:#64748b}
+.runtime-pane{background:#0f172a;border:1px solid #263244;border-radius:14px;padding:16px}
+.runtime-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.status-pill{padding:5px 9px;border-radius:999px;font-size:12px;font-weight:800;background:#1e293b;color:#cbd5e1}
+.status-pill.ok{background:#064e3b;color:#a7f3d0}.status-pill.warn{background:#78350f;color:#fde68a}
+.mock-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.mock-actions button{background:#1e293b;color:#fff;border:1px solid #334155;padding:9px 12px}
+.mock-actions button:hover{background:#334155}.mock-actions .run{background:#2563eb;border-color:#2563eb}
+.console{min-height:220px;max-height:360px;overflow:auto;background:#020617;border:1px solid #1e293b;border-radius:12px;padding:14px;font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#cbd5e1;white-space:pre-wrap}
+.console .good{color:#6ee7b7}.console .bad{color:#fca5a5}.console .info{color:#93c5fd}.console .dim{color:#64748b}
+.mock-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+@media(max-width:650px){.mock-form{grid-template-columns:1fr}}
+.mock-form input,.mock-form select{width:100%;background:#020617;color:#e5e7eb;border:1px solid #334155;border-radius:10px;padding:10px}
+.evidence-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+@media(max-width:650px){.evidence-grid{grid-template-columns:1fr}}
+.evidence{background:#111827;border:1px solid #263244;border-radius:12px;padding:12px}
+.evidence b{display:block;color:#fff;margin-bottom:4px}.evidence small{color:#94a3b8}
+.mock-banner{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 14px;background:#3f1d0b;border:1px solid #7c2d12;border-radius:12px;margin-bottom:14px;color:#fed7aa}
+.ready-card{margin-top:14px;border:1px solid #334155;border-radius:14px;padding:14px;background:#111827}
+.ready-row{display:flex;justify-content:space-between;gap:12px;margin:7px 0}.ready-value{font-weight:800}
+
 </style>
 </head>
 <body>
@@ -145,6 +176,49 @@ details{border-top:1px solid #edf0f4;padding:14px 0}summary{cursor:pointer;font-
     control_plane: airtable</pre>
 </section>
 
+
+<section class="card span12 lab" id="mock-lab">
+  <div class="mock-banner"><strong>模拟交互环境</strong><span>所有按钮只模拟流程与证据格式，不代表真实 Grokbot / Tailnet / MCP 已连接。</span></div>
+  <span class="tag">FULL INTERACTIVE MOCK</span>
+  <h2 style="margin-top:8px">先在这里完整走一遍团队成员的配置流程</h2>
+  <p class="muted">左侧选择能力，右侧执行模拟操作。状态会保存在浏览器 localStorage；刷新后仍可继续。完成全部模块后，页面会生成一份模拟 READY 报告。</p>
+  <div class="lab-grid">
+    <div>
+      <div class="runtime-list" id="runtimeList">
+        <button class="runtime-item active" data-panel="grok"><span><span class="dot off" id="dot-grok"></span>Grokbot Runtime</span><span id="mini-grok">未连接</span></button>
+        <button class="runtime-item" data-panel="tailnet"><span><span class="dot off" id="dot-tailnet"></span>Tailnet</span><span id="mini-tailnet">未连接</span></button>
+        <button class="runtime-item" data-panel="mcp"><span><span class="dot off" id="dot-mcp"></span>Local MCP</span><span id="mini-mcp">未验证</span></button>
+        <button class="runtime-item" data-panel="browser"><span><span class="dot off" id="dot-browser"></span>3 Browsers</span><span id="mini-browser">0/3</span></button>
+        <button class="runtime-item" data-panel="secret"><span><span class="dot off" id="dot-secret"></span>Secret Resolver</span><span id="mini-secret">未验证</span></button>
+        <button class="runtime-item" data-panel="airtable"><span><span class="dot off" id="dot-airtable"></span>Airtable Handoff</span><span id="mini-airtable">未验证</span></button>
+        <button class="runtime-item" data-panel="e2e"><span><span class="dot off" id="dot-e2e"></span>E2E + Deploy</span><span id="mini-e2e">未运行</span></button>
+      </div>
+      <div class="mock-actions">
+        <button class="run" onclick="mockRunAll()">▶ 模拟全部流程</button>
+        <button onclick="mockReset()">重置</button>
+      </div>
+      <div class="ready-card">
+        <div class="ready-row"><span>模拟完成度</span><span class="ready-value" id="mockPct">0%</span></div>
+        <div class="progress"><div class="bar" id="mockBar"></div></div>
+        <div class="ready-row"><span>最终 Gate</span><span class="status-pill warn" id="mockGate">UNVERIFIED</span></div>
+      </div>
+    </div>
+
+    <div class="runtime-pane">
+      <div class="runtime-head">
+        <div><h3 id="panelTitle">Grokbot Runtime</h3><div class="muted small" id="panelDesc">模拟 ChatGPT 调用云端 Bash、Git 与持久工作区。</div></div>
+        <span class="status-pill" id="panelStatus">NOT STARTED</span>
+      </div>
+
+      <div id="panelControls" class="mock-actions"></div>
+      <div id="panelForm" class="mock-form"></div>
+      <div class="console" id="mockConsole"><span class="dim">选择一个能力并执行模拟操作。这里会展示预期的 runtime evidence 格式。</span></div>
+      <div class="evidence-grid" id="evidenceGrid"></div>
+    </div>
+  </div>
+</section>
+
+
 <section class="card span12">
   <span class="tag">Acceptance</span>
   <h2 style="margin-top:8px">验收标准：每项都要有操作、通过条件和证据</h2>
@@ -212,6 +286,88 @@ ChatGPT Chat
 <p class="footer">此页面是运行架构与验收指南。任何云主机 CPU / RAM / 浏览器持久化等具体能力，都应以当前实例真实检查结果为准。</p>
 </div>
 <script>
+
+const mockDefs={
+  grok:{title:'Grokbot Runtime',desc:'模拟 ChatGPT → 云端 Bash / Git / persistent workspace。',actions:[['runBash','运行 Bash 验收'],['gitPersist','验证 Git 持久化']],form:''},
+  tailnet:{title:'Tailnet',desc:'模拟云端加入 Tailnet，并做“断开后必须失败”的旁路检查。',actions:[['connectTail','连接 Tailnet'],['cutTail','断开并验证失败'],['restoreTail','恢复连接']],form:'<input id="tailHost" value="grokbot-cloud" placeholder="Tailnet hostname"><input id="localHost" value="local-dev-machine" placeholder="本地 hostname">'},
+  mcp:{title:'Local MCP',desc:'模拟通过 Tailnet 调用仅本地可访问的 MCP，并返回最小数据。',actions:[['callMcp','调用 read_project_file'],['markerTest','运行私密数据 marker 测试']],form:'<input id="mcpTool" value="read_project_file" placeholder="MCP tool"><input id="marker" value="TEAM-DEMO-4821" placeholder="唯一 marker">'},
+  browser:{title:'3 Browsers',desc:'分别模拟匿名、持久登录和隔离 E2E browser。',actions:[['anonBrowser','运行匿名浏览器'],['authBrowser','运行持久登录浏览器'],['testBrowser','运行隔离 E2E 浏览器']],form:'<input id="publicUrl" value="https://example.com" placeholder="公开 URL"><input id="saasName" value="GitHub test account" placeholder="测试 SaaS">'},
+  secret:{title:'Secret Resolver',desc:'模拟 task-scoped secret 使用与泄漏扫描。',actions:[['resolveSecret','调用测试 API'],['scanLeak','扫描泄漏']],form:'<input id="secretName" value="TEST_API_TOKEN" placeholder="Secret 名称"><input id="fingerprint" value="sha256:demo-7f3a" placeholder="只保存指纹">'},
+  airtable:{title:'Airtable Handoff',desc:'模拟成员 A 创建 handoff，成员 B 无需原聊天历史即可继续。',actions:[['createHandoff','A 创建 Handoff'],['acceptHandoff','B 接收并完成']],form:'<input id="handoffTitle" value="Replicate cloud coding runtime" placeholder="Handoff"><input id="memberB" value="Teammate B" placeholder="接收人">'},
+  e2e:{title:'E2E + Deploy',desc:'模拟真实项目从代码修改到部署和浏览器验收的完整闭环。',actions:[['runE2E','运行 E2E'],['deployMock','部署 Preview'],['verifyDeploy','浏览器验收']],form:'<input id="repoName" value="team/cloud-runtime-demo" placeholder="Repo"><input id="deployName" value="cloud-runtime-preview" placeholder="Deployment">'}
+};
+const defaultMock={panel:'grok',grok:{bash:false,git:false},tailnet:{connected:false,cut:false},mcp:{call:false,marker:false},browser:{anon:false,auth:false,test:false},secret:{resolve:false,scan:false},airtable:{create:false,accept:false},e2e:{run:false,deploy:false,verify:false},logs:{},evidence:{}};
+let mockState;
+try{mockState=Object.assign({},defaultMock,JSON.parse(localStorage.getItem('cloudRuntimeMock')||'{}'));}catch(e){mockState=structuredClone(defaultMock)}
+function saveMock(){localStorage.setItem('cloudRuntimeMock',JSON.stringify(mockState));renderMock();}
+function now(){return new Date().toLocaleTimeString();}
+function log(panel,msg,kind='info'){mockState.logs[panel]=(mockState.logs[panel]||[]);mockState.logs[panel].push({t:now(),msg,kind});}
+function ev(panel,key,val){mockState.evidence[panel]=mockState.evidence[panel]||{};mockState.evidence[panel][key]=val;}
+function panelDone(p){
+  if(p==='grok')return mockState.grok.bash&&mockState.grok.git;
+  if(p==='tailnet')return mockState.tailnet.connected&&mockState.tailnet.cut;
+  if(p==='mcp')return mockState.mcp.call&&mockState.mcp.marker;
+  if(p==='browser')return mockState.browser.anon&&mockState.browser.auth&&mockState.browser.test;
+  if(p==='secret')return mockState.secret.resolve&&mockState.secret.scan;
+  if(p==='airtable')return mockState.airtable.create&&mockState.airtable.accept;
+  if(p==='e2e')return mockState.e2e.run&&mockState.e2e.deploy&&mockState.e2e.verify;
+}
+function doneCount(){return Object.keys(mockDefs).filter(panelDone).length}
+function renderMock(){
+  const p=mockState.panel||'grok',def=mockDefs[p];
+  document.querySelectorAll('.runtime-item').forEach(x=>x.classList.toggle('active',x.dataset.panel===p));
+  document.getElementById('panelTitle').textContent=def.title;
+  document.getElementById('panelDesc').textContent=def.desc;
+  document.getElementById('panelForm').innerHTML=def.form||'';
+  document.getElementById('panelControls').innerHTML=def.actions.map(a=>'<button '+(a[0].includes('run')?'class="run"':'')+' onclick="mockAction(\''+a[0]+'\')">'+a[1]+'</button>').join('');
+  const logs=mockState.logs[p]||[];
+  document.getElementById('mockConsole').innerHTML=logs.length?logs.map(x=>'<span class="'+x.kind+'">['+x.t+'] '+x.msg.replaceAll('<','&lt;')+'</span>').join('\n'):'<span class="dim">尚无运行记录。</span>';
+  const evidence=mockState.evidence[p]||{};
+  document.getElementById('evidenceGrid').innerHTML=Object.entries(evidence).map(([k,v])=>'<div class="evidence"><b>'+k+'</b><small>'+String(v).replaceAll('<','&lt;')+'</small></div>').join('');
+  const done=panelDone(p);document.getElementById('panelStatus').textContent=done?'PASS':'IN PROGRESS';document.getElementById('panelStatus').className='status-pill '+(done?'ok':'warn');
+  const pct=Math.round(doneCount()/7*100);document.getElementById('mockPct').textContent=pct+'%';document.getElementById('mockBar').style.width=pct+'%';
+  const gate=document.getElementById('mockGate');gate.textContent=pct===100?'MOCK READY':'UNVERIFIED';gate.className='status-pill '+(pct===100?'ok':'warn');
+  const mini={
+    grok:panelDone('grok')?'PASS':'未连接',
+    tailnet:panelDone('tailnet')?'PASS':(mockState.tailnet.connected?'已连接':'未连接'),
+    mcp:panelDone('mcp')?'PASS':'未验证',
+    browser:[mockState.browser.anon,mockState.browser.auth,mockState.browser.test].filter(Boolean).length+'/3',
+    secret:panelDone('secret')?'PASS':'未验证',
+    airtable:panelDone('airtable')?'PASS':'未验证',
+    e2e:panelDone('e2e')?'PASS':'未运行'
+  };
+  Object.keys(mini).forEach(k=>{document.getElementById('mini-'+k).textContent=mini[k];const d=document.getElementById('dot-'+k);d.className='dot '+(panelDone(k)?'on':(k==='tailnet'&&mockState.tailnet.connected?'warn':'off'));});
+}
+document.querySelectorAll('.runtime-item').forEach(x=>x.addEventListener('click',()=>{mockState.panel=x.dataset.panel;saveMock()}));
+function mockAction(a){
+  const p=mockState.panel;
+  if(a==='runBash'){mockState.grok.bash=true;log(p,'$ pwd  → /workspace/team-demo','good');log(p,'$ uname -a  → Linux grokbot-cloud ...','good');log(p,'$ git --version  → git version 2.x','good');log(p,'$ false  → exit 1 (expected failure)','bad');ev(p,'Bash Evidence','stdout + stderr + exit code captured');}
+  if(a==='gitPersist'){mockState.grok.git=true;log(p,'clone → edit → commit → reconnect runtime','info');log(p,'git log -1 → 9f23a8d mock: cloud runtime setup','good');ev(p,'Commit SHA','9f23a8d (mock)');ev(p,'Persistence','workspace survived reconnect');}
+  if(a==='connectTail'){mockState.tailnet.connected=true;log(p,'tailscale status → grokbot-cloud ↔ local-dev-machine','good');ev(p,'Route','Tailnet private path');}
+  if(a==='cutTail'){mockState.tailnet.cut=true;mockState.tailnet.connected=false;log(p,'Tailnet disconnected intentionally','info');log(p,'Local MCP call → connection failed (expected)','bad');ev(p,'Negative test','MCP unreachable without Tailnet');}
+  if(a==='restoreTail'){mockState.tailnet.connected=true;log(p,'Tailnet restored; private route healthy','good');}
+  if(a==='callMcp'){mockState.mcp.call=true;log(p,'tool: read_project_file("/private/test.txt")','info');log(p,'result: {summary:"3 lines", source:"local MCP"}','good');ev(p,'Tool','read_project_file');ev(p,'Transport','Tailnet → local MCP');}
+  if(a==='markerTest'){mockState.mcp.marker=true;log(p,'marker TEAM-DEMO-4821 read through MCP','good');log(p,'cloud workspace scan → full source copy NOT FOUND','good');ev(p,'Data boundary','minimum result only; no full dataset copy');}
+  if(a==='anonBrowser'){mockState.browser.anon=true;log(p,'Anonymous profile → https://example.com','good');ev(p,'Anonymous','fresh profile, public page captured');}
+  if(a==='authBrowser'){mockState.browser.auth=true;log(p,'Authenticated profile → SaaS session persisted across reopen','good');ev(p,'Authenticated','persistent session; password/token not recorded');}
+  if(a==='testBrowser'){mockState.browser.test=true;log(p,'E2E run A writes localStorage.test=1','info');log(p,'E2E run B starts clean → localStorage.test is null','good');ev(p,'Isolation','cookies/localStorage/sessionStorage clean between runs');}
+  if(a==='resolveSecret'){mockState.secret.resolve=true;log(p,'resolve_secret(TEST_API_TOKEN) → [REDACTED]','info');log(p,'API request → 200 OK','good');ev(p,'Secret','TEST_API_TOKEN / sha256:demo-7f3a');}
+  if(a==='scanLeak'){mockState.secret.scan=true;log(p,'scan repo + logs + artifacts + history → 0 plaintext matches','good');ev(p,'Leak scan','0 plaintext matches');}
+  if(a==='createHandoff'){mockState.airtable.create=true;log(p,'Handoff recMock4821 created by Teammate A','good');ev(p,'Record','recMock4821');}
+  if(a==='acceptHandoff'){mockState.airtable.accept=true;log(p,'Teammate B opened handoff with no prior chat context','info');log(p,'status → Completed; result written back','good');ev(p,'Handoff','A → B → Completed');}
+  if(a==='runE2E'){mockState.e2e.run=true;log(p,'E2E run mock-run-2048: 8/8 assertions passed','good');ev(p,'Test Run','mock-run-2048 / 8 passed');}
+  if(a==='deployMock'){mockState.e2e.deploy=true;log(p,'Preview deployment created → dep_mock_73f','good');ev(p,'Deployment','dep_mock_73f');}
+  if(a==='verifyDeploy'){mockState.e2e.verify=true;log(p,'Browser opened preview; primary flow completed','good');log(p,'Final runtime assertion → PASS','good');ev(p,'Browser acceptance','primary user flow PASS');}
+  saveMock();
+}
+async function mockRunAll(){
+  const seq=['grok','tailnet','mcp','browser','secret','airtable','e2e'];
+  const acts={grok:['runBash','gitPersist'],tailnet:['connectTail','cutTail','restoreTail'],mcp:['callMcp','markerTest'],browser:['anonBrowser','authBrowser','testBrowser'],secret:['resolveSecret','scanLeak'],airtable:['createHandoff','acceptHandoff'],e2e:['runE2E','deployMock','verifyDeploy']};
+  for(const p of seq){mockState.panel=p;for(const a of acts[p])mockAction(a);}
+  mockState.panel='e2e';saveMock();
+}
+function mockReset(){mockState=JSON.parse(JSON.stringify(defaultMock));localStorage.removeItem('cloudRuntimeMock');renderMock();}
+
 const checks=[...document.querySelectorAll('#checks input')];
 function update(){
   const done=checks.filter(x=>x.checked).length;
@@ -220,7 +376,7 @@ function update(){
   localStorage.setItem('cloudCodingChecks',JSON.stringify(checks.map(x=>x.checked)));
 }
 try{const saved=JSON.parse(localStorage.getItem('cloudCodingChecks')||'[]');checks.forEach((x,i)=>x.checked=!!saved[i])}catch(e){}
-checks.forEach(x=>x.addEventListener('change',update));update();
+checks.forEach(x=>x.addEventListener('change',update));update();renderMock();
 async function copyPrompt(){
   const text=document.getElementById('prompt').innerText;
   try{await navigator.clipboard.writeText(text);alert('已复制提示词');}
