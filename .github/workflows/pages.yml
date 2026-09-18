@@ -6,6 +6,7 @@ on:
     paths:
       - 'business-world-agent-design-system/**'
       - 'live-project-registry/**'
+      - 'ai-product-resume/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -38,6 +39,10 @@ jobs:
           if [ -d live-project-registry ]; then
             cp -R live-project-registry _site/
           fi
+          if [ -d ai-product-resume ]; then
+            mkdir -p _site/ai-product-resume
+            cp ai-product-resume/index.html _site/ai-product-resume/
+          fi
           touch _site/.nojekyll
           cat > _site/index.html <<'HTML'
           <!doctype html>
@@ -55,10 +60,23 @@ jobs:
           <body><main>
             <h1>HTML Artifacts</h1>
             <a href="./business-world-agent-design-system/">Business World Agent Design System</a>
-            <a href="./live-project-registry/">Live Project Registry</a>
+            <a href="./live-project-registry/">Live Project Registry</a>\n            <a href="./ai-product-resume/">刘师宇 · AI 产品简历</a>
           </main></body>
           </html>
           HTML
+
+      - name: Install browser renderer
+        shell: bash
+        run: |
+          python -m pip install --disable-pip-version-check playwright==1.55.0
+          python -m playwright install --with-deps chromium
+
+      - name: Render and test AI product resume
+        shell: bash
+        run: |
+          python ai-product-resume/render.py build \
+            --source ai-product-resume/index.html \
+            --out _site/ai-product-resume
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -71,3 +89,19 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployed AI product resume
+        shell: bash
+        env:
+          RESUME_URL: ${{ steps.deployment.outputs.page_url }}ai-product-resume/
+        run: |
+          mkdir -p verification
+          python ai-product-resume/render.py verify \
+            --url "$RESUME_URL" \
+            --out verification
+
+      - name: Upload webapp-testing snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-product-resume-webapp-testing
+          path: verification

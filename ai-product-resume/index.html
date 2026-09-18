@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>刘师宇 · AI 产品简历</title>
+<meta name="description" content="刘师宇 AI 产品经理 / Agent 产品经理公开简历" />
+<style>
+:root{
+  --green:#006b57;
+  --green-2:#0a7d67;
+  --green-soft:#edf7f3;
+  --ink:#243238;
+  --muted:#65747a;
+  --rule:#cfe0da;
+  --paper:#fff;
+  --bg:#edf2f0;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:Inter,"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.toolbar{position:sticky;top:0;z-index:20;background:rgba(245,248,247,.94);backdrop-filter:blur(12px);border-bottom:1px solid #dbe5e1;padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.toolbar .identity{display:flex;align-items:center;gap:10px;min-width:0}
+.toolbar .mark{width:28px;height:28px;border-radius:8px;background:var(--green);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.toolbar strong{font-size:14px}.toolbar small{font-size:12px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:9px;border:1px solid #c9dad4;background:#fff;text-decoration:none;font-size:12px;font-weight:700;color:var(--green)}
+.btn.primary{background:var(--green);color:white;border-color:var(--green)}
+.stage{padding:28px 18px 48px;display:flex;justify-content:center}
+.resume{width:210mm;min-height:297mm;background:var(--paper);box-shadow:0 18px 50px rgba(31,58,50,.12);padding:9mm 11mm 8.5mm;overflow:hidden}
+.header{display:grid;grid-template-columns:minmax(0,1fr) 44mm;gap:6mm;align-items:start;border-bottom:1.2px solid var(--rule);padding-bottom:4mm}
+.name{font-size:30pt;line-height:.98;margin:0;color:var(--green);font-weight:900;letter-spacing:-.8pt}
+.role{font-size:12.4pt;line-height:1.15;margin:3px 0 3px;color:var(--green);font-weight:850}
+.tagline{font-size:8.8pt;line-height:1.35;margin:0;color:var(--ink);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px 11px;margin-top:6px;font-size:7.1pt;color:var(--muted);align-items:center}
+.meta a{text-decoration:none;color:var(--green);font-weight:700}.meta .sep{color:#a2b3ad}
+.slogan{border-left:1.2px solid var(--rule);padding-left:4mm;padding-top:1.5mm;min-height:17mm}
+.slogan strong{display:block;color:var(--green);font-size:8.3pt;line-height:1.3}
+.slogan .mini-rule{width:9mm;height:1.3px;background:var(--green);margin:3.2mm 0 2mm}
+.slogan span{display:block;color:var(--muted);font-size:7pt;line-height:1.4}
+.content{display:grid;grid-template-columns:minmax(0,1.92fr) minmax(0,.88fr);gap:6mm;margin-top:5mm}
+.sidebar{border-left:1px solid var(--rule);padding-left:5mm}
+.section{margin-bottom:4.1mm}
+.section-title,.side-title{display:flex;align-items:center;gap:6px;color:var(--green);font-weight:900;border-bottom:1px solid var(--rule);padding-bottom:2px;margin:0 0 3.1mm}
+.section-title{font-size:12pt}.side-title{font-size:10.5pt;margin-top:0}
+.icon{width:14px;height:14px;border-radius:4px;background:var(--green);display:inline-block;position:relative;flex:0 0 auto}
+.icon.dot{border-radius:50%}.icon.bar{border-radius:2px;background:linear-gradient(90deg,var(--green) 0 24%,transparent 24% 34%,var(--green) 34% 58%,transparent 58% 68%,var(--green) 68% 100%)}
+.company-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:baseline;margin:0 0 2px}
+.company{font-size:10pt;color:var(--green);font-weight:900}.date{font-size:7.2pt;color:var(--muted);white-space:nowrap}
+.lead{font-size:7.25pt;line-height:1.45;color:var(--muted);margin:0 0 2.5mm}
+.project{margin:0 0 2.6mm}.project-head{display:flex;align-items:flex-start;gap:7px;margin-bottom:1.2mm}.num{width:17px;height:17px;border-radius:50%;background:var(--green);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:7pt;font-weight:900;flex:0 0 auto;margin-top:1px}.project h3{font-size:8.7pt;line-height:1.28;color:var(--green);margin:0;font-weight:900}
+ul.clean{list-style:none;padding:0;margin:0}.clean li{position:relative;padding-left:4.2mm;font-size:7.15pt;line-height:1.47;margin:0 0 .8mm}.clean li::before{content:"";position:absolute;left:0;top:.63em;width:2.3px;height:2.3px;border-radius:50%;background:var(--green)}
+.result{display:flex;gap:6px;align-items:flex-start;color:var(--green);font-weight:850;font-size:7.25pt;line-height:1.45;margin-top:1mm}.arrow{font-size:10pt;line-height:1;color:var(--green);font-weight:900}
+.divider{height:1px;background:var(--rule);margin:3.5mm 0}
+.exp-table{width:100%;border-collapse:collapse;margin:1.5mm 0 1.6mm;font-size:6.95pt}.exp-table td{padding:1.2mm 1.4mm;border:1px solid #dbe7e3;vertical-align:top}.exp-table td:first-child{width:7mm;text-align:center;color:var(--green);font-weight:900;background:var(--green-soft)}.exp-table td:nth-child(2){width:30mm;font-weight:900}.exp-table tr:nth-child(odd) td:not(:first-child){background:#fbfdfc}
+.side-text{font-size:7.15pt;line-height:1.5;margin:0}.checks{display:grid;gap:1.5mm}.check{display:grid;grid-template-columns:4mm 1fr;gap:1.5mm;font-size:7pt;line-height:1.4}.check::before{content:"✓";color:#fff;background:var(--green);width:13px;height:13px;border-radius:50%;display:grid;place-items:center;font-size:8px;font-weight:900;margin-top:1px}
+.pills{display:flex;flex-wrap:wrap;gap:4px}.pill{font-size:6.55pt;line-height:1;background:var(--green-soft);border:1px solid #e1eee9;border-radius:5px;padding:5px 7px;color:#35534b;white-space:nowrap}
+.side-bullets{list-style:none;padding:0;margin:0}.side-bullets li{font-size:6.95pt;line-height:1.45;padding-left:4mm;position:relative;margin-bottom:1.2mm}.side-bullets li::before{content:"";position:absolute;left:0;top:.62em;width:3px;height:3px;border-radius:50%;background:var(--green)}
+.edu{display:grid;gap:2.5mm}.edu-item{display:grid;grid-template-columns:4mm minmax(0,1fr) auto;gap:1.4mm;align-items:start}.edu-dot{width:6px;height:6px;border:2px solid var(--green);border-radius:50%;margin-top:3px}.edu-item strong{font-size:7.05pt;display:block}.edu-item span{font-size:6.55pt;color:var(--muted);display:block}.edu-date{font-size:6.2pt!important;white-space:nowrap;margin-top:1px}.practice-list strong{font-weight:900}.motto{display:flex;align-items:center;gap:7px;color:#879691;font-size:6.2pt;margin-top:5mm}.motto::before,.motto::after{content:"";height:1px;background:#aebbb7;flex:1}
+.public-note{font-size:11px;color:#71807b;text-align:center;margin-top:16px}
+@media (max-width:900px){.toolbar{align-items:flex-start}.actions{gap:6px}.stage{padding:12px 0 30px;overflow:auto;justify-content:flex-start}.resume{transform-origin:top left;box-shadow:none}.public-note{display:none}}
+@page{size:A4;margin:0}
+@media print{
+  html,body{background:#fff;margin:0;padding:0;width:210mm;height:297mm}
+  .toolbar,.public-note{display:none!important}
+  .stage{padding:0;margin:0;display:block}
+  .resume{box-shadow:none;width:210mm;height:297mm;min-height:297mm;padding:9mm 11mm 8.5mm;overflow:hidden;margin:0}
+  a{text-decoration:none}
+}
+</style>
+</head>
+<body>
+<header class="toolbar" aria-label="简历操作栏">
+  <div class="identity"><span class="mark" aria-hidden="true"></span><div><strong>刘师宇 · AI 产品简历</strong><br><small>公开版 · Agent 产品经理</small></div></div>
+  <nav class="actions" aria-label="下载与查看">
+    <a class="btn primary" href="./Liu_Shiyu_AI_Product_Resume_CN.pdf" target="_blank" rel="noopener">查看 PDF</a>
+    <a class="btn" href="./Liu_Shiyu_AI_Product_Resume_CN.pdf" download>下载 PDF</a>
+    <a class="btn" href="./snapshot.png" target="_blank" rel="noopener">查看快照</a>
+    <a class="btn" href="https://github.com/liush2yuxjtu" target="_blank" rel="noopener">GitHub</a>
+  </nav>
+</header>
+<main class="stage">
+<article class="resume" id="resume" aria-label="刘师宇 AI 产品经理简历">
+  <section class="header">
+    <div>
+      <h1 class="name">刘师宇</h1>
+      <div class="role">AI 产品经理 / Agent 产品经理</div>
+      <p class="tagline">把 Agent 从能力 Demo 做成可控、可评测、能进入真实业务流程的产品</p>
+      <div class="meta"><span>● 北京</span><span class="sep">|</span><a href="https://github.com/liush2yuxjtu">GitHub: liush2yuxjtu</a><span class="sep">|</span><span>方向：Agent 产品、LLM 应用、MCP、Evals、AI Workflow</span></div>
+    </div>
+    <aside class="slogan"><strong>让 Agent<br>真正创造可验证的生产力</strong><div class="mini-rule"></div><span>从 Demo 到真实业务</span><span>从能力到价值</span></aside>
+  </section>
+
+  <section class="content">
+    <div class="main-col">
+      <section class="section">
+        <h2 class="section-title"><span class="icon"></span>工作经历与核心项目</h2>
+        <div class="company-row"><div class="company">镜瞳&nbsp;&nbsp;|&nbsp;&nbsp;AI 产品工程</div><div class="date">2026.06—至今</div></div>
+        <p class="lead">面向真实业务场景，设计并落地多个 Agent 应用，推动业务自动化和规模化落地。</p>
+
+        <div class="project">
+          <div class="project-head"><span class="num">1</span><h3>纸尿裤甲酰胺舆情 · 抖音热评回复 Agent</h3></div>
+          <ul class="clean"><li>将“找视频—理解热评—生成回复—人审—发送”设计成可运行工作流</li><li>默认只读 Preview，真实发送需显式授权</li><li>二维码、短信、验证码转人工；不确定结果禁止自动重试</li><li>封装为跨 Agent Skill，支持 Pi、Claude、Codex、Cursor、WorkBuddy</li></ul>
+          <div class="result"><span class="arrow">→</span><span>结果：将人工检索、上下文理解、拟稿与发送连接成半自动闭环。</span></div>
+        </div>
+
+        <div class="project">
+          <div class="project-head"><span class="num">2</span><h3>AI 订单系统</h3></div>
+          <ul class="clean"><li>围绕业务/数据本体、专家 Skills、Evals、MCP、Agent Runtime 设计系统</li><li>让业务专家的验收标准可以随数据结构或模型变化自动回归</li><li>降低业务逻辑与底层数据库的直接耦合</li></ul>
+          <div class="result"><span class="arrow">→</span><span>结果：方案获客户认可，进入由 2 家经销商试点向全国 40+ 家推广的规划阶段。</span></div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="company-row"><div class="company">劲拓科技&nbsp;&nbsp;|&nbsp;&nbsp;Agent 产品实习</div><div class="date">2026.04—2026.05</div></div>
+        <p class="lead">目标：在两个月内验证 Agent 原生产品形态，用真实使用而不是主观判断评估产品。</p>
+        <strong style="font-size:7.2pt">参与 4 个产品实验：</strong>
+        <table class="exp-table" aria-label="Agent 产品实验"><tbody>
+          <tr><td>1</td><td>Agent PM</td><td>本地 PM 工作台，12 个工作流（8 个任务级 + 4 个项目级）</td></tr>
+          <tr><td>2</td><td>Love Lab</td><td>8 个主 Agent + 1 个校准 Agent，5 集事件驱动关系演化</td></tr>
+          <tr><td>3</td><td>TeamAgent</td><td>3 个插件，把纠错沉淀成规则，在下一会话阻断重复错误</td></tr>
+          <tr><td>4</td><td>Say It / Pronounce</td><td>CLI / VS Code / Web / MCP 多入口协作产品</td></tr>
+        </tbody></table>
+        <div class="result"><span class="arrow">→</span><span>结果：Open VSX 累计下载 7,936（截至 2026-08-30，产品整体数据）。</span></div>
+
+        <div class="divider"></div>
+        <div class="company-row"><div class="company">深睿医疗&nbsp;&nbsp;|&nbsp;&nbsp;算法研究实习</div><div class="date">2025.08—2026.03</div></div>
+        <ul class="clean"><li>参与医学 AI、3D 医学图像生成与实验验证</li><li>使用真实数据做模型实验、指标比较和结果验证</li><li>为后续 Agent 产品中的 Evals、能力边界和结果判断提供方法基础</li></ul>
+      </section>
+
+      <section class="section" style="margin-bottom:0">
+        <h2 class="section-title"><span class="icon"></span>Agent 产品实践</h2>
+        <ul class="clean practice-list"><li><strong>pi-debug-mode：</strong>为 Pi Coding Agent 设计证据优先的 Debug Mode；定义竞争假设、插入探针、Human checkpoint、Guided / Autopilot、最小修复与验证流程。</li><li><strong>pi-design-mode：</strong>为 Pi 设计本地 HTML 设计工作区；支持 Design Tokens、组件编辑、版本历史、交互导出。</li><li>持续开发 Pi 扩展、Agent 工具和本地自动化产品。</li></ul>
+      </section>
+    </div>
+
+    <aside class="sidebar">
+      <section class="section"><h2 class="side-title"><span class="icon dot"></span>个人简介</h2><p class="side-text">做过企业 Agent 产品、业务自动化、Agent 原生产品实验和开发者工具。覆盖用户问题拆解、Agent 工作流设计、工具与权限边界、Human-in-the-loop、Skills / MCP、Evals、原型开发和真实环境验证。</p></section>
+      <section class="section"><h2 class="side-title"><span class="icon dot"></span>核心优势</h2><div class="checks"><div class="check">能把业务问题拆成 Agent 工作流</div><div class="check">能定义权限边界与人工接管点</div><div class="check">能用 Evals、真实使用和运行证据做产品验收</div><div class="check">能自己完成原型并与工程协同落地</div></div></section>
+      <section class="section"><h2 class="side-title"><span class="icon bar"></span>能力关键词</h2><div class="pills"><span class="pill">Agent Workflow</span><span class="pill">Human-in-the-loop</span><span class="pill">Skills</span><span class="pill">MCP</span><span class="pill">Evals</span><span class="pill">Agent Runtime</span><span class="pill">Multi-Agent</span><span class="pill">TypeScript</span><span class="pill">Python</span><span class="pill">Playwright</span><span class="pill">Web</span><span class="pill">PyTorch</span></div></section>
+      <section class="section"><h2 class="side-title"><span class="icon"></span>开源与验证</h2><ul class="side-bullets"><li>公开 npm 包官方统计：已知累计下载 <strong>3,223</strong>（截至 2026-09-16；下载不等于独立用户数）</li><li>持续发布 Pi 扩展、Agent 工具与自动化产品</li></ul></section>
+      <section class="section"><h2 class="side-title"><span class="icon"></span>教育经历</h2><div class="edu"><div class="edu-item"><span class="edu-dot"></span><div><strong>北京邮电大学</strong><span>博士研究生阶段（已退出）</span></div><span class="edu-date">2024.09—2026.06</span></div><div class="edu-item"><span class="edu-dot"></span><div><strong>西安交通大学</strong><span>硕士</span></div><span class="edu-date">2021.09—2024.07</span></div><div class="edu-item"><span class="edu-dot"></span><div><strong>西安交通大学</strong><span>本科</span></div><span class="edu-date">2016.09—2020.07</span></div></div></section>
+      <section class="section" style="margin-bottom:0"><h2 class="side-title"><span class="icon dot"></span>代表方向</h2><div class="pills"><span class="pill">Agent 产品</span><span class="pill">AI 产品经理</span><span class="pill">LLM 应用</span><span class="pill">业务自动化</span><span class="pill">MCP</span><span class="pill">Evals</span></div><div class="motto">用 Agent 连接想象与真实世界</div></section>
+    </aside>
+  </section>
+</article>
+</main>
+<div class="public-note">公开版简历 · 页面与 PDF 均由同一份 HTML 源生成，避免版本漂移。</div>
+</body>
+</html>
