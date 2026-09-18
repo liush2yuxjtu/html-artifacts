@@ -56,8 +56,19 @@ test('vercel config runs tests, builds full mirror, and proxies Astro runtime sa
     rule.source === '/_astro/:path*' &&
     rule.destination === 'https://chatcut.io/_astro/:path*'
   ));
-  const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
-  assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
+});
+
+test('local checkout ignores generated dist when .gitignore is present', async (t) => {
+  try {
+    const gitignore = await fs.readFile(new URL('../.gitignore', import.meta.url), 'utf8');
+    assert.match(gitignore, /(^|\n)dist\/?($|\n)/);
+  } catch (error) {
+    if (error?.code === 'ENOENT' && process.env.VERCEL) {
+      t.skip('Vercel source upload intentionally omits .gitignore');
+      return;
+    }
+    throw error;
+  }
 });
 
 test('full-media rewrite map includes only successfully downloaded assets', () => {

@@ -142,6 +142,19 @@ async function copyIfExists(sourceRelative, destRelative = sourceRelative) {
   return true;
 }
 
+async function copyDirectoryIfExists(sourceRelative, destRelative = sourceRelative) {
+  const source = path.join(ROOT, sourceRelative);
+  try {
+    await fs.access(source);
+  } catch {
+    return false;
+  }
+  const dest = path.join(DIST, destRelative);
+  await fs.mkdir(path.dirname(dest), { recursive: true });
+  await fs.cp(source, dest, { recursive: true, force: true });
+  return true;
+}
+
 export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE || 'remote' } = {}) {
   await fs.rm(DIST, { recursive: true, force: true });
   await fs.mkdir(DIST, { recursive: true });
@@ -192,6 +205,7 @@ export async function buildMirror({ mediaMode = process.env.MIRROR_MEDIA_MODE ||
   await copyIfExists('patches/home.js');
   await copyIfExists('patches/demo-session.js');
   await copyIfExists('intent.html');
+  await copyDirectoryIfExists('intent-assets');
   await copyIfExists('intent.md', '_meta/intent.md');
   await copyIfExists('README.md', '_meta/README.md');
 

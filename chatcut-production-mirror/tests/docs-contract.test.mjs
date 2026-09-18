@@ -23,15 +23,30 @@ test('intent.md records copy-edit architecture and every homepage decision', asy
   ]) assert.match(text, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), phrase);
 });
 
-test('Chinese ELI5 intent.html explains original component to one trigger to original result', async () => {
+test('intent.html is a real Screens + Flows review surface backed by runtime screenshots', async () => {
   const html = await read('intent.html');
   assert.match(html, /lang="zh-CN"/);
-  assert.match(html, /原组件/);
-  assert.match(html, /一个动作/);
-  assert.match(html, /原结果/);
-  assert.match(html, /不重建/);
-  assert.match(html, /feature pages/i);
-  assert.match(html, /href="\/"/);
+  assert.match(html, /Screens \+ Flows/i);
+  for (const flow of ['F01','F02','F03','F04','F05','F06']) assert.match(html, new RegExp(flow));
+  for (const screen of ['S00','S01','S02','S03','S04','S05','S06','S07','S08','S09','S10','S11','S12','S13']) assert.match(html, new RegExp(screen));
+  for (const asset of ['02-expert-before.png','03-expert-after.png','09-image-before.png','10-image-after.png','15-pricing.png']) assert.match(html, new RegExp(asset.replace('.', '\\.')));
+  assert.match(html, /Local DemoSession/);
+  assert.match(html, /不声称调用真实生成后端/);
+});
+
+test('intent.md carries versioned traceability and an explicit intent-drift guard', async () => {
+  const text = await read('intent.md');
+  assert.match(text, /chatcut-homepage-causal-demo-v2/);
+  assert.match(text, /Intent drift guard/);
+  assert.match(text, /Duplicate or contradictory state labels are an intent failure/);
+  for (const flow of ['F01','F02','F03','F04','F05','F06']) assert.match(text, new RegExp(flow));
+});
+
+test('every screenshot referenced by intent.html exists in intent-assets', async () => {
+  const html = await read('intent.html');
+  const refs = [...html.matchAll(/src="\/intent-assets\/([^"]+)"/g)].map(match => match[1]);
+  assert.ok(refs.length >= 15);
+  for (const ref of refs) await fs.access(new URL(`../intent-assets/${ref}`, import.meta.url));
 });
 
 test('README documents preview/full mirror modes, raw snapshots, and media provenance', async () => {

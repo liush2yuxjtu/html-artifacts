@@ -31,6 +31,16 @@ test('homepage patch is self-contained classic script and intercepts local demo 
   assert.doesNotMatch(source, /setupCaptions\s*\(/);
 });
 
+test('homepage patch is idempotent for status, trigger, overlay and music-source nodes', async () => {
+  const source = await fs.readFile(sourceUrl, 'utf8');
+  assert.match(source, /function ensureSingle/);
+  assert.match(source, /function ensureStatus/);
+  assert.match(source, /function ensureSendButton/);
+  assert.match(source, /matches\.slice\(1\).*duplicate\.remove/s);
+  assert.match(source, /ensureSingle\(showcase, '\.cc-video-reference-overlay'/);
+  assert.match(source, /ensureSingle\(demoStack, '\.cc-music-source-row'/);
+});
+
 test('homepage patch stylesheet only uses cc-prefixed custom state classes for new UI', async () => {
   const css = await fs.readFile(new URL('../patches/home.css', import.meta.url), 'utf8');
   assert.match(css, /\.cc-expert-awaiting/);

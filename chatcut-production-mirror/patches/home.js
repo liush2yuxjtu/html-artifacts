@@ -37,11 +37,28 @@ function setSession(action) {
   return window.__chatcutDemoSession;
 }
 
-function makeStatus(text) {
-  const el = document.createElement('div');
-  el.className = 'cc-demo-status';
-  el.textContent = text;
-  return el;
+function ensureSingle(container, selector, create) {
+  if (!container) return null;
+  const matches = [...container.querySelectorAll(selector)];
+  const first = matches[0] || create();
+  if (!matches.length) container.append(first);
+  for (const duplicate of matches.slice(1)) duplicate.remove();
+  return first;
+}
+
+function ensureStatus(container, text) {
+  const status = ensureSingle(container, '.cc-demo-status', () => {
+    const el = document.createElement('div');
+    el.className = 'cc-demo-status';
+    return el;
+  });
+  if (status) status.textContent = text;
+  return status;
+}
+
+function ensureSendButton(container, label) {
+  const selector = `.cc-local-send[aria-label="${label}"]`;
+  return ensureSingle(container, selector, () => makeSendButton(label));
 }
 
 function makeSendButton(label = 'Send') {
@@ -82,11 +99,10 @@ function bindBestMoments() {
   };
   video.addEventListener('play', keepPaused);
 
-  const send = makeSendButton('Apply editing prompt');
-  promptInput.append(send);
+  const send = ensureSendButton(promptInput, 'Apply editing prompt');
   promptInput.closest('.bm-prompt-card')?.setAttribute('aria-hidden', 'false');
-  const status = makeStatus('Paused · send the edit instruction');
-  root.querySelector('.bm-header')?.append(status);
+  const status = ensureStatus(root.querySelector('.bm-header'), 'Paused · send the edit instruction');
+  if (!send || !status) return;
 
   const updateProgress = () => {
     if (!Number.isFinite(video.duration) || video.duration <= 0) return;
@@ -121,9 +137,9 @@ function bindMotion() {
   root.classList.add('cc-motion-awaiting');
   root.setAttribute('data-cc-demo', 'motion');
 
-  const status = makeStatus('Ready · generate these graphics in place');
   const dock = root.querySelector('[data-thread-dock="mg"]') || root.querySelector('.agentic-thinking-static');
-  dock?.append(status);
+  const status = ensureStatus(dock, 'Ready · generate these graphics in place');
+  if (!status) return;
 
   root.addEventListener('click', (event) => {
     const link = event.target.closest('a[aria-label="Generate"], a[data-utm-link][href*="target=motion-graphics"]');
@@ -190,8 +206,8 @@ function bindImageGeneration() {
   image.src = IMAGE_BEFORE_ASSET;
   image.alt = 'Original source before AI generation';
 
-  const status = makeStatus('Source image · result not generated yet');
-  root.querySelector('.itv-prompt-shell')?.append(status);
+  const status = ensureStatus(root.querySelector('.itv-prompt-shell'), 'Source image · result not generated yet');
+  if (!status) return;
 
   generate.addEventListener('click', (event) => {
     event.preventDefault();
@@ -226,11 +242,14 @@ function bindVideoGeneration() {
   const generate = root.querySelector('.itv-send-btn, a[aria-label="Generate"]');
   if (!showcase || !video || !reference || !generate) return;
 
-  const referenceOverlay = document.createElement('img');
-  referenceOverlay.className = 'cc-video-reference-overlay';
+  const referenceOverlay = ensureSingle(showcase, '.cc-video-reference-overlay', () => {
+    const image = document.createElement('img');
+    image.className = 'cc-video-reference-overlay';
+    return image;
+  });
+  if (!referenceOverlay) return;
   referenceOverlay.src = reference.currentSrc || reference.src;
   referenceOverlay.alt = 'Selected reference image waiting to become video';
-  showcase.append(referenceOverlay);
 
   video.pause();
   const keepPaused = () => {
@@ -238,8 +257,8 @@ function bindVideoGeneration() {
   };
   video.addEventListener('play', keepPaused);
 
-  const status = makeStatus('Reference image ready · video not generated yet');
-  root.querySelector('.itv-prompt-shell')?.append(status);
+  const status = ensureStatus(root.querySelector('.itv-prompt-shell'), 'Reference image ready · video not generated yet');
+  if (!status) return;
 
   generate.addEventListener('click', (event) => {
     event.preventDefault();
@@ -272,20 +291,25 @@ function bindMusic() {
   const board = root.querySelector('.tc-music-board');
   if (!demoStack || !board) return;
 
-  const sourceRow = document.createElement('div');
-  sourceRow.className = 'cc-music-source-row';
-  sourceRow.innerHTML = `
-    <div class="cc-music-source-video">
-      <video muted loop playsinline preload="metadata" src="${MUSIC_SOURCE_VIDEO}"></video>
-      <span class="cc-audio-badge">Silent video</span>
-    </div>
-    <div class="cc-music-prompt-card">
-      <div class="cc-music-prompt-label">Prompt</div>
-      <div class="cc-music-prompt-text">${MUSIC_PROMPT}</div>
-      <button type="button" class="cc-local-send cc-music-send" aria-label="Generate royalty-free music"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      <div class="cc-demo-status">Silent source · no music track yet</div>
-    </div>`;
-  demoStack.insertBefore(sourceRow, board);
+  const sourceRow = ensureSingle(demoStack, '.cc-music-source-row', () => {
+    const row = document.createElement('div');
+    row.className = 'cc-music-source-row';
+    row.innerHTML = `
+      <div class="cc-music-source-video">
+        <video muted loop playsinline preload="metadata" src="${MUSIC_SOURCE_VIDEO}"></video>
+        <span class="cc-audio-badge">Silent video</span>
+      </div>
+      <div class="cc-music-prompt-card">
+        <div class="cc-music-prompt-label">Prompt</div>
+        <div class="cc-music-prompt-text">${MUSIC_PROMPT}</div>
+        <button type="button" class="cc-local-send cc-music-send" aria-label="Generate royalty-free music"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 7-7 7 7M12 19V5" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="cc-demo-status">Silent source · no music track yet</div>
+      </div>`;
+    demoStack.insertBefore(row, board);
+    return row;
+  });
+  if (!sourceRow) return;
+  ensureStatus(sourceRow.querySelector('.cc-music-prompt-card'), 'Silent source · no music track yet');
   const sourceVideo = sourceRow.querySelector('video');
   const badge = sourceRow.querySelector('.cc-audio-badge');
   const send = sourceRow.querySelector('.cc-music-send');
