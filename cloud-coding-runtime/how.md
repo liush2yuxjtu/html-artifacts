@@ -1,6 +1,6 @@
-# 在 ChatGPT Chat 中启用完整云端 Coding
+# 复制这套 ChatGPT Chat 云端 Coding 工作环境
 
-> 目标：让 ChatGPT Chat 获得一个真正可用的云端 Coding Runtime，同时安全访问本地私密数据、凭证和真实服务，并能够完成端到端测试。
+> 这是给团队成员复制并复现同一套工作方式的指南，不是给第二台机器做镜像。每个人使用自己的 Grokbot、Tailnet、本地 MCP、凭证和 Airtable，在 ChatGPT Chat 中获得一致的云端 Coding 能力并完成真实端到端验收。
 
 交互式版本：
 
@@ -148,7 +148,7 @@ runtime:
 ## 启动提示词
 
 ```text
-按照下面两个链接，在你的账号上启用完整的 ChatGPT Chat 云端 Coding 能力。
+按照下面两个链接，在你的账号上复制并复现这套完整的 ChatGPT Chat 云端 Coding 工作环境；用你自己的 Grokbot、Tailnet、本地 MCP、凭证和 Airtable，完成真实端到端验收。
 
 1. 交互式指南：
 https://liush2yuxjtu.github.io/html-artifacts/cloud-coding-runtime/how.html
