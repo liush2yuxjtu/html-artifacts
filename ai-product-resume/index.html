@@ -59,7 +59,33 @@ ul.clean{list-style:none;padding:0;margin:0}.clean li{position:relative;padding-
 .side-bullets{list-style:none;padding:0;margin:0}.side-bullets li{font-size:6.95pt;line-height:1.45;padding-left:4mm;position:relative;margin-bottom:1.2mm}.side-bullets li::before{content:"";position:absolute;left:0;top:.62em;width:3px;height:3px;border-radius:50%;background:var(--green)}
 .edu{display:grid;gap:2.5mm}.edu-item{display:grid;grid-template-columns:4mm minmax(0,1fr) auto;gap:1.4mm;align-items:start}.edu-dot{width:6px;height:6px;border:2px solid var(--green);border-radius:50%;margin-top:3px}.edu-item strong{font-size:7.05pt;display:block}.edu-item span{font-size:6.55pt;color:var(--muted);display:block}.edu-date{font-size:6.2pt!important;white-space:nowrap;margin-top:1px}.practice-list strong{font-weight:900}.motto{display:flex;align-items:center;gap:7px;color:#879691;font-size:6.2pt;margin-top:5mm}.motto::before,.motto::after{content:"";height:1px;background:#aebbb7;flex:1}
 .public-note{font-size:11px;color:#71807b;text-align:center;margin-top:16px}
-@media (max-width:900px){.toolbar{align-items:flex-start}.actions{gap:6px}.stage{padding:12px 0 30px;overflow:auto;justify-content:flex-start}.resume{transform-origin:top left;box-shadow:none}.public-note{display:none}}
+@media (max-width:900px){
+  .toolbar{position:static;align-items:flex-start;padding:10px 12px}
+  .toolbar .identity{max-width:118px}
+  .toolbar strong{font-size:13px}.toolbar small{font-size:11px}
+  .actions{gap:6px}
+  .btn{padding:7px 9px;font-size:11px}
+  .stage{padding:12px;display:block;overflow:visible}
+  .resume{width:100%;min-height:auto;padding:20px 16px;box-shadow:none;overflow:visible}
+  .header{grid-template-columns:1fr;gap:14px;padding-bottom:14px}
+  .slogan{border-left:0;border-top:1px solid var(--rule);padding:12px 0 0;min-height:0}
+  .slogan .mini-rule{margin:8px 0 6px}
+  .content{grid-template-columns:1fr;gap:20px;margin-top:18px}
+  .sidebar{border-left:0;border-top:1px solid var(--rule);padding-left:0;padding-top:18px}
+  .name{font-size:28pt}
+  .role{font-size:12pt}
+  .tagline{font-size:9pt}
+  .meta{font-size:7.5pt;gap:5px 8px}
+  .section-title{font-size:11.5pt}
+  .side-title{font-size:10.5pt}
+  .company{font-size:9.8pt}
+  .lead,.clean li,.result,.side-text,.check,.side-bullets li{font-size:7.5pt}
+  .exp-table{font-size:7.2pt}
+  .exp-table td:nth-child(2){width:29mm}
+  .pill{font-size:7pt}
+  .edu-item strong{font-size:7.4pt}.edu-item span{font-size:6.9pt}
+  .public-note{display:none}
+}
 @page{size:A4;margin:0}
 @media print{
   html,body{background:#fff;margin:0;padding:0;width:210mm;height:297mm}
