@@ -130,20 +130,81 @@ runtime:
 
 ## 端到端验收
 
-不要把“配置存在”“进程启动”“build green”“deployment READY”当成完成。
+不要把“配置存在”“进程启动”“build green”“deployment READY”当成完成。每一项都必须有**实际操作 + 明确通过条件 + 可复查证据**。
 
-必须验证：
+### 1. ChatGPT → 云端 Bash
 
-- [ ] ChatGPT 能调用云端 Bash 并返回真实 stdout/stderr。
-- [ ] Git clone / edit / commit 在持久 workspace 可用。
-- [ ] 匿名浏览器可访问公开网页。
-- [ ] 持久登录浏览器能保留授权 session。
-- [ ] 自动化 E2E 浏览器每次使用隔离 context。
-- [ ] 云端能通过 Tailnet 调用本地 MCP。
-- [ ] 本地真实数据无需完整复制到云端即可用于测试。
-- [ ] 凭证可按任务解析使用，且不会进入 repo / log / artifact。
-- [ ] Airtable 可完成跨设备 handoff / shared context。
-- [ ] 一个真实项目可完成代码修改 → 本地真实数据 → E2E → 证据 → 部署。
+- **操作**：从 ChatGPT 发起一次命令，至少执行 `pwd`、`uname -a`、`git --version`，再执行一个会失败的命令。
+- **通过条件**：ChatGPT 能拿到真实 stdout、stderr 和 exit code；失败命令不能被伪装成成功。
+- **证据**：保存命令、stdout/stderr、exit code、执行时间和运行环境标识。
+
+### 2. Git + 持久工作区
+
+- **操作**：clone 一个测试 repo，创建文件，commit；结束当前会话后重新进入同一个 runtime。
+- **通过条件**：repo、未删除的工作文件和 commit 仍存在；`git status` 与 `git log -1` 可验证。
+- **证据**：repo URL、commit SHA、重新进入 runtime 后的 `pwd` / `git status` / `git log -1`。
+
+### 3. 匿名浏览器
+
+- **操作**：打开一个公开网页，读取标题/正文，并保存截图。
+- **通过条件**：浏览器没有依赖个人登录态；新任务可从干净状态重新访问。
+- **证据**：访问 URL、页面标题、截图或 DOM/文本提取结果。
+
+### 4. 持久登录浏览器
+
+- **操作**：登录一个测试用 SaaS 账号，完成一次需要登录才能进行的只读操作；结束任务后再次打开。
+- **通过条件**：授权 session 在预期范围内保持，不需要再次输入密码；不会与匿名/E2E browser 共用同一个 profile。
+- **证据**：登录后页面、第二次打开仍处于登录态的截图/页面状态；禁止记录密码、Cookie 明文或 token。
+
+### 5. 隔离 E2E 浏览器
+
+- **操作**：连续运行两次同一个 E2E 测试；第一次写入一个临时状态，第二次从全新 context 启动。
+- **通过条件**：第二次运行不继承第一次的 cookie、localStorage、sessionStorage 或临时登录状态；测试结果可重复。
+- **证据**：两次 run ID、测试报告、关键断言、失败截图/视频（如有）。
+
+### 6. Grokbot → Tailnet → 本地 MCP
+
+- **操作**：从云端 runtime 通过 Tailnet 调用一个仅本地可访问的 MCP 工具，例如读取一个测试文件或查询只读测试数据。
+- **通过条件**：关闭 Tailnet 路径后调用失败；恢复后成功，证明不是走公网旁路。
+- **证据**：目标 Tailnet hostname/IP、MCP tool 名称、成功结果摘要，以及断开 Tailnet 时的失败证据。
+
+### 7. 本地私密数据不复制上云
+
+- **操作**：用本地 MCP 读取一个带唯一 marker 的测试数据，并完成一次云端计算/测试。
+- **通过条件**：云端只拿到任务所需结果或最小数据片段；runtime workspace、repo、artifact 中不存在完整源数据副本。
+- **证据**：marker 对应的调用结果、云端文件扫描结果、数据流说明；不得上传真实敏感样本作为证据。
+
+### 8. Secret 按任务解析
+
+- **操作**：通过 secret resolver 使用一个测试 secret 完成真实 API 调用。
+- **通过条件**：调用成功；secret 不出现在 ChatGPT 文本、shell history、Git diff、日志、artifact、截图或 Airtable 中；任务结束后云端没有长期明文副本。
+- **证据**：API 成功响应摘要、secret 名称/指纹（不是值）、对 repo/log/artifact 的泄漏扫描结果。
+
+### 9. Airtable Handoff / Shared Context
+
+- **操作**：设备 A 创建一条 handoff，设备 B/另一位团队成员读取并继续执行，然后把结果和状态写回。
+- **通过条件**：接收方不依赖原聊天历史也能继续；状态、负责人、时间和结果可追踪。
+- **证据**：Airtable record ID/链接、创建时间、接收时间、完成状态和结果摘要。
+
+### 10. 真实项目完整闭环
+
+- **操作**：选一个低风险真实任务，从 ChatGPT 完成：代码修改 → Git commit → 本地真实/生产类数据读取 → 自动化 E2E → 生成证据 → 部署/预览 → 浏览器验证。
+- **通过条件**：所有阶段使用真实 runtime，不允许用 mock 结果冒充；最终页面或服务行为符合 acceptance criteria；失败时能定位到具体阶段。
+- **证据**：commit SHA、测试 run/report、MCP 调用摘要、deployment URL/ID、最终浏览器验证截图或断言、完整时间线。
+
+### 总体验收门槛
+
+只有同时满足以下条件，才能标记为 **READY**：
+
+- [ ] 上述 10 项全部通过。
+- [ ] 每项都有可复查 evidence，不接受“我已经配置好了”。
+- [ ] 没有发现 secret 泄漏到 repo / log / artifact / Airtable / ChatGPT 输出。
+- [ ] 私密数据没有被整库/整目录复制到云端。
+- [ ] 匿名、持久登录、E2E 三类浏览器 profile 已隔离。
+- [ ] Tailnet 断开测试证明本地 MCP 不存在意外公网旁路。
+- [ ] 至少完成 1 次真实项目完整闭环。
+- [ ] 最终输出一张表：能力 / 状态 / evidence / 风险 / 下一步；任何缺少证据的能力都必须标成 **UNVERIFIED**，不能写 **READY**。
+
 
 ## 启动提示词
 
