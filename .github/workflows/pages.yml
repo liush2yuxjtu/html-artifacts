@@ -1,0 +1,73 @@
+name: Publish HTML Artifacts to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'business-world-agent-design-system/**'
+      - 'live-project-registry/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: html-artifacts-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build public Pages artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp -R business-world-agent-design-system _site/
+          if [ -d live-project-registry ]; then
+            cp -R live-project-registry _site/
+          fi
+          touch _site/.nojekyll
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>HTML Artifacts</title>
+            <style>
+              body{font-family:Inter,system-ui,sans-serif;margin:40px;background:#f6f7fb;color:#111827}
+              main{max-width:760px;margin:auto}
+              a{display:block;padding:16px 18px;margin:12px 0;background:white;border:1px solid #e5e7eb;border-radius:12px;color:#2563eb;text-decoration:none;font-weight:700}
+            </style>
+          </head>
+          <body><main>
+            <h1>HTML Artifacts</h1>
+            <a href="./business-world-agent-design-system/">Business World Agent Design System</a>
+            <a href="./live-project-registry/">Live Project Registry</a>
+          </main></body>
+          </html>
+          HTML
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
