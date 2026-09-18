@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Business World Agent — Design System</title>
+<style>
+:root{--brand:#1c6ff2;--brand2:#1662e9;--ink:#0b1f55;--ink2:#234273;--muted:#64748b;--surface:#fff;--canvas:#f5f9ff;--soft:#edf5ff;--line:#dbeafe;--green:#16a34a;--warn:#9b6a0b;--danger:#f16069;--shadow:0 8px 28px rgba(27,110,234,.06)}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#fff,#f6faff 45%,#edf6ff);color:var(--ink);font:13px Inter,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;background:#ffffffeb;backdrop-filter:blur(14px);border-bottom:1px solid #e7effd;padding:16px 24px;display:flex;align-items:center;gap:14px}
+.logo{width:38px;height:38px;border-radius:13px;background:linear-gradient(135deg,#53bbff,#1466f4);color:white;display:grid;place-items:center;font-weight:900;font-size:20px}
+h1{font-size:18px;margin:0}header small{color:#7185a5}nav{margin-left:auto;display:flex;gap:6px}nav button{border:1px solid var(--line);background:white;color:var(--ink2);border-radius:9px;padding:8px 11px;cursor:pointer}nav button.on{background:var(--soft);color:var(--brand);font-weight:800}
+main{max-width:1280px;margin:auto;padding:24px}.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.panel{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:20px}.hero h2{font-size:34px;line-height:1.08;margin:3px 0 10px;letter-spacing:-1.3px}.hero p{color:#5f7597;line-height:1.7}.pill{display:inline-flex;border-radius:999px;background:var(--soft);color:var(--brand);padding:6px 10px;font-size:10px;font-weight:800}.world{min-height:230px;background:radial-gradient(circle at 48% 50%,#fff 0 14%,#d8ecff 15% 28%,#eef7ff 29% 45%,#fff 46%);display:grid;place-items:center}.orbit{width:115px;height:115px;border-radius:50%;background:linear-gradient(145deg,#fff,#b8d9ff);border:10px solid #e4f1ff;display:grid;place-items:center;text-align:center;font-weight:900;color:#0b3f9b}
+.view{display:none}.view.on{display:block}.section{margin-top:18px}.section h3{font-size:16px}.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:9px}.swatch{border:1px solid var(--line);border-radius:11px;overflow:hidden;background:white}.swatch i{display:block;height:76px}.swatch b,.swatch span{display:block;padding:7px 9px}.swatch span{padding-top:0;color:#7487a6;font-size:10px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.component{min-height:170px}.component>small{color:#7790b2}.btn{border:0;color:#fff;background:linear-gradient(135deg,#2c87ff,#1662e9);padding:11px 18px;border-radius:9px;font-weight:700}.btn2{border:1px solid #cfe1fb;background:#fff;color:#2d6fd4;border-radius:7px;padding:8px 12px;font-weight:700}.metric{margin-top:16px;background:#fff;border:1px solid #e1ecfb;border-radius:11px;padding:14px 18px}.metric label{display:block;color:#6881a8;font-size:11px;font-weight:700}.metric b{display:block;color:#1465e7;font-size:27px;margin:3px 0}.metric small{color:var(--green)}
+.sidebar-demo{display:flex;gap:8px;flex-direction:column;margin-top:12px}.navitem{padding:11px 10px;border-radius:9px;color:#234273}.navitem.active{background:linear-gradient(90deg,#deedff,#edf5ff);color:#075ce5;font-weight:700}
+.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:13px;overflow:hidden}.table th,.table td{text-align:left;padding:12px;border-bottom:1px solid #eef4fc}.table th{font-size:10px;color:#6d82a3}.status{font-weight:800;color:var(--brand)}
+.code{background:#0d1b33;color:#d8e7ff;border-radius:11px;padding:16px;overflow:auto;font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
+@media(max-width:850px){.hero,.grid{grid-template-columns:1fr}.swatches{grid-template-columns:repeat(2,1fr)}nav{display:none}}
+</style></head><body>
+<header><div class="logo">BW</div><div><h1>Business World Agent Design System</h1><small>Code ↔ Visual ↔ Webflow mapping</small></div><nav><button class="on" data-v="tokens">Tokens</button><button data-v="components">Components</button><button data-v="patterns">Patterns</button><button data-v="webflow">Webflow</button></nav></header>
+<main>
+<section class="hero"><div class="panel"><span class="pill">CANONICAL · v0.1</span><h2>把现有 Business World<br>视觉语言变成可复用系统</h2><p>来源不是重新设计，而是当前真实 runtime、现有 CSS、Business World screens 与 product-truth contract。目标是让 Next.js、GitHub Pages 与未来 Webflow 共用同一套命名和视觉语义。</p><button class="btn">Primary action</button> <button class="btn2">Secondary</button></div><div class="panel world"><div class="orbit">BUSINESS<br>WORLD<br><small>system</small></div></div></section>
+
+<div id="tokens" class="view on">
+<section class="section"><h3>Color tokens</h3><div class="swatches">
+<div class="swatch"><i style="background:#1c6ff2"></i><b>Brand 500</b><span>#1c6ff2</span></div><div class="swatch"><i style="background:#1662e9"></i><b>Brand 600</b><span>#1662e9</span></div><div class="swatch"><i style="background:#0d3b9f"></i><b>Brand 800</b><span>#0d3b9f</span></div><div class="swatch"><i style="background:#0b1f55"></i><b>Ink 900</b><span>#0b1f55</span></div><div class="swatch"><i style="background:#edf5ff"></i><b>Soft</b><span>#edf5ff</span></div><div class="swatch"><i style="background:#dbeafe"></i><b>Line</b><span>#dbeafe</span></div><div class="swatch"><i style="background:#f5f9ff"></i><b>Canvas</b><span>#f5f9ff</span></div><div class="swatch"><i style="background:#16a34a"></i><b>Success</b><span>#16a34a</span></div><div class="swatch"><i style="background:#9b6a0b"></i><b>Warning</b><span>#9b6a0b</span></div><div class="swatch"><i style="background:#f16069"></i><b>Danger</b><span>#f16069</span></div><div class="swatch"><i style="background:#ffffff"></i><b>Surface</b><span>#ffffff</span></div><div class="swatch"><i style="background:#64748b"></i><b>Muted</b><span>#64748b</span></div>
+</div></section>
+<section class="section grid"><div class="panel"><h3>Radius</h3><p>5 · 7 · 9 · 11 · 13 · 16 · pill</p></div><div class="panel"><h3>Spacing</h3><p>4 · 8 · 10 · 12 · 14 · 18 · 24 · 28px</p></div><div class="panel"><h3>Typography</h3><p>8 / 10 / 12 / 13 / 22 / 32px</p></div></section>
+</div>
+
+<div id="components" class="view">
+<section class="section grid">
+<div class="panel component"><h3>Buttons</h3><small>Action hierarchy</small><p><button class="btn">开始模拟</button> <button class="btn2">查看详情</button></p></div>
+<div class="panel component"><h3>Metric card</h3><small>Observed values only</small><div class="metric"><label>商品转化率</label><b>—</b><small>Not observed yet</small></div></div>
+<div class="panel component"><h3>Navigation</h3><small>Dense dashboard navigation</small><div class="sidebar-demo"><div class="navitem active">总览</div><div class="navitem">Persona Studio</div><div class="navitem">投放优化</div></div></div>
+<div class="panel component"><h3>Panel</h3><small>Default information container</small><p>White surface · 1px pale-blue border · 13px radius · very light blue shadow.</p></div>
+<div class="panel component"><h3>Section title</h3><small>Header inside panels</small><div style="margin-top:12px;border-bottom:1px solid #eef4fc;padding:13px 4px 10px;font-weight:800">核心人群假设 <span style="float:right;color:#86a1c7;font-size:10px">结构保留 · 指标待验证</span></div></div>
+<div class="panel component"><h3>Status semantics</h3><small>Visual truth boundary</small><p><span class="pill">HYPOTHESIS</span> <span class="pill" style="color:#148448">OBSERVED</span></p></div>
+</section></div>
+
+<div id="patterns" class="view">
+<section class="section"><h3>Product patterns</h3><table class="table"><tr><th>Pattern</th><th>Visual rule</th><th>Product truth rule</th></tr>
+<tr><td>Metric</td><td>Large blue value + small status</td><td>Unknown stays “—”; never invent metrics</td></tr>
+<tr><td>Hypothesis</td><td>Quiet badge, same product surface</td><td>Clearly separate modeled/research assumptions from observed facts</td></tr>
+<tr><td>Panel</td><td>White / pale blue border / 13px</td><td>Container styling never implies source verification</td></tr>
+<tr><td>Primary action</td><td>Cobalt gradient / 9px radius</td><td>Only interactive if a real action exists</td></tr>
+<tr><td>Navigation</td><td>Soft blue active state</td><td>Reachable runtime surfaces remain independently auditable</td></tr>
+</table></section></div>
+
+<div id="webflow" class="view">
+<section class="section grid"><div class="panel"><h3>Variables</h3><p><b>BW / Color</b><br>brand · ink · surface · canvas · soft · semantic states</p><p><b>BW / Radius</b><br>xs → pill</p><p><b>BW / Space</b><br>4 → 28px</p></div><div class="panel"><h3>Styles</h3><p>bw-panel<br>bw-button-primary<br>bw-button-secondary<br>bw-chip<br>bw-metric<br>bw-section-title</p></div><div class="panel"><h3>Components</h3><p>BW Panel<br>BW Button<br>BW Metric Card<br>BW Source Banner<br>BW Navigation Item</p></div></section>
+<section class="section"><pre class="code">Webflow status:
+mapping-ready
+connector site count: 0
+
+When a Webflow site is accessible:
+Variables → global styles → components → variants → visual snapshot verification.</pre></section></div>
+</main>
+<script>document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll("nav button").forEach(x=>x.classList.remove("on"));document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));b.classList.add("on");document.getElementById(b.dataset.v).classList.add("on")})</script>
+</body></html>
