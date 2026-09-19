@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cedar + Lean：给数据库专家的可验证 Agent 执行层</title>
+<meta name="description" content="从数据库专家视角理解 Cedar、Lean、formal proof，以及 PR #20 如何在 SQL 执行前做可验证授权。">
+<style>
+:root{
+  --bg:#f6f7fb; --paper:#ffffff; --ink:#111827; --muted:#667085; --line:#dfe3ea;
+  --blue:#3558d4; --blue2:#eaf0ff; --green:#087a55; --green2:#e8f8f1;
+  --red:#bd2c2c; --red2:#fff0f0; --amber:#9a6700; --amber2:#fff6df;
+  --purple:#6c43c0; --purple2:#f3edff; --slate:#334155; --code:#111827;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,"PingFang SC","Microsoft YaHei",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre{font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace}
+.shell{max-width:1440px;margin:0 auto;padding:26px 22px 80px}
+.topbar{
+  display:flex;justify-content:space-between;gap:20px;align-items:center;
+  margin-bottom:18px
+}
+.brand{display:flex;align-items:center;gap:11px;font-size:13px;color:var(--muted)}
+.brandmark{width:34px;height:34px;border-radius:10px;background:#111827;color:white;display:grid;place-items:center;font-weight:900}
+.links{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;font-weight:700}
+.hero{
+  background:linear-gradient(135deg,#111827 0%,#1d2939 52%,#2f3e63 100%);
+  color:white;border-radius:28px;padding:42px;position:relative;overflow:hidden;
+  box-shadow:0 24px 70px rgba(17,24,39,.16)
+}
+.hero:after{
+  content:"";position:absolute;right:-110px;top:-110px;width:360px;height:360px;
+  border:1px solid rgba(255,255,255,.12);border-radius:50%;
+  box-shadow:0 0 0 50px rgba(255,255,255,.025),0 0 0 100px rgba(255,255,255,.02);
+}
+.kicker{font-size:12px;letter-spacing:.16em;font-weight:800;color:#b9c6f7}
+h1{font-size:52px;line-height:1.04;letter-spacing:-.04em;margin:10px 0 16px;max-width:980px}
+.hero p{max-width:900px;font-size:18px;line-height:1.65;color:#d5d9e3;margin:0}
+.hero .db-note{
+  margin-top:22px;display:inline-flex;gap:8px;align-items:center;padding:9px 12px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);font-size:12px;color:#eef2ff
+}
+.nav{
+  position:sticky;top:10px;z-index:10;margin:18px 0 24px;
+  display:flex;gap:8px;flex-wrap:wrap;padding:9px;background:rgba(246,247,251,.9);
+  backdrop-filter:blur(10px);border:1px solid #e7e9ee;border-radius:14px
+}
+.nav a{padding:8px 10px;border-radius:9px;color:#475467;font-size:12px;font-weight:750}
+.nav a:hover{background:white;text-decoration:none;color:#111827}
+.section{margin-top:26px}
+.section-head{display:grid;grid-template-columns:90px 1fr;gap:18px;align-items:start;margin-bottom:14px}
+.section-no{font-size:12px;font-weight:900;letter-spacing:.15em;color:#98a2b3;padding-top:7px}
+h2{font-size:32px;letter-spacing:-.025em;margin:0 0 7px}
+.lead{color:var(--muted);line-height:1.7;margin:0;max-width:960px}
+.card{
+  background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px;
+  box-shadow:0 8px 28px rgba(17,24,39,.045)
+}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.visual{padding:0;overflow:hidden}
+.visual .cap{padding:13px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);background:#fbfcfe}
+.diagram{width:100%;height:auto;display:block}
+.mini h3,.card h3{margin:0 0 8px;font-size:15px}
+.mini p,.card p{margin:0;color:var(--muted);line-height:1.65;font-size:13px}
+.pill{
+  display:inline-block;font-size:10px;font-weight:900;letter-spacing:.08em;padding:5px 8px;border-radius:999px
+}
+.pill.green{background:var(--green2);color:var(--green)}
+.pill.red{background:var(--red2);color:var(--red)}
+.pill.amber{background:var(--amber2);color:var(--amber)}
+.pill.blue{background:var(--blue2);color:var(--blue)}
+.pill.purple{background:var(--purple2);color:var(--purple)}
+.codebox{background:var(--code);color:#e5e7eb;border-radius:14px;padding:15px;overflow:auto;font-size:12px;line-height:1.65}
+.codebox .dim{color:#8b95a7}.codebox .green{color:#72d7ae}.codebox .red{color:#ff8e8e}.codebox .blue{color:#9fb6ff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 10px;border-bottom:1px solid #edf0f3;text-align:left;vertical-align:top}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#7b8492;background:#fafbfc}
+tr:last-child td{border-bottom:0}
+.compare td:first-child{font-weight:750;color:#344054;width:25%}
+.callout{border-left:4px solid var(--blue);padding:14px 16px;background:#f7f9ff;border-radius:0 12px 12px 0;color:#475467;font-size:13px;line-height:1.7}
+.warn{border-left-color:#d97706;background:#fff9ed}
+.danger{border-left-color:#dc2626;background:#fff4f4}
+.ok{border-left-color:#079455;background:#f2fbf7}
+.buttonrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{
+  border:1px solid #d8dde6;background:white;color:#344054;border-radius:9px;padding:8px 11px;
+  font:inherit;font-size:12px;font-weight:750;cursor:pointer
+}
+button.primary{background:#111827;color:white;border-color:#111827}
+.scenario{
+  display:grid;grid-template-columns:380px 1fr;gap:14px
+}
+.scenario .left{display:flex;flex-direction:column;gap:10px}
+.scenario-output{border:1px solid var(--line);border-radius:16px;padding:16px;background:#fbfcfe}
+.status{
+  display:flex;align-items:center;gap:9px;font-size:14px;font-weight:850;margin-bottom:8px
+}
+.dot{width:26px;height:26px;border-radius:50%;display:grid;place-items:center}
+.dot.allow{background:var(--green2);color:var(--green)}
+.dot.deny{background:var(--red2);color:var(--red)}
+.layer-list{display:grid;gap:9px}
+.layer{
+  display:grid;grid-template-columns:34px 160px 1fr;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);
+  border-radius:12px;background:#fff
+}
+.layer .n{width:28px;height:28px;border-radius:8px;background:#eef2ff;color:#3b57c7;display:grid;place-items:center;font-size:11px;font-weight:900}
+.layer strong{font-size:12px}
+.layer span{font-size:12px;color:var(--muted)}
+.trust-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.trust-item{padding:14px;border-radius:14px;border:1px solid var(--line)}
+.trust-item strong{display:block;margin-bottom:4px;font-size:13px}
+.trust-item span{font-size:12px;color:var(--muted);line-height:1.55}
+.trust-item.yes{background:#f4fbf8;border-color:#c9ebdc}
+.trust-item.no{background:#fff7f7;border-color:#ffd1d1}
+.footer{margin-top:32px;padding:18px 2px;color:#7b8492;font-size:12px;display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+svg text{font-family:Inter,"PingFang SC","Microsoft YaHei",ui-sans-serif,system-ui,sans-serif}
+@media(max-width:980px){
+  h1{font-size:42px}.grid-4,.grid-3{grid-template-columns:1fr 1fr}.scenario{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .shell{padding:14px 12px 50px}.hero{padding:28px 22px;border-radius:20px}h1{font-size:36px}
+  .section-head{grid-template-columns:1fr}.section-no{padding:0}.grid-4,.grid-3,.trust-grid{grid-template-columns:1fr}
+  .topbar{align-items:flex-start;flex-direction:column}.layer{grid-template-columns:34px 1fr}.layer span{grid-column:2}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="ic-db" viewBox="0 0 64 64">
+      <ellipse cx="32" cy="14" rx="22" ry="8" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M10 14v28c0 4.4 9.8 8 22 8s22-3.6 22-8V14" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M10 28c0 4.4 9.8 8 22 8s22-3.6 22-8M10 41c0 4.4 9.8 8 22 8s22-3.6 22-8" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+    <symbol id="ic-agent" viewBox="0 0 64 64">
+      <rect x="12" y="17" width="40" height="32" rx="9" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle cx="25" cy="32" r="3" fill="currentColor"/><circle cx="39" cy="32" r="3" fill="currentColor"/>
+      <path d="M24 41h16M32 17V9M27 9h10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ic-shield" viewBox="0 0 64 64">
+      <path d="M32 8 52 16v14c0 13-8 22-20 27C20 52 12 43 12 30V16L32 8Z" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="m23 31 6 6 13-14" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-proof" viewBox="0 0 64 64">
+      <path d="M17 8h25l8 8v40H17z" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="M42 8v10h10M23 29h20M23 37h16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="m24 47 4 4 9-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="ic-parser" viewBox="0 0 64 64">
+      <path d="M13 18h38M13 32h22M13 46h30" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="46" cy="32" r="8" fill="none" stroke="currentColor" stroke-width="3"/>
+      <path d="m52 38 7 7" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="ic-gate" viewBox="0 0 64 64">
+      <path d="M13 54V14h30v40M13 26h30M47 22h7v32" fill="none" stroke="currentColor" stroke-width="3"/>
+      <circle cx="33" cy="38" r="3" fill="currentColor"/>
+    </symbol>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M1 1 7 4.5 1 8" fill="none" stroke="#7c8798" stroke-width="1.6"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M1 1 7 4.5 1 8" fill="none" stroke="#087a55" stroke-width="1.6"/>
+    </marker>
+    <marker id="arrowRed" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M1 1 7 4.5 1 8" fill="none" stroke="#bd2c2c" stroke-width="1.6"/>
+    </marker>
+  </defs>
+</svg>
+
+<main class="shell">
+  <div class="topbar">
+    <div class="brand"><div class="brandmark">C</div><strong>Cedar / Lean Explainer</strong><span>· for DB experts</span></div>
+    <div class="links">
+      <a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/pull/20" target="_blank">PR #20</a>
+      <a href="https://github.com/cedar-policy/cedar" target="_blank">Cedar</a>
+      <a href="https://github.com/cedar-policy/cedar-spec" target="_blank">cedar-spec</a>
+      <a href="https://lean-lang.org/use-cases/cedar/" target="_blank">Lean × Cedar</a>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div class="kicker">DATABASE EXPERT → FORMAL VERIFICATION</div>
+    <h1>把 Cedar 想成“数据库执行前的可编程权限闸门”，把 Lean 想成“可以机器检查的证明编译器”。</h1>
+    <p>
+      这页不要求你懂 theorem prover。你已经懂 transaction、query planner、GRANT/REVOKE、RLS、read-only role——
+      我们就从这些概念出发，解释 PR #20 怎样让一个 SQL Agent 在真正碰数据库之前先经过 Cedar，
+      以及 Lean 到底证明了什么、没证明什么。
+    </p>
+    <div class="db-note">核心结论：Cedar 不判断 SQL “回答得对不对”；它判断 Agent “有没有资格执行这个动作”。</div>
+  </section>
+
+  <nav class="nav">
+    <a href="#mental-model">DB 心智模型</a>
+    <a href="#pipeline">执行链路</a>
+    <a href="#cedar">Cedar</a>
+    <a href="#lean">Lean</a>
+    <a href="#scenario">交互示例</a>
+    <a href="#boundary">Trust boundary</a>
+    <a href="#files">PR 文件地图</a>
+  </nav>
+
+  <section class="section" id="mental-model">
+    <div class="section-head">
+      <div class="section-no">01 · MODEL</div>
+      <div><h2>先用你已经熟悉的数据库概念来映射</h2><p class="lead">Cedar 和 Lean 都不是“AI 魔法”。它们只是把你熟悉的控制点做得更显式、更可审计、更可机器检查。</p></div>
+    </div>
+
+    <div class="grid-4">
+      <article class="card mini">
+        <svg viewBox="0 0 220 110" class="diagram">
+          <rect x="1" y="1" width="218" height="108" rx="16" fill="#f8fafc" stroke="#dfe3ea"/>
+          <use href="#ic-db" x="18" y="22" width="56" height="56" style="color:#3558d4"/>
+          <text x="88" y="43" font-size="14" font-weight="800" fill="#111827">DB GRANT / RLS</text>
+          <text x="88" y="63" font-size="11" fill="#667085">谁能对什么资源</text>
+          <text x="88" y="79" font-size="11" fill="#667085">做什么操作</text>
+        </svg>
+        <h3>你已经懂的权限系统</h3><p>角色、对象、动作、条件。Cedar 把这套模型从数据库内部抽出来，变成通用 policy engine。</p>
+      </article>
+      <article class="card mini">
+        <svg viewBox="0 0 220 110" class="diagram">
+          <rect x="1" y="1" width="218" height="108" rx="16" fill="#f8fafc" stroke="#dfe3ea"/>
+          <use href="#ic-gate" x="18" y="22" width="56" height="56" style="color:#087a55"/>
+          <text x="88" y="43" font-size="14" font-weight="800" fill="#111827">Cedar Gate</text>
+          <text x="88" y="63" font-size="11" fill="#667085">execute() 之前</text>
+          <text x="88" y="79" font-size="11" fill="#667085">ALLOW / DENY</text>
+        </svg>
+        <h3>像独立的 execution firewall</h3><p>Agent 生成 SQL 后，不直接下发。先问 Cedar：这个 principal 对这个 resource 的这个 action 是否允许？</p>
+      </article>
+      <article class="card mini">
+        <svg viewBox="0 0 220 110" class="diagram">
+          <rect x="1" y="1" width="218" height="108" rx="16" fill="#f8fafc" stroke="#dfe3ea"/>
+          <use href="#ic-proof" x="18" y="22" width="56" height="56" style="color:#6c43c0"/>
+          <text x="88" y="43" font-size="14" font-weight="800" fill="#111827">Lean Proof</text>
+          <text x="88" y="63" font-size="11" fill="#667085">不是 test case</text>
+          <text x="88" y="79" font-size="11" fill="#667085">是 ∀ 所有输入</text>
+        </svg>
+        <h3>像“对规则本身做编译期证明”</h3><p>Lean 不跑 1000 个样本，而是证明一个命题对定义域中的所有 case 都成立，然后 kernel 检查证明是否合法。</p>
+      </article>
+      <article class="card mini">
+        <svg viewBox="0 0 220 110" class="diagram">
+          <rect x="1" y="1" width="218" height="108" rx="16" fill="#fff9ed" stroke="#f1d49c"/>
+          <use href="#ic-parser" x="18" y="22" width="56" height="56" style="color:#9a6700"/>
+          <text x="88" y="43" font-size="14" font-weight="800" fill="#111827">Classifier</text>
+          <text x="88" y="63" font-size="11" fill="#667085">SQL → Action</text>
+          <text x="88" y="79" font-size="11" fill="#9a6700">当前最脆弱一层</text>
+        </svg>
+        <h3>真正的风险在“翻译层”</h3><p>Cedar 只会判断你告诉它的 Action。若 SQL 被错误分类成 Select，policy engine 也会基于错误输入做正确判断。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="pipeline">
+    <div class="section-head">
+      <div class="section-no">02 · FLOW</div>
+      <div><h2>PR #20 的完整执行链路</h2><p class="lead">下面的大图由几个小 SVG 组件拼成：Agent、SQL classifier、Cedar gate、DB、proof receipt。把它当成 query execution pipeline 来看。</p></div>
+    </div>
+
+    <article class="card visual">
+      <svg viewBox="0 0 1320 520" class="diagram" role="img" aria-label="Agent SQL 经 classifier、Cedar authorization 后才可能进入数据库，Lean proof 作为旁路证明证据">
+        <rect width="1320" height="520" fill="#fff"/>
+        <text x="44" y="44" font-size="12" font-weight="900" fill="#98a2b3" letter-spacing="1.5">RUNTIME PATH</text>
+
+        <!-- agent component -->
+        <g transform="translate(44 92)">
+          <rect width="205" height="128" rx="18" fill="#eef2ff" stroke="#cfd8ff"/>
+          <use href="#ic-agent" x="18" y="26" width="58" height="58" style="color:#3558d4"/>
+          <text x="90" y="46" font-size="14" font-weight="850" fill="#111827">AI / Analyst</text>
+          <text x="90" y="67" font-size="11" fill="#667085">产生 SQL</text>
+          <text x="18" y="103" font-size="11" fill="#475467">SELECT ... / DELETE ...</text>
+        </g>
+
+        <path d="M255 156H345" stroke="#7c8798" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="278" y="145" font-size="10" fill="#98a2b3">SQL text</text>
+
+        <!-- parser/classifier -->
+        <g transform="translate(355 92)">
+          <rect width="205" height="128" rx="18" fill="#fff9ed" stroke="#f1d49c"/>
+          <use href="#ic-parser" x="18" y="26" width="58" height="58" style="color:#9a6700"/>
+          <text x="90" y="46" font-size="14" font-weight="850" fill="#111827">Classifier</text>
+          <text x="90" y="67" font-size="11" fill="#667085">SQL → Action</text>
+          <text x="18" y="103" font-size="11" fill="#9a6700">Select / Delete / Other</text>
+        </g>
+
+        <path d="M566 156H656" stroke="#7c8798" stroke-width="2" marker-end="url(#arrow)"/>
+        <text x="585" y="145" font-size="10" fill="#98a2b3">structured request</text>
+
+        <!-- Cedar gate -->
+        <g transform="translate(666 72)">
+          <rect width="236" height="168" rx="22" fill="#f2fbf7" stroke="#bfe7d6" stroke-width="2"/>
+          <use href="#ic-shield" x="20" y="30" width="66" height="66" style="color:#087a55"/>
+          <text x="102" y="48" font-size="16" font-weight="900" fill="#111827">Cedar</text>
+          <text x="102" y="70" font-size="11" fill="#667085">principal + action + resource</text>
+          <rect x="20" y="112" width="88" height="32" rx="9" fill="#e8f8f1"/>
+          <text x="64" y="132" text-anchor="middle" font-size="11" font-weight="850" fill="#087a55">ALLOW</text>
+          <rect x="124" y="112" width="88" height="32" rx="9" fill="#fff0f0"/>
+          <text x="168" y="132" text-anchor="middle" font-size="11" font-weight="850" fill="#bd2c2c">DENY</text>
+        </g>
+
+        <path d="M909 132H1010" stroke="#087a55" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+        <text x="938" y="118" font-size="10" fill="#087a55">ALLOW</text>
+        <path d="M902 194C970 194 960 310 1050 310" stroke="#bd2c2c" stroke-width="2.5" fill="none" marker-end="url(#arrowRed)"/>
+        <text x="942" y="232" font-size="10" fill="#bd2c2c">DENY → stop</text>
+
+        <!-- DB -->
+        <g transform="translate(1020 72)">
+          <rect width="250" height="168" rx="22" fill="#f8fafc" stroke="#dfe3ea"/>
+          <use href="#ic-db" x="20" y="30" width="68" height="68" style="color:#3558d4"/>
+          <text x="105" y="50" font-size="16" font-weight="900" fill="#111827">Mock DB</text>
+          <text x="105" y="72" font-size="11" fill="#667085">mock_analytics</text>
+          <text x="20" y="124" font-size="11" fill="#475467">只有 ALLOW 才进入 execution</text>
+          <text x="20" y="143" font-size="11" fill="#667085">SELECT → result rows</text>
+        </g>
+
+        <!-- blocked component -->
+        <g transform="translate(1055 270)">
+          <rect width="215" height="82" rx="16" fill="#fff4f4" stroke="#ffcaca"/>
+          <circle cx="38" cy="41" r="18" fill="#fee2e2"/>
+          <path d="M29 41h18" stroke="#bd2c2c" stroke-width="3" stroke-linecap="round"/>
+          <text x="68" y="34" font-size="13" font-weight="850" fill="#bd2c2c">Blocked</text>
+          <text x="68" y="53" font-size="10.5" fill="#7a4040">executed = false</text>
+        </g>
+
+        <!-- proof side lane -->
+        <text x="44" y="312" font-size="12" font-weight="900" fill="#98a2b3" letter-spacing="1.5">PROOF / EVIDENCE LANE</text>
+        <g transform="translate(44 340)">
+          <rect width="516" height="126" rx="18" fill="#f8f5ff" stroke="#dccdf9"/>
+          <use href="#ic-proof" x="20" y="28" width="60" height="60" style="color:#6c43c0"/>
+          <text x="96" y="48" font-size="15" font-weight="900" fill="#111827">Lean theorem</text>
+          <text x="96" y="71" font-size="11" fill="#667085">allowed(action) = true ⇒ action = select</text>
+          <text x="20" y="105" font-size="11" fill="#6c43c0">证明规则模型的性质，不替代 Cedar runtime。</text>
+        </g>
+
+        <path d="M568 402H658" stroke="#7c8798" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+        <g transform="translate(668 340)">
+          <rect width="234" height="126" rx="18" fill="#f8fafc" stroke="#dfe3ea"/>
+          <text x="20" y="35" font-size="12" font-weight="900" fill="#111827">Trust receipt</text>
+          <text x="20" y="60" font-size="11" fill="#087a55">✓ Cedar decision</text>
+          <text x="20" y="81" font-size="11" fill="#6c43c0">✓ Lean proof source</text>
+          <text x="20" y="102" font-size="11" fill="#9a6700">⚠ NL→SQL not proven</text>
+        </g>
+
+        <path d="M785 340V250" stroke="#9aa3b0" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+        <text x="799" y="296" font-size="10" fill="#98a2b3">evidence about policy layer</text>
+      </svg>
+      <div class="cap">这套架构的关键是“执行 gate”和“证明 evidence”分离：Cedar 在 runtime 决定能不能执行；Lean 证明一个简化规则模型的数学性质。</div>
+    </article>
+  </section>
+
+  <section class="section" id="cedar">
+    <div class="section-head">
+      <div class="section-no">03 · CEDAR</div>
+      <div><h2>Cedar：把数据库权限问题抽象成 3 个字段</h2><p class="lead">DB 专家可以把 Cedar request 看成一个通用版本的“session role + SQL operation + object”。</p></div>
+    </div>
+
+    <div class="grid-2">
+      <article class="card">
+        <h3>DB 概念 ↔ Cedar 概念</h3>
+        <table class="compare">
+          <tr><th>数据库世界</th><th>Cedar</th><th>本 PR</th></tr>
+          <tr><td>role / session user</td><td><code>principal</code></td><td><code>Analyst::"demo-analyst"</code></td></tr>
+          <tr><td>statement / privilege</td><td><code>action</code></td><td><code>Select</code> / <code>Delete</code> / <code>Other</code></td></tr>
+          <tr><td>database / table / object</td><td><code>resource</code></td><td><code>Database::"mock_analytics"</code></td></tr>
+          <tr><td>session attributes</td><td><code>context</code></td><td>当前为空，可扩展环境/时间/来源</td></tr>
+        </table>
+      </article>
+
+      <article class="card">
+        <h3>PR #20 里的 Cedar policy</h3>
+        <pre class="codebox"><span class="green">permit</span> (
+  principal,
+  action == CedarDemo::Action::<span class="blue">"Select"</span>,
+  resource == CedarDemo::Database::<span class="blue">"mock_analytics"</span>
+);
+
+<span class="red">forbid</span> (
+  principal,
+  action == CedarDemo::Action::<span class="blue">"Delete"</span>,
+  resource == CedarDemo::Database::<span class="blue">"mock_analytics"</span>
+);</pre>
+        <p style="margin-top:10px">结果：Select 明确允许；Delete 明确禁止；没有 permit 命中的其他动作走默认 DENY。</p>
+      </article>
+    </div>
+
+    <div class="grid-3" style="margin-top:14px">
+      <article class="card mini"><span class="pill green">SELECT</span><h3 style="margin-top:10px">ALLOW</h3><p>读取型 SQL 通过 Cedar gate，然后 mock DB 返回结果。</p></article>
+      <article class="card mini"><span class="pill red">DELETE</span><h3 style="margin-top:10px">DENY</h3><p>即使 Agent 生成 DELETE，执行路径在数据库前停止。</p></article>
+      <article class="card mini"><span class="pill amber">OTHER</span><h3 style="margin-top:10px">默认 DENY</h3><p>INSERT / UPDATE / DDL 等当前都不获得 permit，因此不会执行。</p></article>
+    </div>
+
+    <div class="callout ok" style="margin-top:14px">
+      <strong>为什么这比 system prompt 强？</strong><br>
+      “不要删数据”写在 prompt 里，是模型行为建议；Cedar 是独立、确定性的执行控制点。模型可以犯错，但它不能自己把 Cedar 的 DENY 改成 ALLOW。
+    </div>
+  </section>
+
+  <section class="section" id="lean">
+    <div class="section-head">
+      <div class="section-no">04 · LEAN</div>
+      <div><h2>Lean：不是更高级的单元测试，而是证明“所有 case”</h2><p class="lead">对于这个 PR，Lean 的工作非常小：证明一个 read-only rule 的逻辑不可能“允许 DELETE”。</p></div>
+    </div>
+
+    <div class="grid-2">
+      <article class="card visual">
+        <svg viewBox="0 0 640 420" class="diagram">
+          <rect width="640" height="420" fill="#fff"/>
+          <text x="32" y="40" font-size="12" font-weight="900" fill="#98a2b3">TESTING vs PROOF</text>
+
+          <rect x="32" y="72" width="250" height="128" rx="18" fill="#eef2ff" stroke="#cfd8ff"/>
+          <text x="52" y="103" font-size="14" font-weight="900" fill="#111827">测试</text>
+          <text x="52" y="128" font-size="11" fill="#667085">SELECT → true ✓</text>
+          <text x="52" y="149" font-size="11" fill="#667085">DELETE → false ✓</text>
+          <text x="52" y="170" font-size="11" fill="#667085">UPDATE → false ✓</text>
+          <text x="52" y="191" font-size="10" fill="#3558d4">检查你列出的样本</text>
+
+          <rect x="356" y="72" width="250" height="128" rx="18" fill="#f3edff" stroke="#d9c8ff"/>
+          <text x="376" y="103" font-size="14" font-weight="900" fill="#111827">Lean theorem</text>
+          <text x="376" y="128" font-size="11" fill="#667085">∀ action</text>
+          <text x="376" y="149" font-size="11" fill="#667085">allow(action)=true</text>
+          <text x="376" y="170" font-size="11" fill="#667085">⇒ action=select</text>
+          <text x="376" y="191" font-size="10" fill="#6c43c0">证明定义域里的全部 case</text>
+
+          <path d="M282 136H346" stroke="#7c8798" stroke-width="2" marker-end="url(#arrow)"/>
+          <text x="300" y="124" font-size="10" fill="#98a2b3">stronger claim</text>
+
+          <rect x="72" y="254" width="494" height="112" rx="18" fill="#111827"/>
+          <text x="94" y="282" font-size="12" font-weight="900" fill="#d7def7">THE PROVED STATEMENT</text>
+          <text x="94" y="314" font-size="14" fill="#fff">cedarAllows(action) = true</text>
+          <text x="302" y="314" font-size="14" fill="#9fb6ff">⇒</text>
+          <text x="338" y="314" font-size="14" fill="#72d7ae">action = select</text>
+          <text x="94" y="344" font-size="10.5" fill="#9ca3af">不是证明 SQL 结果正确，也不是证明 NL→SQL 正确。</text>
+        </svg>
+        <div class="cap">“∀ action”是 formal proof 的核心：不是多跑一些 case，而是把命题本身交给证明系统检查。</div>
+      </article>
+
+      <article class="card">
+        <h3>PR 中的 Lean 代码</h3>
+        <pre class="codebox">inductive SqlAction where
+  | select
+  | delete
+  | other
+  deriving DecidableEq
+
+def cedarAllows : SqlAction → Bool
+  | .select => true
+  | .delete => false
+  | .other => false
+
+theorem read_only_policy_sound
+    (action : SqlAction)
+    (h : cedarAllows action = true) :
+    action = .select := by
+  cases action &lt;;&gt; simp [cedarAllows] at h ⊢</pre>
+        <div class="callout" style="margin-top:12px">
+          <strong>给 DB 专家的翻译：</strong><br>
+          定义一个只有 Select/Delete/Other 的有限枚举，再定义一张“允许矩阵”。Lean 证明：任何被矩阵标为 true 的 action，只可能是 Select。
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="scenario">
+    <div class="section-head">
+      <div class="section-no">05 · DEMO</div>
+      <div><h2>切换两条 SQL，看 Cedar gate 的行为</h2><p class="lead">这是页面内的交互模拟，逻辑与 PR 的演示目标一致：SELECT 继续，DELETE 停在 DB 之前。</p></div>
+    </div>
+
+    <article class="card scenario">
+      <div class="left">
+        <div class="buttonrow">
+          <button class="primary" id="btnSafe" onclick="showScenario('safe')">Safe SELECT</button>
+          <button id="btnDanger" onclick="showScenario('danger')">Dangerous DELETE</button>
+        </div>
+        <pre class="codebox" id="scenarioSql"></pre>
+        <div class="scenario-output" id="scenarioResult"></div>
+      </div>
+      <div>
+        <svg viewBox="0 0 780 400" class="diagram" id="scenarioDiagram">
+          <rect width="780" height="400" rx="18" fill="#fbfcfe" stroke="#e3e6eb"/>
+          <g transform="translate(42 96)">
+            <rect width="150" height="112" rx="18" fill="#eef2ff" stroke="#cfd8ff"/>
+            <use href="#ic-agent" x="17" y="22" width="54" height="54" style="color:#3558d4"/>
+            <text x="82" y="45" font-size="13" font-weight="850" fill="#111827">Agent</text>
+            <text x="82" y="65" font-size="10.5" fill="#667085">SQL</text>
+          </g>
+          <path d="M198 152H268" stroke="#7c8798" stroke-width="2" marker-end="url(#arrow)"/>
+          <g transform="translate(278 96)">
+            <rect width="170" height="112" rx="18" fill="#f2fbf7" stroke="#bfe7d6"/>
+            <use href="#ic-shield" x="16" y="22" width="54" height="54" style="color:#087a55"/>
+            <text x="82" y="44" font-size="13" font-weight="850" fill="#111827">Cedar</text>
+            <text x="82" y="65" font-size="10.5" fill="#667085" id="svgDecision">ALLOW</text>
+          </g>
+          <path id="pathToDb" d="M454 152H526" stroke="#087a55" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+          <g transform="translate(536 96)">
+            <rect width="198" height="112" rx="18" fill="#f8fafc" stroke="#dfe3ea"/>
+            <use href="#ic-db" x="17" y="22" width="54" height="54" style="color:#3558d4"/>
+            <text x="84" y="44" font-size="13" font-weight="850" fill="#111827">Database</text>
+            <text x="84" y="65" font-size="10.5" fill="#667085" id="svgDbState">executed</text>
+          </g>
+          <g id="denyStop" style="display:none" transform="translate(485 252)">
+            <rect width="220" height="72" rx="15" fill="#fff0f0" stroke="#ffcaca"/>
+            <text x="22" y="31" font-size="13" font-weight="900" fill="#bd2c2c">STOP BEFORE DB</text>
+            <text x="22" y="51" font-size="10.5" fill="#7a4040">executed = false</text>
+          </g>
+          <path id="denyPath" d="M364 212C364 280 442 286 478 286" fill="none" stroke="#bd2c2c" stroke-width="2.5" marker-end="url(#arrowRed)" style="display:none"/>
+        </svg>
+      </div>
+    </article>
+  </section>
+
+  <section class="section" id="boundary">
+    <div class="section-head">
+      <div class="section-no">06 · TRUST</div>
+      <div><h2>最重要的一页：到底哪些东西真的被证明/保护了？</h2><p class="lead">Formal verification 的常见误区是“看到 proof 就认为整个系统都正确”。实际上，保证只覆盖明确建模的那一段。</p></div>
+    </div>
+
+    <article class="card visual">
+      <svg viewBox="0 0 1320 420" class="diagram">
+        <rect width="1320" height="420" fill="#fff"/>
+        <text x="34" y="38" font-size="12" font-weight="900" fill="#98a2b3">TRUST BOUNDARY</text>
+
+        <g transform="translate(34 92)">
+          <rect width="228" height="118" rx="18" fill="#fff9ed" stroke="#f1d49c"/>
+          <text x="18" y="32" font-size="13" font-weight="900" fill="#111827">Natural language</text>
+          <text x="18" y="55" font-size="11" fill="#667085">“删除旧数据” / “算日本 ROAS”</text>
+          <text x="18" y="91" font-size="11" font-weight="800" fill="#9a6700">⚠ NOT FORMALLY PROVEN</text>
+        </g>
+        <path d="M268 150H340" stroke="#9a6700" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <g transform="translate(350 92)">
+          <rect width="228" height="118" rx="18" fill="#fff9ed" stroke="#f1d49c"/>
+          <text x="18" y="32" font-size="13" font-weight="900" fill="#111827">SQL classifier</text>
+          <text x="18" y="55" font-size="11" fill="#667085">当前按首词映射 Action</text>
+          <text x="18" y="91" font-size="11" font-weight="800" fill="#9a6700">⚠ CURRENT WEAK LINK</text>
+        </g>
+        <path d="M584 150H656" stroke="#087a55" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+        <g transform="translate(666 92)">
+          <rect width="228" height="118" rx="18" fill="#f2fbf7" stroke="#bfe7d6"/>
+          <text x="18" y="32" font-size="13" font-weight="900" fill="#111827">Cedar decision</text>
+          <text x="18" y="55" font-size="11" fill="#667085">结构化 action 的 ALLOW / DENY</text>
+          <text x="18" y="91" font-size="11" font-weight="800" fill="#087a55">✓ DETERMINISTIC GATE</text>
+        </g>
+        <path d="M900 150H972" stroke="#087a55" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+
+        <g transform="translate(982 92)">
+          <rect width="228" height="118" rx="18" fill="#f2fbf7" stroke="#bfe7d6"/>
+          <text x="18" y="32" font-size="13" font-weight="900" fill="#111827">DB execution</text>
+          <text x="18" y="55" font-size="11" fill="#667085">只有 ALLOW 才进入</text>
+          <text x="18" y="91" font-size="11" font-weight="800" fill="#087a55">✓ GUARDED BOUNDARY</text>
+        </g>
+
+        <g transform="translate(350 268)">
+          <rect width="544" height="92" rx="18" fill="#f8f5ff" stroke="#dccdf9"/>
+          <use href="#ic-proof" x="18" y="16" width="52" height="52" style="color:#6c43c0"/>
+          <text x="86" y="36" font-size="13" font-weight="900" fill="#111827">Lean proves a rule-model property</text>
+          <text x="86" y="59" font-size="11" fill="#667085">allow=true ⇒ action=select</text>
+          <text x="86" y="77" font-size="10.5" fill="#6c43c0">它没有自动证明 classifier 与 Cedar policy 完全等价。</text>
+        </g>
+        <path d="M622 268V216" stroke="#6c43c0" stroke-width="1.8" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+      </svg>
+      <div class="cap">你应该把“proof”理解成局部、精确的 contract，而不是一个覆盖整条 AI→SQL→DB 链路的万能认证。</div>
+    </article>
+
+    <div class="trust-grid" style="margin-top:14px">
+      <div class="trust-item yes"><strong>可以信：Cedar runtime 是独立执行 gate</strong><span>只要 Action 被正确构造，ALLOW/DENY 不依赖 LLM 自觉。</span></div>
+      <div class="trust-item yes"><strong>可以信：Lean theorem 对其小模型成立</strong><span>在 Select/Delete/Other 这个模型中，不存在 allowed=true 且 action≠select 的 case。</span></div>
+      <div class="trust-item no"><strong>不能信：NL→SQL 已被 formal proof 覆盖</strong><span>自然语言理解仍是 AI 推断；用户意图可能被错误翻译。</span></div>
+      <div class="trust-item no"><strong>不能信：当前 SQL classifier 足够健壮</strong><span>它只看开头 token。复杂 CTE、注释、dialect edge cases 都值得升级成 AST parser。</span></div>
+    </div>
+
+    <div class="callout danger" style="margin-top:14px">
+      <strong>DB 专家应该立刻注意的例子：</strong>
+      <pre class="codebox" style="margin-top:10px">WITH deleted AS (
+  DELETE FROM customers
+  WHERE inactive = true
+  RETURNING *
+)
+SELECT * FROM deleted;</pre>
+      如果 classifier 只看到开头 <code>WITH</code> 就把它当作 Select，那么 Cedar 会收到错误的 Action。
+      Cedar 本身会“正确处理错误输入”。所以生产版应使用真正 SQL parser / AST classification，并让 Unknown 默认 DENY。
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">07 · NEXT</div>
+      <div><h2>如果把这个 Demo 升级成生产级 Data Agent</h2><p class="lead">最合理的演进不是“给 Lean 写更多炫技 theorem”，而是先把 trust boundary 一层层收紧。</p></div>
+    </div>
+    <div class="layer-list">
+      <div class="layer"><div class="n">1</div><strong>SQL AST classifier</strong><span>用真实 parser 识别 SELECT / mutation / DDL / data-modifying CTE；Unknown 默认 DENY。</span></div>
+      <div class="layer"><div class="n">2</div><strong>Cedar resource granularity</strong><span>从 database 级别细化到 schema/table/column；不同 analyst / agent / environment 使用不同 principal 与 context。</span></div>
+      <div class="layer"><div class="n">3</div><strong>DB native read-only role</strong><span>Cedar 是第一道 gate，数据库自己的 read-only role / RLS / transaction mode 是第二道防线。</span></div>
+      <div class="layer"><div class="n">4</div><strong>Proof relation</strong><span>进一步证明 AST classifier → Cedar Action 的映射性质，而不只是证明一个手写 mirror。</span></div>
+      <div class="layer"><div class="n">5</div><strong>Independent verification</strong><span>每次 PR clean build、Cedar self-test、proof build、真实数据库 sandbox 测试都由独立 verifier 重跑。</span></div>
+    </div>
+  </section>
+
+  <section class="section" id="files">
+    <div class="section-head">
+      <div class="section-no">08 · FILES</div>
+      <div><h2>PR #20 文件地图：每个文件在信任链里做什么</h2><p class="lead">如果你想继续 dive shallow，按这个顺序看源码最省时间。</p></div>
+    </div>
+    <article class="card">
+      <table>
+        <tr><th>文件</th><th>作用</th><th>应该关注什么</th></tr>
+        <tr>
+          <td><a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/blob/feature/cedar-proof-verified/app/cedar-proof/page.tsx" target="_blank"><code>app/cedar-proof/page.tsx</code></a></td>
+          <td>DB workbench + trust receipt UI</td><td>Run 后如何显示 Cedar ALLOW/DENY、Proof 面板、DB touched 状态。</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/blob/feature/cedar-proof-verified/app/api/cedar-proof/route.ts" target="_blank"><code>app/api/cedar-proof/route.ts</code></a></td>
+          <td>真正的 runtime gate</td><td>SQL classifier、Cedar request、只有 ALLOW 才返回执行结果。</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/blob/feature/cedar-proof-verified/formal/ReadOnlySql.lean" target="_blank"><code>formal/ReadOnlySql.lean</code></a></td>
+          <td>rule-level theorem</td><td><code>allowed ⇒ select</code> 到底证明了什么。</td>
+        </tr>
+        <tr>
+          <td><a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/pull/20" target="_blank">PR #20</a></td>
+          <td>完整 diff + Vercel Preview</td><td>BEFORE/AFTER、Vercel check、1 commit diff。</td>
+        </tr>
+      </table>
+    </article>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">09 · ONE-LINER</div>
+      <div><h2>最后只记住这一句话</h2></div>
+    </div>
+    <article class="card" style="padding:28px">
+      <div style="font-size:25px;line-height:1.45;font-weight:850;letter-spacing:-.02em">
+        Cedar 负责回答：<span style="color:#087a55">“这个 Agent 能不能执行这个动作？”</span><br>
+        Lean 负责回答：<span style="color:#6c43c0">“我们写下的这个安全规则，逻辑上是否对所有 case 都成立？”</span><br>
+        它们都不自动回答：<span style="color:#9a6700">“这条 SQL 是否正确理解了人类问题？”</span>
+      </div>
+    </article>
+  </section>
+
+  <footer class="footer">
+    <span>Standalone explainer · generated for PR #20 · 2026-09-19</span>
+    <span><a href="https://github.com/cedar-policy/cedar" target="_blank">Cedar</a> · <a href="https://lean-lang.org/use-cases/cedar/" target="_blank">Lean × Cedar</a> · <a href="https://github.com/liush2yuxjtu/business-world-agent-diaper/pull/20" target="_blank">PR #20</a></span>
+  </footer>
+</main>
+
+<script>
+const safeSql = `SELECT
+  campaign,
+  channel,
+  SUM(revenue) AS revenue
+FROM analytics.campaign_daily
+WHERE country = 'JP'
+GROUP BY campaign, channel;`;
+
+const dangerSql = `DELETE FROM analytics.campaign_daily
+WHERE date < '2026-01-01';`;
+
+function showScenario(mode){
+  const safe = mode === 'safe';
+  document.getElementById('scenarioSql').textContent = safe ? safeSql : dangerSql;
+  document.getElementById('scenarioResult').innerHTML = safe
+    ? `<div class="status"><span class="dot allow">✓</span> Cedar: ALLOW</div>
+       <div style="font-size:12px;color:#667085;line-height:1.7">action=Select · policy=policy0<br>execution=continued · DB touched=read-only<br><strong style="color:#087a55">Result rows returned</strong></div>`
+    : `<div class="status"><span class="dot deny">×</span> Cedar: DENY</div>
+       <div style="font-size:12px;color:#667085;line-height:1.7">action=Delete · policy=policy1<br>execution=stopped before DB · DB touched=no<br><strong style="color:#bd2c2c">Query was not executed</strong></div>`;
+  document.getElementById('svgDecision').textContent = safe ? 'ALLOW' : 'DENY';
+  document.getElementById('svgDecision').setAttribute('fill', safe ? '#087a55' : '#bd2c2c');
+  document.getElementById('svgDbState').textContent = safe ? 'executed' : 'not reached';
+  document.getElementById('pathToDb').style.display = safe ? 'block' : 'none';
+  document.getElementById('denyStop').style.display = safe ? 'none' : 'block';
+  document.getElementById('denyPath').style.display = safe ? 'none' : 'block';
+  document.getElementById('btnSafe').className = safe ? 'primary' : '';
+  document.getElementById('btnDanger').className = safe ? '' : 'primary';
+}
+showScenario('safe');
+</script>
+</body>
+</html>
