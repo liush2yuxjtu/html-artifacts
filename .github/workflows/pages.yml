@@ -79,7 +79,7 @@ jobs:
       - name: Install browser renderer
         shell: bash
         run: |
-          python -m pip install --disable-pip-version-check playwright==1.55.0 pillow
+          python -m pip install --disable-pip-version-check playwright==1.55.0 pillow pypdf
           python -m playwright install --with-deps chromium
 
       - name: Render and test AI product resume
@@ -134,12 +134,33 @@ jobs:
               link_count = page.locator("a[href^='https://']").count()
               assert link_count >= 8
               page.screenshot(path=str(out / "desktop.png"), full_page=True)
+              page.emulate_media(media="screen")
+              page.pdf(
+                  path=str(out / "resume.pdf"),
+                  width="210mm",
+                  height="297mm",
+                  scale=0.64,
+                  print_background=True,
+                  margin={"top":"0","right":"0","bottom":"0","left":"0"},
+              )
               mobile = browser.new_page(viewport={"width": 390, "height": 844})
               mobile.goto(url, wait_until="networkidle")
+              mobile_checks = mobile.evaluate("""() => ({
+                scrollWidth: document.documentElement.scrollWidth,
+                clientWidth: document.documentElement.clientWidth,
+                pageWidth: document.querySelector('.page').getBoundingClientRect().width,
+                contentDisplay: getComputedStyle(document.querySelector('.content')).display,
+                missionFontPx: parseFloat(getComputedStyle(document.querySelector('.mission')).fontSize)
+              })""")
+              assert mobile_checks["scrollWidth"] <= mobile_checks["clientWidth"], mobile_checks
+              assert mobile_checks["pageWidth"] <= 391, mobile_checks
+              assert mobile_checks["contentDisplay"] == "block", mobile_checks
+              assert mobile_checks["missionFontPx"] >= 14, mobile_checks
               mobile.screenshot(path=str(out / "mobile.png"), full_page=True)
               browser.close()
 
           from PIL import Image, ImageChops, ImageOps, ImageStat
+          from pypdf import PdfReader
           import math
 
           reference = Image.open("blacklake-agent-pm-resume/reference.webp").convert("RGB")
@@ -152,9 +173,26 @@ jobs:
               gray = ImageOps.autocontrast(gray)
           ImageOps.colorize(gray, black=(255,255,255), white=(255,0,0)).save(out / "diff.png")
           assert rmse <= 0.35, f"pixel regression: normalized RMSE {rmse:.6f} > 0.35"
+          reader = PdfReader(out / "resume.pdf")
+          assert len(reader.pages) == 1
+          p0 = reader.pages[0]
+          width_pt = float(p0.mediabox.width)
+          height_pt = float(p0.mediabox.height)
+          assert abs(width_pt - 595.28) < 3 and abs(height_pt - 841.89) < 3, (width_pt, height_pt)
+          pdf_urls = []
+          for annot_ref in (p0.get("/Annots") or []):
+              annot = annot_ref.get_object()
+              action = annot.get("/A")
+              if action and action.get("/URI"):
+                  pdf_urls.append(str(action.get("/URI")))
+          assert len(pdf_urls) >= 8, pdf_urls
+
           data = {
               "url": url,
               "desktop_links": link_count,
+              "pdf_url_annotations": len(pdf_urls),
+              "pdf_a4_points": [round(width_pt, 2), round(height_pt, 2)],
+              "mobile_checks": mobile_checks,
               "anchors": ["6 周", "2 个大区试点", "8,028+", "3,410+", "12 个工作流"],
               "reference_size": list(reference.size),
               "normalized_rmse": round(rmse, 6),
