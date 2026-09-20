@@ -131,7 +131,8 @@ jobs:
               text = page.locator("body").inner_text()
               for anchor in ["6 周", "2 个大区试点", "8,028+", "3,410+", "12 个工作流"]:
                   assert anchor in text, anchor
-              assert page.locator("a[href^='https://']").count() >= 8
+              link_count = page.locator("a[href^='https://']").count()
+              assert link_count >= 8
               page.screenshot(path=str(out / "desktop.png"), full_page=True)
               mobile = browser.new_page(viewport={"width": 390, "height": 844})
               mobile.goto(url, wait_until="networkidle")
@@ -153,7 +154,7 @@ jobs:
           assert rmse <= 0.35, f"pixel regression: normalized RMSE {rmse:.6f} > 0.35"
           data = {
               "url": url,
-              "desktop_links": page.locator("a[href^='https://']").count() if False else 8,
+              "desktop_links": link_count,
               "anchors": ["6 周", "2 个大区试点", "8,028+", "3,410+", "12 个工作流"],
               "reference_size": list(reference.size),
               "normalized_rmse": round(rmse, 6),
