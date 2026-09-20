@@ -1,0 +1,88 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>我为什么想把 ChatCut 做成“视频生产的 Cursor”</title></head><body style="margin:0;background:#f3f4f6;color:#1f2937;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',Arial,sans-serif;">
+<main style="max-width:760px;margin:0 auto;background:#fff;padding:42px 26px 60px;">
+<p style="font-size:13px;color:#7c3aed;font-weight:700;letter-spacing:.08em;margin:0 0 12px;">AI PRODUCT · VIDEO EDITING</p>
+<h1 style="font-size:34px;line-height:1.25;margin:0 0 14px;color:#111827;">我为什么想把 ChatCut 做成<br>“视频生产的 Cursor”</h1>
+<p style="font-size:16px;color:#6b7280;margin:0 0 36px;">不是让 AI 再多生成几个视频，而是把“剪辑”变成一个可以被 Agent 执行、被人局部控制、还能从商业结果里持续学习的系统。</p>
+
+<p style="font-size:18px;line-height:1.9;">最近我在重新做 ChatCut 的首页。</p>
+<p style="font-size:18px;line-height:1.9;">一开始我盯着的是很表面的东西：动画怎么播、按钮放在哪里、用户要不要点一下。</p>
+<p style="font-size:18px;line-height:1.9;">但改着改着，我发现真正的问题不是“这个动画做得够不够好”，而是一个更根本的问题：</p>
+<p style="font-size:24px;line-height:1.6;font-weight:700;color:#111827;border-left:4px solid #7c3aed;padding-left:18px;margin:30px 0;">如果一个 AI 产品的核心能力很复杂，首页到底应该“解释产品”，还是直接让用户“体验一次产品”？</p>
+<p style="font-size:18px;line-height:1.9;">我的答案越来越偏向后者。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">01. 首页不是播片，而是第一次产品体验</h2>
+<p style="font-size:18px;line-height:1.9;">很多 AI 产品首页喜欢放一堆自动播放的视频：AI 在写代码、AI 在生成图片、AI 在剪视频。</p>
+<p style="font-size:18px;line-height:1.9;">问题是，用户看到了“AI 很忙”，却没有真正理解：<b>我能控制什么？我按下去以后发生什么？结果还能不能继续改？</b></p>
+<p style="font-size:18px;line-height:1.9;">所以我最近把 ChatCut 首页的一批 feature demo 改成了同一个模式：</p>
+<div style="background:#f7f5ff;border:1px solid #ddd6fe;border-radius:14px;padding:18px 20px;margin:24px 0;">
+<p style="margin:0;font-size:17px;line-height:1.9;"><b>先停住 → 用户只做一次动作 → 后面的过程自动演完。</b></p>
+</div>
+<p style="font-size:18px;line-height:1.9;">比如 Transcript Editing：先把原始字幕放在那里。用户点一次 Clean，filler words 一个个消失，视频从 43 秒变成 31 秒。</p>
+<p style="font-size:18px;line-height:1.9;">用户不需要真的进入完整编辑器，也不需要学习十几个按钮，就已经理解了这个产品最重要的一件事：<b>文本本身就是视频编辑界面。</b></p>
+<p style="font-size:18px;line-height:1.9;">这也是为什么我总拿 Cursor.com 当参考。不是因为 Cursor 的视觉风格，而是因为它把“工作方式”本身放进了首页。编辑器、代码、Agent 的行为，就是它最重要的营销素材。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">02. ChatCut 应该同时有两种工作方式</h2>
+<p style="font-size:18px;line-height:1.9;">我觉得 AI 视频编辑和 AI Coding 很像。</p>
+<p style="font-size:18px;line-height:1.9;">一种模式是 Agentic：我把目标、素材和约束都给你，你自己干完，最后给我成品。</p>
+<p style="font-size:18px;line-height:1.9;">另一种模式更像 Cursor：我已经有 80% 的东西了，我只是不断告诉你：</p>
+<ul style="font-size:18px;line-height:1.9;padding-left:22px;">
+<li>这段快一点；</li><li>所有字幕大 20%；</li><li>这一组 B-roll 换掉；</li><li>CTA 提前 3 秒。</li>
+</ul>
+<p style="font-size:18px;line-height:1.9;">这两种模式不能互相替代。</p>
+<p style="font-size:18px;line-height:1.9;">如果所有事情都 Agentic，用户会失去局部控制；如果所有事情都要逐项点，AI 又没有真正替人节省工作。</p>
+<p style="font-size:18px;line-height:1.9;">所以我更喜欢的结构是：</p>
+<p style="font-size:22px;line-height:1.7;font-weight:700;color:#111827;text-align:center;margin:28px 0;">先让 Agent 做 First Cut，<br>再让人用自然语言持续微调。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">03. 视频编辑也需要自己的 Design System</h2>
+<p style="font-size:18px;line-height:1.9;">这是我最近最感兴趣的一点。</p>
+<p style="font-size:18px;line-height:1.9;">成熟的软件设计里，如果你要把标题从 15px 改成 25px，你不会把所有页面重新设计一遍。你改的是 token，然后全局一致变化。</p>
+<p style="font-size:18px;line-height:1.9;">为什么视频编辑不能这样？</p>
+<div style="background:#111827;color:#f9fafb;border-radius:14px;padding:20px;margin:24px 0;">
+<p style="margin:0 0 8px;font-size:15px;color:#c4b5fd;">我把它叫做 Cut System：</p>
+<p style="margin:0;font-size:17px;line-height:1.9;">Hook Pattern · Caption Style · Pacing · B-roll Rule · Music Profile · CTA Pattern</p>
+</div>
+<p style="font-size:18px;line-height:1.9;">以后用户不是一条一条片地改，而是可以说：</p>
+<p style="font-size:18px;line-height:1.9;"><b>“这个品牌所有字幕都再大 20%。”<br>“商品特写永远不要超过 1.5 秒。”<br>“B-roll 不要盖住关键口播。”</b></p>
+<p style="font-size:18px;line-height:1.9;">这类规则应该存在于项目级，甚至品牌级。</p>
+<p style="font-size:18px;line-height:1.9;">没有 Cut System，Agent 每次都像重新做一条视频；有了 Cut System，Agent 才是在一个稳定的生产系统里做变体。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">04. Reference 也应该从“灵感”变成“结构”</h2>
+<p style="font-size:18px;line-height:1.9;">做商业内容的时候，大多数人其实不需要从零发明一种剪辑风格。</p>
+<p style="font-size:18px;line-height:1.9;">更实际的工作是：找到已经被市场验证过的范式，然后把它应用到自己的素材上。</p>
+<p style="font-size:18px;line-height:1.9;">这也是为什么我很喜欢 Mobbin 的抽象。它不是只给你一堆“好看的图”，而是把产品设计拆成 Screen 和 Flow。</p>
+<p style="font-size:18px;line-height:1.9;">如果把这个思路放到视频里：</p>
+<div style="border:1px solid #e5e7eb;border-radius:14px;padding:20px;margin:24px 0;">
+<p style="margin:0 0 10px;font-size:18px;"><b>Screen → Clip / Shot</b></p>
+<p style="margin:0;font-size:18px;"><b>Flow → Cut Flow</b></p>
+</div>
+<p style="font-size:18px;line-height:1.9;">一个 Cut Flow 可以是：</p>
+<p style="font-size:20px;font-weight:700;text-align:center;line-height:1.8;color:#111827;">Hook → Proof → Demo → Offer → CTA</p>
+<p style="font-size:18px;line-height:1.9;">每一步带着自己的时长、轨道、字幕、B-roll、音乐和转场。</p>
+<p style="font-size:18px;line-height:1.9;">这样“参考一个视频”才不再是“让模型看一遍然后凭感觉模仿”，而是可以真正拆解、搜索、Apply。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">05. 最后，我更在意的其实是商业反馈</h2>
+<p style="font-size:18px;line-height:1.9;">我所在的业务里，有一个很有意思的案例。</p>
+<p style="font-size:18px;line-height:1.9;">账号本身体量并不大，互动也不高。但一条素材大概消耗 500–600 元投流，只要 ROI 能稳定做到 5 左右，就意味着大约 2,500 元以上成交。</p>
+<p style="font-size:18px;line-height:1.9;">直播端的人力甚至可以低到每天几十块钱的兼职成本，但销售额已经能做到大约 3 万元 / 天。</p>
+<p style="font-size:18px;line-height:1.9;">这个案例让我重新思考了“好内容”的定义。</p>
+<p style="font-size:24px;line-height:1.6;font-weight:700;color:#111827;border-left:4px solid #10b981;padding-left:18px;margin:30px 0;">如果一条内容的任务是销售，那么市场愿不愿意继续给它花钱，比内部的人觉得它“高级不高级”更接近真实反馈。</p>
+<p style="font-size:18px;line-height:1.9;">高质量 TVC、AI 漫剧这类内容，往往经过创作者、老板、甲方、采购，最后才到消费者。中间每个人都可以说“这条很好”，但最后用户是否真的愿意买单，反馈链很长。</p>
+<p style="font-size:18px;line-height:1.9;">销售型内容则更直接：</p>
+<p style="font-size:21px;font-weight:700;text-align:center;line-height:1.8;color:#111827;">做出来 → 投出去 → 看成交 → 好就 Scale</p>
+<p style="font-size:18px;line-height:1.9;">所以如果是我做 ChatCut，我最终想连接的闭环会是：</p>
+<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:14px;padding:18px 20px;margin:24px 0;">
+<p style="margin:0;font-size:17px;line-height:1.9;"><b>原始口播 → 找 Reference → 自动剪辑 → 批量变体 → 投放 → ROI → 把表现好的剪法写回 Cut System → 下一轮继续放大。</b></p>
+</div>
+<p style="font-size:18px;line-height:1.9;">如果这个闭环成立，ChatCut 积累的就不只是“生成了多少条视频”，而是“什么剪法在什么业务里有效”。</p>
+
+<h2 style="font-size:26px;margin:46px 0 16px;color:#111827;">我真正想表达的</h2>
+<p style="font-size:18px;line-height:1.9;">我不是想证明 ChatCut 现在“做错了”。</p>
+<p style="font-size:18px;line-height:1.9;">我更想表达的是：我会怎么判断一个 AI 产品下一步值得做什么。</p>
+<p style="font-size:18px;line-height:1.9;">我会先找用户真正需要理解和控制的最小单元，再把 Reference、系统约束和真实业务反馈接进去。</p>
+<p style="font-size:18px;line-height:1.9;">对我来说，AI 产品真正有意思的地方，不是模型替人做了一次，而是它能不能逐渐变成一个稳定、可控制、会从结果里学习的生产系统。</p>
+
+<div style="margin-top:48px;padding-top:22px;border-top:1px solid #e5e7eb;">
+<p style="font-size:14px;color:#6b7280;line-height:1.8;margin:0 0 10px;"><b>延伸阅读：</b>ChatCut、Cursor、Mobbin、Anthropic frontend-design / knowledge-work-plugins。</p>
+<p style="font-size:14px;color:#6b7280;line-height:1.8;margin:0;">案例数字来自我所在业务的内部观察，用来解释产品判断，不代表行业平均水平。未来表现仍会受到投放成本、素材衰减、供应链与平台政策等变量影响。</p>
+</div>
+</main></body></html>
