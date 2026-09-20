@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>刘师宇 · Black Lake Agent 产品经理</title>
+<style>
+:root{
+  --paper:#fff;--ink:#0c2940;--muted:#4d6673;--teal:#1a9e97;--teal2:#2cb9b0;
+  --soft:#dff1ee;--line:#d7e5e1;--chip:#e5f6f4;--card:#f7fbfb
+}
+*{box-sizing:border-box}html,body{margin:0;background:#eef5f3;color:var(--ink)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif}
+a{color:inherit;text-decoration:none}.page{width:1240px;height:1754px;margin:0 auto;background:#fff;overflow:hidden;position:relative}
+.hero{height:360px;display:grid;grid-template-columns:720px 520px;border-bottom:1px solid var(--line)}
+.hero-left{padding:44px 46px 24px;position:relative}.ribbon{position:absolute;left:0;top:0;width:18px;height:132px;background:#54d6cd;border-bottom-right-radius:18px}
+.name{font-size:74px;line-height:1;font-weight:900;letter-spacing:-2px;margin:0 0 8px}.role{font-size:32px;font-weight:850;margin-bottom:18px}
+.pill{display:inline-block;padding:10px 18px;border-radius:999px;background:var(--soft);font-size:18px;font-weight:850;color:#155c59;margin-bottom:18px}
+.mission{font-size:18px;line-height:1.58;color:#1b5164;font-weight:700;margin-bottom:18px}.meta{display:flex;gap:38px;font-size:18px;color:#274353;font-weight:750}
+.hero-right{position:relative;background:linear-gradient(135deg,#dff5f2,#aacfd3);overflow:hidden}.factory{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.script{position:absolute;left:36px;top:24px;font:italic 56px/1 "Segoe Script","KaiTi",cursive;color:#179d95;z-index:2}
+.script-sub{position:absolute;left:56px;top:112px;font-size:16px;line-height:1.6;font-weight:850;color:#285063;z-index:2}.divider{position:absolute;left:56px;top:174px;width:88px;height:4px;border-radius:4px;background:#2ca7a0;z-index:2}
+.stack{position:absolute;right:22px;top:56px;z-index:2;color:#fff;text-align:right;font-size:20px;font-weight:900;line-height:1.55;letter-spacing:.05em;text-shadow:0 2px 6px rgba(0,0,0,.14)}
+.content{height:1230px;display:grid;grid-template-columns:800px 398px;gap:18px;padding:20px 22px 18px}.section-title{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;margin:0 0 14px}
+.title-icon{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:white;background:linear-gradient(#1ca7a0,#0e7d77);font-size:18px}
+.highlight{background:#f4fbfa;border:1px solid #e2efec;border-radius:18px;padding:12px 18px 11px;margin-bottom:22px}
+.hrow{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:start;margin:7px 0}.num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(#1ca7a0,#0e7d77);color:#fff;font-weight:900;font-size:18px}
+.htext{font-size:16px;line-height:1.42;color:#2d4b58;font-weight:650}.htext b{font-weight:900;color:#173b48}
+.job{background:var(--card);border:1px solid #e4efed;border-radius:18px;padding:15px 16px;margin-bottom:12px}.job-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.job-head strong{font-size:19px}.job-tag{white-space:nowrap;background:var(--soft);color:#246460;border-radius:999px;padding:7px 11px;font-size:14px;font-weight:850}
+.subhead{font-size:15px;color:#1a8f88;font-weight:900;margin:10px 0 4px}.bullets{list-style:none;margin:0;padding:0}.bullets li{position:relative;padding-left:14px;font-size:14px;line-height:1.42;color:#284754;margin:3px 0;font-weight:600}.bullets li:before{content:"";width:6px;height:6px;border-radius:50%;background:#25a29b;position:absolute;left:0;top:8px}.bullets strong{color:#126e6a}
+.side{display:grid;gap:12px;align-content:start}.side-card{background:var(--card);border:1px solid #e4efed;border-radius:18px;padding:14px}.side-card h3{margin:0 0 10px;font-size:21px;font-weight:900}.method{display:grid;gap:9px}.method-item{display:grid;grid-template-columns:52px 1fr;gap:11px;align-items:start;background:#eef8f6;border-radius:15px;padding:10px}.method-item img{width:52px;height:52px}.method-item b{display:block;font-size:17px;margin-bottom:3px}.method-item p{margin:0;font-size:13.5px;line-height:1.38;color:#355460;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{background:var(--chip);color:#1d6c68;padding:7px 10px;border-radius:999px;font-size:13.5px;font-weight:800}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}.stat{background:#fff;border:1px solid #e2eded;border-radius:14px;padding:9px 10px}.stat small{display:block;color:#2a8e87;font-size:12px;font-weight:850}.stat .value{font-size:20px;line-height:1.1;font-weight:900;color:#177872;margin-top:2px}.stat p{font-size:11.5px;line-height:1.3;color:#56707b;margin:4px 0 0;font-weight:650}
+.edu{padding:7px 0;border-bottom:1px solid #e6efed}.edu:last-child{border-bottom:0}.edu b{font-size:16px}.edu span{display:block;font-size:13px;color:#3d5967;line-height:1.38;font-weight:600}
+.provenance{position:absolute;left:34px;right:34px;bottom:94px;font-size:12px;line-height:1.46;color:#58717c;font-weight:650}.provenance b{color:#2a515f}
+.footer{position:absolute;bottom:0;left:0;right:0;height:86px;background:linear-gradient(90deg,#0f6b72,#0a5260);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 34px}
+.footer .slogan{font-size:27px;font-weight:850}.footer .right{font-size:16px;font-weight:900;letter-spacing:.05em}
+@media(max-width:1240px){.page{transform-origin:top left;transform:scale(calc(100vw / 1240));margin-bottom:calc((100vw / 1240 * 1754px) - 1754px)}}
+@media print{@page{size:A4;margin:0}html,body{background:#fff}.page{width:210mm;height:297mm;transform:none}}
+</style>
+</head>
+<body>
+<div class="page" id="resume">
+  <section class="hero">
+    <div class="hero-left">
+      <div class="ribbon"></div>
+      <h1 class="name">刘师宇</h1>
+      <div class="role">AI 产品经理 / Agent 产品经理</div>
+      <div class="pill">定向岗位：Black Lake · Agent 产品经理（工业场景 / ToB 产品方向）</div>
+      <div class="mission">把 Agent 从能力 Demo 做成 <b>可控、可评测、可验证、能接入真实业务流程</b> 的产品；强调产品判断、证据闭环、Human-in-the-loop 与上线验收。</div>
+      <div class="meta">
+        <span>北京 / 可远程</span>
+        <a href="https://github.com/liush2yuxjtu">GitHub: liush2yuxjtu</a>
+        <span>方向：Agent 产品 · 工业/ToB · MCP · Evals</span>
+      </div>
+    </div>
+    <div class="hero-right">
+      <img class="factory" src="./assets/hero-factory.svg" alt="">
+      <div class="script">AI Agent</div>
+      <div class="script-sub">让 AI 真正<br>走进真实的生产与业务场景</div>
+      <div class="divider"></div>
+      <div class="stack">INDUSTRY<br>×<br>AI<br>×<br>REAL IMPACT</div>
+    </div>
+  </section>
+
+  <div class="content">
+    <main>
+      <h2 class="section-title"><span class="title-icon">★</span>岗位匹配亮点</h2>
+      <section class="highlight">
+        <div class="hrow"><div class="num">1</div><div class="htext"><b>能把工业/ToB 模糊需求拆成 Agent Workflow。</b> 做过规则梳理、字段映射、权限分层、试点流程与验收标准定义，适合从真实业务问题反推产品能力。</div></div>
+        <div class="hrow"><div class="num">2</div><div class="htext"><b>有“先 Demo、再验证、再上线”的产品方法。</b> 把原型、Evals、Human-in-the-loop 与真实运行证据一起推进到可验收状态。</div></div>
+        <div class="hrow"><div class="num">3</div><div class="htext"><b>懂 Agent 底层，不把产品与工程割裂。</b> 熟悉 Context / Memory / MCP / Evals / Multi-Agent / Agent Runtime。</div></div>
+        <div class="hrow"><div class="num">4</div><div class="htext"><b>强调可证明、可溯源、数字化表达。</b> 所有关键结果附时间口径与来源，避免把模拟结果写成真实业绩。</div></div>
+        <div class="hrow"><div class="num">5</div><div class="htext"><b>产品价值观清晰。</b> 先看是否真正进入用户流程、是否降低业务成本、是否被持续使用，而不是只看炫技能力。</div></div>
+      </section>
+
+      <h2 class="section-title"><span class="title-icon">▣</span>工作经历与核心项目</h2>
+
+      <section class="job">
+        <div class="job-head"><strong>北京赢销通 ｜ Agent 产品 / AI 产品经理 ｜ 2026.06 – 至今</strong><span class="job-tag">工业 / ToB 组织场景</span></div>
+        <div class="subhead">AI 订单系统（工业 / ToB 组织场景）</div>
+        <ul class="bullets">
+          <li>围绕业务专家、经销商、下游 DMS 三方角色，设计 <strong>Agent 工作流</strong>、字段规则、返店逻辑、清车策略、A/B/C SKU 补贴与出货策略路由，沉淀为 <strong>Skill + Evals</strong>。</li>
+          <li>把“业务规则绑定底层数据库结构”的问题，改造为以业务/数据本体、自然语言说明与白名单工具驱动的 <strong>Agent Runtime</strong>。</li>
+          <li>参与需求澄清、系统方案、前后端实现与客户验收，把方案推进到真实客户环境。</li>
+          <li><strong>结果：</strong>约 <strong>6 周</strong> 完成生产上线；由客户负责人在 <strong>全国经销商大会</strong> 演示；完成客户验收与一期回款；当前在 <strong>2 个核心大区试点</strong>。</li>
+        </ul>
+        <div class="subhead"><a href="https://github.com/liush2yuxjtu/douyin-hot-reply-skill">抖音热评回复 Agent</a></div>
+        <ul class="bullets">
+          <li>把“找视频 → 理解热评 → 生成回复 → 人审 → 发送”设计成可运行工作流，默认只读 Preview，真实发送必须显式授权。</li>
+          <li>对二维码、短信、验证码、不确定发送结果等高风险节点设计 <strong>Human-in-the-loop</strong>，防止错误发送和重复写入。</li>
+          <li>把能力封装为跨 Agent Skill，适配 Pi、Claude、Codex、Cursor、WorkBuddy。</li>
+        </ul>
+      </section>
+
+      <section class="job">
+        <div class="job-head"><strong>境瞳 ｜ Agent 产品实习 ｜ 2026.04 – 2026.05</strong><span class="job-tag">4 个 Agent 原生产品验证</span></div>
+        <ul class="bullets">
+          <li>两个月连续验证 <strong>4 个 Agent 原生产品</strong>，以安装、使用、下载和反馈替代主观“看起来不错”的评审方式。</li>
+          <li><a href="https://github.com/LiuShiyuMath/love-lab"><strong>Love Lab：</strong></a>8 个主 Agent + 1 个校准 Agent，进行 5 轮事件驱动关系演化实验。</li>
+          <li><a href="https://github.com/LiuShiyuMath/agenticPM"><strong>Agent PM：</strong></a>本地 PM 工作台，搭建 <strong>12 个工作流</strong>（8 个任务级 + 4 个项目级）。</li>
+          <li><a href="https://github.com/LiuShiyuMath/teamagent-marketplace"><strong>TeamAgent：</strong></a>3 个插件，把错误纠偏沉淀成规则，在下一次会话前阻断重复错误。</li>
+          <li><a href="https://open-vsx.org/extension/sayit/pronounce"><strong>Say It / Pronounce：</strong></a>形成 CLI / VS Code / Web / MCP 多入口产品；Open VSX 截至 2026-09-19 已知累计下载 <strong>8,028+</strong>。</li>
+          <li><strong>公开 npm：</strong>9 个包，官方已知累计下载 <strong>3,410+</strong>（截至 2026-09-19；下载量不等于独立用户数）。</li>
+        </ul>
+      </section>
+
+      <section class="job">
+        <div class="job-head"><strong>深睿医疗 ｜ 算法研究实习 ｜ 2025.08 – 2026.03</strong><span class="job-tag">医学 AI / 3D 医学图像</span></div>
+        <ul class="bullets">
+          <li>参与 3D 医学图像生成与体检后续项目推荐，围绕真实业务数据进行模型实验、方案比较与误差分析。</li>
+          <li>把“假设 → 实验 → 指标 → 判断”的研究流程迁移到 Agent 产品的 <strong>Evals、边界与验收标准</strong> 设计中。</li>
+          <li>MICCAI 2024 第一作者：ADNI 795 例，论文报告分类准确率 78.74% → 85.83%。</li>
+        </ul>
+      </section>
+    </main>
+
+    <aside class="side">
+      <section class="side-card">
+        <h3>产品方法论</h3>
+        <div class="method">
+          <div class="method-item"><img src="./assets/icon-ab.svg" alt=""><div><b>产品方向验证三分法</b><p>大样本看 A/B；早期看低成本试流；ToB 看 commitment data：工时、数据开放、试点、预算、采购、续约。</p></div></div>
+          <div class="method-item"><img src="./assets/icon-play.svg" alt=""><div><b>Demo-first</b><p>先用 Mockup / 原型讲清价值，让用户愿意上手，再决定是否投入研发。</p></div></div>
+          <div class="method-item"><img src="./assets/icon-ai.svg" alt=""><div><b>AI Native</b><p>从 AI 能力重构流程，而不是给旧产品硬加 AI；强调定义、可控链路、可验证输出。</p></div></div>
+          <div class="method-item"><img src="./assets/icon-roi.svg" alt=""><div><b>商业化视角</b><p>不把“功能上线”当终点，持续关注试点、ROI、规模化服务与客户是否愿意持续接入。</p></div></div>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <h3>能力关键词</h3>
+        <div class="chips">
+          <span class="chip">Agent Workflow</span><span class="chip">Human-in-the-loop</span><span class="chip">Context</span>
+          <span class="chip">Memory</span><span class="chip">MCP</span><span class="chip">Evals</span><span class="chip">Multi-Agent</span>
+          <span class="chip">Agent Runtime</span><span class="chip">TypeScript</span><span class="chip">Python</span><span class="chip">Playwright</span>
+          <span class="chip">产品方案</span><span class="chip">Demo</span><span class="chip">ToB</span><span class="chip">工业/供应链组织场景</span>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <h3>代表数据</h3>
+        <div class="stats">
+          <div class="stat"><small>上线与验收</small><div class="value">6 周上线</div><p>企业 AI 订单系统从需求澄清到生产上线。</p></div>
+          <div class="stat"><small>业务扩展</small><div class="value">2 个大区试点</div><p>客户验收后进入区域试点阶段。</p></div>
+          <div class="stat"><small>Open VSX</small><div class="value">8,028+</div><p>截至 2026-09-19 的产品整体累计下载。</p></div>
+          <div class="stat"><small>npm 已知累计</small><div class="value">3,410+</div><p>9 个公开 npm 包官方已知累计下载。</p></div>
+          <div class="stat"><small>Agent PM</small><div class="value">12 个工作流</div><p>8 个任务级 + 4 个项目级。</p></div>
+          <div class="stat"><small>产品实践</small><div class="value">2 个代表项目</div><p><a href="https://github.com/liush2yuxjtu/business-world-agent-diaper">Business World Agent</a> / <a href="https://github.com/liush2yuxjtu/glyph-factory">Glyph Factory</a></p></div>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <h3>教育背景</h3>
+        <div class="edu"><b>北京邮电大学</b><span>人工智能学院 · 博士研究生阶段（已退出）<br>2024.09 – 2026.06</span></div>
+        <div class="edu"><b>西安交通大学</b><span>数学与统计学院 · 数学硕士<br>2021.09 – 2024.07</span></div>
+        <div class="edu"><b>西安交通大学</b><span>数学与统计学院 · 数学本科<br>2016.09 – 2020.07</span></div>
+      </section>
+    </aside>
+  </div>
+
+  <div class="provenance"><b>事实边界 / 数据来源：</b>企业交付结果、项目时间与教育经历来自现有履历材料；Open VSX、npm 下载量按 2026-09-19 口径；业务结果与下载量分开陈述，不把模拟/合成数据写成真实经营结果。<br><b>证据索引：</b>[E1] 6 周上线 / 全国经销商大会演示 / 客户验收与一期回款 / 2 个核心大区试点；[E2] Agent PM 12 个工作流；[E3] Open VSX 8,028+；[E4] npm 3,410+ / 9 个包；[E5] MICCAI 2024 / ADNI 795 / 78.74%→85.83%。</div>
+
+  <footer class="footer"><div class="slogan">用产品和技术，让 AI 在真实世界创造价值</div><div class="right">REAL PROBLEMS · REAL USERS · REAL IMPACT</div></footer>
+</div>
+</body>
+</html>
