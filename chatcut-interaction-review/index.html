@@ -30,6 +30,29 @@ th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;t
 .pending-shot{min-height:260px;display:grid;place-items:center;padding:26px;text-align:center;color:#cbd5e1;background:repeating-linear-gradient(135deg,#0f172a,#0f172a 14px,#111827 14px,#111827 28px)}
 @media(max-width:760px){.ab-pair{grid-template-columns:1fr}.ab-foot{grid-template-columns:1fr}.ab-head{flex-direction:column}.ab-id{order:-1}}
 
+
+.live-preview{background:#0b1020;border-radius:16px;padding:14px;min-height:280px;color:#e5e7eb;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.live-preview *{box-sizing:border-box}
+.lp-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.lp-title{font-size:13px;font-weight:800;color:#f8fafc}.lp-status{font-size:12px;color:#94a3b8}
+.lp-stage{background:#111827;border:1px solid #263041;border-radius:14px;padding:14px;min-height:176px;position:relative;overflow:hidden}
+.lp-btn{min-height:44px;min-width:44px;padding:10px 14px;border:0;border-radius:12px;background:#eef2ff;color:#3730a3;font-weight:800;font-size:14px;cursor:pointer}
+.lp-btn:active{transform:translateY(1px)}.lp-btn[disabled]{opacity:.45;cursor:not-allowed}
+.lp-reset{background:#1f2937;color:#e5e7eb}.lp-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lp-card{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:12px;min-width:0}
+.lp-progress{height:7px;background:#1f2937;border-radius:999px;overflow:hidden}.lp-progress>i{display:block;height:100%;width:0;background:#c7d2fe;transition:width 1.1s ease}
+.lp-film{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.lp-film span{aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#9ca3af,#374151)}
+.lp-motion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lp-motion-grid div{height:60px;border-radius:9px;background:#1f2937;border:1px solid #374151;display:grid;place-items:center;font-size:12px;transition:.6s ease;opacity:.4;transform:translateY(8px)}
+.lp-motion-grid.generated div{opacity:1;transform:none;background:#312e81}
+.lp-transcript{font-size:15px;line-height:1.8}.filler{display:inline-block;padding:0 4px;border-radius:5px;background:#7c2d12;color:#fed7aa;transition:.35s ease}.filler.gone{opacity:0;transform:scale(.7);width:0;padding:0;margin:0;overflow:hidden}
+.lp-caption-canvas{height:160px;border-radius:12px;background:linear-gradient(135deg,#334155,#0f172a);display:grid;place-items:center;padding:20px;text-align:center}.lp-caption-text{font-size:24px;font-weight:900;padding:7px 10px;border-radius:9px;background:rgba(0,0,0,.65);transition:.3s}
+.lp-image-stage,.lp-video-stage{height:180px;border-radius:12px;background:linear-gradient(135deg,#c4b5fd,#334155);display:grid;place-items:center;position:relative;overflow:hidden}.lp-image-stage.result{background:linear-gradient(135deg,#f59e0b,#7c3aed)}.lp-video-stage.playing:after{content:"▶  Preview playing";position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.6);font-weight:800}
+.lp-wave{height:90px;display:flex;align-items:center;gap:3px}.lp-wave i{display:block;width:4px;height:12px;background:#64748b;border-radius:999px;transition:.45s}.lp-wave.generated i{background:#a5b4fc}.lp-wave.generated i:nth-child(3n){height:52px}.lp-wave.generated i:nth-child(2n){height:34px}.lp-wave.generated i:nth-child(5n){height:64px}
+.lp-keyframes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.lp-keyframes figure{margin:0}.lp-keyframes img{width:100%;display:block;border-radius:8px;border:1px solid #e5e7eb}.lp-keyframes figcaption{font-size:11px;color:#6b7280;margin-top:4px}
+.review-live-note{font-size:12px;color:#64748b;margin-top:8px}
+@media(max-width:760px){.ab-pair{grid-template-columns:1fr}.live-preview{min-height:0}.lp-motion-grid{grid-template-columns:repeat(2,1fr)}.lp-keyframes{grid-template-columns:1fr}.lp-btn{width:100%}}
+@media(prefers-reduced-motion:reduce){.live-preview *{transition:none!important;animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -49,111 +72,264 @@ th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;t
 </section>
 
 
-<h2>Baseline vs Preview · 逐素材审阅</h2>
-<p class="note"><b>Baseline</b> = 2026-09-15 保存的最基础版本；<b>Preview</b> = 当前 main 重新 build 后的版本。Preview 内再显示关键帧 K0（未操作）和 K1（点击触发后）。你可以直接按 A01–A07 提意见。</p>
-<section class="ab-list"><article class="ab-item" id="A01">
- <div class="ab-head"><div class="ab-title"><h3>Best Moments / Edit Like an Expert</h3><p>用户点击 Send 后，原 final clip + playhead 自动演完。</p></div><span class="ab-id">A01</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a01-baseline.png" alt="A01 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a01-preview-idle.png" alt="A01 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Send</div><img src="./keyframes/a01-preview-after.png" alt="A01 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+<h2>Baseline vs Live Preview · 逐素材审阅</h2>
+<p class="note">左侧是 Baseline；右侧现在是<b>可交互 Live Preview</b>。手机直接点按钮即可体验“先由用户触发，再自动演完”。每项下面保留 exact Preview 的三个关键帧证据：Baseline / K0 / K1。</p>
+<section class="ab-list">
+<article class="ab-item" id="A01">
+  <div class="ab-head"><div class="ab-title"><h3>Best Moments / Edit Like an Expert</h3><p>Preview 里点一次 Send，后续剪辑播放自动完成。</p></div><span class="ab-id">A01</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a01-baseline.png" alt="A01 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A01">
+        <div class="lp-toolbar"><div class="lp-title">Best Moments / Edit Like an Expert</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-film"><span></span><span></span><span></span><span></span><span></span><span></span></div><div style="margin-top:14px" class="lp-progress"><i></i></div><div style="margin-top:12px;font-size:13px;color:#94a3b8">Find the highlights and add B-roll to my video.</div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Send</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Send · <span data-status="A01">等待 CI interaction report</span></div><a class="jump" href="#A01">#A01</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a01-baseline.png" alt="A01 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a01-preview-idle.png" alt="A01 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a01-preview-after.png" alt="A01 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A01">等待 CI interaction report</span></div><a class="jump" href="#A01">#A01</a></div>
+</article>
 <article class="ab-item" id="A02">
- <div class="ab-head"><div class="ab-title"><h3>AI Motion Graphics</h3><p>用户点击 Generate 后，motion cards 自动 Reveal / 演完。</p></div><span class="ab-id">A02</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a02-baseline.png" alt="A02 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a02-preview-idle.png" alt="A02 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Generate</div><img src="./keyframes/a02-preview-after.png" alt="A02 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+  <div class="ab-head"><div class="ab-title"><h3>AI Motion Graphics</h3><p>Preview 里点一次 Generate，motion cards 自动 Reveal。</p></div><span class="ab-id">A02</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a02-baseline.png" alt="A02 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A02">
+        <div class="lp-toolbar"><div class="lp-title">AI Motion Graphics</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-motion-grid"><div>01</div><div>02</div><div>03</div><div>04</div><div>05</div><div>06</div></div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Generate · <span data-status="A02">等待 CI interaction report</span></div><a class="jump" href="#A02">#A02</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a02-baseline.png" alt="A02 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a02-preview-idle.png" alt="A02 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a02-preview-after.png" alt="A02 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A02">等待 CI interaction report</span></div><a class="jump" href="#A02">#A02</a></div>
+</article>
 <article class="ab-item" id="A03">
- <div class="ab-head"><div class="ab-title"><h3>Text-Based Editing</h3><p>用户点击 Clean/Send 后，filler words 自动逐个消失。</p></div><span class="ab-id">A03</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a03-baseline.png" alt="A03 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a03-preview-idle.png" alt="A03 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Clean / Send</div><img src="./keyframes/a03-preview-after.png" alt="A03 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+  <div class="ab-head"><div class="ab-title"><h3>Text-Based Editing</h3><p>Preview 里点一次 Clean，filler words 自动依次消失。</p></div><span class="ab-id">A03</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a03-baseline.png" alt="A03 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A03">
+        <div class="lp-toolbar"><div class="lp-title">Text-Based Editing</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-transcript">Today <span class="filler">um</span> I want to <span class="filler">like</span> show how <span class="filler">you know</span> text editing works.</div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Clean filler words</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Clean / Send · <span data-status="A03">等待 CI interaction report</span></div><a class="jump" href="#A03">#A03</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a03-baseline.png" alt="A03 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a03-preview-idle.png" alt="A03 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a03-preview-after.png" alt="A03 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A03">等待 CI interaction report</span></div><a class="jump" href="#A03">#A03</a></div>
+</article>
 <article class="ab-item" id="A04">
- <div class="ab-head"><div class="ab-title"><h3>Auto AI Captions</h3><p>当前 Preview 仍缺明确 click gate；这是本轮需要补的 GAP。</p></div><span class="ab-id">A04</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a04-baseline.png" alt="A04 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a04-preview-idle.png" alt="A04 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Preset / Preview（待补）</div><div class="pending-shot"><div><b>A04 Preview after-click 尚未通过</b><br>CI 会把它标记为 GAP，直到实现点击触发层。</div></div></div>
+  <div class="ab-head"><div class="ab-title"><h3>Auto AI Captions</h3><p>这个 Review Preview 已可交互；真实产品实现仍标记 GAP，直到同样的 click gate 进入 ChatCut Preview。</p></div><span class="ab-id">A04</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a04-baseline.png" alt="A04 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A04">
+        <div class="lp-toolbar"><div class="lp-title">Auto AI Captions</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-caption-canvas"><div class="lp-caption-text">Readable captions, styled fast.</div></div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="preset" data-style="plain">Plain</button><button class="lp-btn" data-action="preset" data-style="pop">TikTok Pop</button><button class="lp-btn" data-action="preset" data-style="noir">Noir Glass</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Preset / Preview（待补） · <span data-status="A04">等待 CI interaction report</span></div><a class="jump" href="#A04">#A04</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a04-baseline.png" alt="A04 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a04-preview-idle.png" alt="A04 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a04-preview-after.png" alt="A04 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A04">等待 CI interaction report</span></div><a class="jump" href="#A04">#A04</a></div>
+</article>
 <article class="ab-item" id="A05">
- <div class="ab-head"><div class="ab-title"><h3>AI Image Generation</h3><p>Source image → Generate → loading → generated result。</p></div><span class="ab-id">A05</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a05-baseline.png" alt="A05 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a05-preview-idle.png" alt="A05 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Generate</div><img src="./keyframes/a05-preview-after.png" alt="A05 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+  <div class="ab-head"><div class="ab-title"><h3>AI Image Generation</h3><p>Preview 里点一次 Generate，source → loading → result。</p></div><span class="ab-id">A05</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a05-baseline.png" alt="A05 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A05">
+        <div class="lp-toolbar"><div class="lp-title">AI Image Generation</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-image-stage"><b>Source image</b></div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Generate · <span data-status="A05">等待 CI interaction report</span></div><a class="jump" href="#A05">#A05</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a05-baseline.png" alt="A05 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a05-preview-idle.png" alt="A05 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a05-preview-after.png" alt="A05 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A05">等待 CI interaction report</span></div><a class="jump" href="#A05">#A05</a></div>
+</article>
 <article class="ab-item" id="A06">
- <div class="ab-head"><div class="ab-title"><h3>AI Video Generation</h3><p>Reference image → Generate → loading → 自动 Reveal / 播放 preview。</p></div><span class="ab-id">A06</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a06-baseline.png" alt="A06 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a06-preview-idle.png" alt="A06 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Generate</div><img src="./keyframes/a06-preview-after.png" alt="A06 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+  <div class="ab-head"><div class="ab-title"><h3>AI Video Generation</h3><p>Preview 里点一次 Generate，reference → loading → 自动播放 preview。</p></div><span class="ab-id">A06</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a06-baseline.png" alt="A06 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A06">
+        <div class="lp-toolbar"><div class="lp-title">AI Video Generation</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div class="lp-video-stage"><b>Reference frame</b></div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Generate · <span data-status="A06">等待 CI interaction report</span></div><a class="jump" href="#A06">#A06</a></div>
- </article>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a06-baseline.png" alt="A06 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a06-preview-idle.png" alt="A06 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a06-preview-after.png" alt="A06 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A06">等待 CI interaction report</span></div><a class="jump" href="#A06">#A06</a></div>
+</article>
 <article class="ab-item" id="A07">
- <div class="ab-head"><div class="ab-title"><h3>AI Music Generator</h3><p>Silent source → Send → loading → waveform / music result。</p></div><span class="ab-id">A07</span></div>
- <div class="ab-pair">
-   <div class="ab-panel"><div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div><img src="./keyframes/a07-baseline.png" alt="A07 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 关键帧</div>'"></div>
-   <div class="ab-panel"><div class="ab-label">Preview <small>current main</small></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr">
-        <div style="border-right:1px solid #263041"><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K0 · idle</div><img src="./keyframes/a07-preview-idle.png" alt="A07 Preview idle" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview idle</div>'"></div>
-        <div><div style="padding:7px 10px;color:#cbd5e1;font-size:12px">K1 · after Send</div><img src="./keyframes/a07-preview-after.png" alt="A07 Preview after click" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Preview after-click 关键帧</div>'"></div>
+  <div class="ab-head"><div class="ab-title"><h3>AI Music Generator</h3><p>Preview 里点一次 Send，silent source → loading → waveform result。</p></div><span class="ab-id">A07</span></div>
+  <div class="ab-pair">
+    <div class="ab-panel">
+      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
+      <img src="./keyframes/a07-baseline.png" alt="A07 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
+    </div>
+    <div>
+      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
+      <div class="live-preview" data-live="A07">
+        <div class="lp-toolbar"><div class="lp-title">AI Music Generator</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
+        
+    <div class="lp-stage"><div style="font-size:13px;color:#94a3b8">Upbeat lo-fi hip hop, relaxed mood, 90 BPM</div><div class="lp-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+    <div class="lp-row"><button class="lp-btn" data-action="run">Send</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
       </div>
-   </div>
- </div>
- <div class="ab-foot"><div class="ab-comment"><b>Trigger:</b> Send · <span data-status="A07">等待 CI interaction report</span></div><a class="jump" href="#A07">#A07</a></div>
- </article></section>
+      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
+    </div>
+  </div>
+  <div class="lp-keyframes">
+    <figure><img src="./keyframes/a07-baseline.png" alt="A07 baseline keyframe"><figcaption>Baseline</figcaption></figure>
+    <figure><img src="./keyframes/a07-preview-idle.png" alt="A07 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
+    <figure><img src="./keyframes/a07-preview-after.png" alt="A07 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
+  </div>
+  <div class="ab-foot"><div class="ab-comment"><span data-status="A07">等待 CI interaction report</span></div><a class="jump" href="#A07">#A07</a></div>
+</article></section>
 <script>
-fetch('./keyframes/report.json?ts='+Date.now()).then(r=>r.ok?r.json():Promise.reject()).then(report=>{
-  for(const item of report.items||[]){
-    const el=document.querySelector('[data-status="'+item.id+'"]');
-    if(!el) continue;
-    el.textContent = item.status + (item.errors&&item.errors.length ? ' · '+item.errors.join(' / ') : '');
-    el.style.fontWeight='800';
-    el.style.color = item.status==='PASS' ? '#047857' : item.status==='GAP' ? '#b45309' : '#b91c1c';
-  }
-}).catch(()=>{});
-</script>
+(() => {
+  const roots = document.querySelectorAll('[data-live]');
+  roots.forEach(root => {
+    if (root.dataset.bound === '1') return;
+    root.dataset.bound = '1';
+    const id = root.dataset.live;
+    const status = root.querySelector('.lp-status');
+    let timers = [];
+    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+    const setStatus = t => { status.textContent = t; };
 
+    function reset() {
+      clearTimers();
+      setStatus('Idle · waiting for you');
+      const progress = root.querySelector('.lp-progress > i'); if (progress) progress.style.width='0%';
+      const motion = root.querySelector('.lp-motion-grid'); if (motion) motion.classList.remove('generated');
+      root.querySelectorAll('.filler').forEach(x => x.classList.remove('gone'));
+      const cap = root.querySelector('.lp-caption-text'); if (cap) { cap.style.background='rgba(0,0,0,.65)'; cap.style.color='#fff'; cap.style.transform='none'; }
+      const img = root.querySelector('.lp-image-stage'); if (img) { img.classList.remove('result'); img.innerHTML='<b>Source image</b>'; }
+      const vid = root.querySelector('.lp-video-stage'); if (vid) { vid.classList.remove('playing'); vid.innerHTML='<b>Reference frame</b>'; }
+      const wave = root.querySelector('.lp-wave'); if (wave) wave.classList.remove('generated');
+      root.querySelectorAll('.lp-btn').forEach(b => b.disabled=false);
+    }
+
+    function run() {
+      if (id==='A01') {
+        setStatus('Running · finding highlights + adding B-roll');
+        const p=root.querySelector('.lp-progress > i'); p.style.width='100%';
+        timers.push(setTimeout(()=>setStatus('Done · first cut updated'),1200));
+      } else if (id==='A02') {
+        setStatus('Generating motion graphics…');
+        timers.push(setTimeout(()=>{root.querySelector('.lp-motion-grid').classList.add('generated');setStatus('Done · motion cards ready')},380));
+      } else if (id==='A03') {
+        setStatus('Cleaning transcript…');
+        root.querySelectorAll('.filler').forEach((x,i)=>timers.push(setTimeout(()=>x.classList.add('gone'),180+i*220)));
+        timers.push(setTimeout(()=>setStatus('Done · filler words removed'),1100));
+      } else if (id==='A05') {
+        const el=root.querySelector('.lp-image-stage'); setStatus('Generating image…'); el.innerHTML='<b>Generating…</b>';
+        timers.push(setTimeout(()=>{el.classList.add('result');el.innerHTML='<b>Generated result</b>';setStatus('Done · image ready')},850));
+      } else if (id==='A06') {
+        const el=root.querySelector('.lp-video-stage'); setStatus('Generating video…'); el.innerHTML='<b>Generating…</b>';
+        timers.push(setTimeout(()=>{el.classList.add('playing');el.innerHTML='<b>Generated video</b>';setStatus('Done · preview playing')},950));
+      } else if (id==='A07') {
+        setStatus('Generating music…');
+        timers.push(setTimeout(()=>{root.querySelector('.lp-wave').classList.add('generated');setStatus('Done · waveform ready')},850));
+      }
+    }
+
+    root.addEventListener('click', e => {
+      const btn=e.target.closest('button[data-action]'); if(!btn) return;
+      const action=btn.dataset.action;
+      if(action==='reset'){reset();return;}
+      if(action==='preset'){
+        const cap=root.querySelector('.lp-caption-text');
+        const s=btn.dataset.style;
+        if(s==='plain'){cap.style.background='rgba(0,0,0,.65)';cap.style.color='#fff';cap.style.transform='none';}
+        if(s==='pop'){cap.style.background='#fff';cap.style.color='#111827';cap.style.transform='scale(1.05) rotate(-1deg)';}
+        if(s==='noir'){cap.style.background='rgba(15,23,42,.85)';cap.style.color='#e2e8f0';cap.style.transform='scale(.98)';}
+        setStatus('Playing captions · '+btn.textContent);
+        timers.push(setTimeout(()=>setStatus('Done · caption style previewed'),900));
+        return;
+      }
+      btn.disabled=true;
+      run();
+      timers.push(setTimeout(()=>{btn.disabled=false},1300));
+    });
+  });
+
+  fetch('./keyframes/report.json?ts='+Date.now()).then(r=>r.ok?r.json():Promise.reject()).then(report=>{
+    for(const item of report.items||[]){
+      const el=document.querySelector('[data-status="'+item.id+'"]');
+      if(!el) continue;
+      el.textContent=item.status+(item.errors&&item.errors.length?' · '+item.errors.join(' / '):'');
+      el.style.fontWeight='800';
+      el.style.color=item.status==='PASS'?'#047857':item.status==='GAP'?'#b45309':'#b91c1c';
+    }
+  }).catch(()=>{});
+})();
+</script>
 <h2>逐项梳理</h2>
 <div class="table-wrap">
 <table>
