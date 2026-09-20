@@ -10,6 +10,8 @@ on:
       - 'resume-gallery/**'
       - 'blacklake-agent-pm-resume/**'
       - 'chatcut-interaction-review/**'
+      - 'original-homepages-2026-09-15/**'
+      - 'chatcut-production-mirror/**'
       - 'chatcut-product-thesis-v2/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -102,6 +104,10 @@ jobs:
           python chatcut-interaction-review/capture.py
           mkdir -p _site/chatcut-interaction-review/keyframes
           cp -R chatcut-interaction-review/keyframes/. _site/chatcut-interaction-review/keyframes/
+          mkdir -p _site/chatcut-baseline
+          cp -R original-homepages-2026-09-15/chatcut/. _site/chatcut-baseline/
+          mkdir -p _site/chatcut-preview
+          cp -R chatcut-production-mirror/dist/. _site/chatcut-preview/
 
       - name: Render and test AI product resume
         shell: bash
