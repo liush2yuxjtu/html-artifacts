@@ -1,0 +1,11 @@
+{
+  "schema": "blacklake-visual-baseline/v1",
+  "source_repo": "liush2yuxjtu/resumeVibe",
+  "source_branch": "resume/blacklake-agent-pm-code-20260920",
+  "source_variant": "resume/variants/07-blacklake-agent-pm-code",
+  "reference": "assets/blacklake-agent-pm/reference-imagegen.webp",
+  "local_normalized_rmse": 0.250601,
+  "reference_size": [920,1301],
+  "comparison_note": "Measured against the approved Black Lake visual reference before GitHub publication. Public Pages verification captures live screenshots; canonical pixel regression remains in resumeVibe verify.py.",
+  "measured_at": "2026-09-20"
+}
