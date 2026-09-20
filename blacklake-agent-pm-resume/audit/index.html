@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Black Lake Resume · All Audit</title>
+<style>
+:root{--bg:#f4f7f6;--paper:#fff;--ink:#122b38;--muted:#61727a;--teal:#117f78;--soft:#e8f5f2;--line:#d9e6e2;--amber:#8a5a00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+main{max-width:1180px;margin:auto;padding:22px 14px 60px}h1{font-size:clamp(32px,6vw,58px);letter-spacing:-.04em;margin:0 0 10px}.lead{color:var(--muted);max-width:880px;line-height:1.6}
+.hero{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px}.status{display:inline-flex;background:var(--soft);color:var(--teal);font-weight:900;border-radius:999px;padding:7px 11px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}.metric{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fbfdfc}.metric b{font-size:24px;display:block;color:var(--teal)}.metric span{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px}.card h2{font-size:21px;margin:0 0 10px}.card h3{font-size:16px;margin:12px 0 6px}.score{font-size:36px;font-weight:950;color:var(--teal)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid #edf2f0;vertical-align:top}th{color:var(--muted)}
+.pass{color:#087b66;font-weight:850}.warn{color:var(--amber);font-weight:850}.visuals{display:grid;grid-template-columns:1fr 1fr;gap:12px}.frame{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}.frame h3{padding:10px 12px;margin:0;border-bottom:1px solid var(--line)}.frame img{display:block;width:100%;height:auto}.frame iframe{display:block;width:100%;height:650px;border:0}.mobile{max-width:390px;margin:auto}.mobile iframe{height:700px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.btn{display:inline-flex;padding:10px 12px;background:var(--teal);color:#fff;text-decoration:none;border-radius:10px;font-weight:800}.btn.secondary{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.decision{border-left:5px solid #d19a30;background:#fffaf0;padding:13px 14px;border-radius:10px;line-height:1.55}
+@media(max-width:760px){.metrics,.grid,.visuals{grid-template-columns:1fr}.frame iframe{height:520px}}
+</style>
+</head>
+<body><main>
+<section class="hero">
+  <div class="status">ALL-AUDIT · CURRENT DEPLOYED CANDIDATE</div>
+  <h1>Black Lake 产品经理简历</h1>
+  <p class="lead">代码版 HTML/CSS + SVG，使用旧 Black Lake 视觉设计作为 reference。此页汇总真实运行截图、像素回归、Intent Audit、AI Mock Audit、Developer Audit、Runtime Surface Completeness 与证据可溯源性。</p>
+  <div class="metrics">
+    <div class="metric"><b>19/20</b><span>Intent Audit · ALIGNED</span></div>
+    <div class="metric"><b>19/20</b><span>AI Mock Audit · REAL</span></div>
+    <div class="metric"><b>0.26173</b><span>Desktop normalized RMSE · gate ≤ 0.35</span></div>
+    <div class="metric"><b>9</b><span>A4 PDF clickable URL annotations</span></div>
+  </div>
+  <div class="actions">
+    <a class="btn" href="../">打开当前简历</a>
+    <a class="btn secondary" href="https://github.com/liush2yuxjtu/resumeVibe/pull/12">PR #12</a>
+    <a class="btn secondary" href="https://github.com/liush2yuxjtu/html-artifacts/actions/runs/35503099653">Verification Run</a>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Snapshots / Visual Proof</h2>
+  <div class="visuals">
+    <div class="frame"><h3>Reference · 旧 Black Lake 视觉</h3><img src="../reference.webp" alt="Black Lake reference"></div>
+    <div class="frame"><h3>Current · Live Desktop</h3><iframe src="../" title="Current desktop"></iframe></div>
+  </div>
+  <div class="visuals" style="margin-top:12px">
+    <div class="frame mobile"><h3>Current · Live Mobile 390px</h3><iframe src="../" title="Current mobile"></iframe></div>
+    <div class="frame"><h3>Captured evidence</h3><div style="padding:14px;line-height:1.65;color:#4b626d">
+      GitHub Actions run <b>35503099653</b> captured a real desktop screenshot, real 390px mobile screenshot, pixel diff, A4 PDF and verification JSON. Artifact: <b>10603580304</b>.
+      <br><br><span class="pass">Mobile gate:</span> width 390 = viewport 390; content display = block; mission font = 16px; no horizontal overflow.
+      <br><span class="pass">PDF gate:</span> one A4 page, 595.92 × 841.92 pt, 9 clickable URL annotations.
+    </div></div>
+  </div>
+</section>
+
+<div class="grid">
+<section class="card">
+<h2>Intent Audit <span class="score">19/20</span></h2>
+<table><tr><th>维度</th><th>分</th><th>证据</th></tr>
+<tr><td>Black Lake 定向</td><td>2</td><td>独立 07 变体 + 专属岗位定位</td></tr>
+<tr><td>沿用旧视觉骨架</td><td>2</td><td>双栏、工业 Hero、青绿、底部口号均保留</td></tr>
+<tr><td>代码化</td><td>2</td><td>HTML/CSS 为 Source of Truth</td></tr>
+<tr><td>SVG-first 资产</td><td>2</td><td>Hero 与方法论 icon 均为 SVG</td></tr>
+<tr><td>数字支撑</td><td>2</td><td>6 周 / 2 大区 / 12 workflows / 8,028+ / 3,410+</td></tr>
+<tr><td>产品设计思路</td><td>2</td><td>Demo-first / AI Native / commitment data / HITL</td></tr>
+<tr><td>可证明与边界</td><td>2</td><td>事实边界 + E1–E5；MICCAI 已连 primary source</td></tr>
+<tr><td>真实截图验证</td><td>2</td><td>Desktop + Mobile 均由真实 Chromium 捕获</td></tr>
+<tr><td>跨表面完整性</td><td>2</td><td>Page / Gallery / Mobile / PDF / PR</td></tr>
+<tr><td>像素级视觉一致</td><td>1</td><td>结构一致，但 Hero 照片→SVG 与字体/密度仍有明显 diff</td></tr>
+</table>
+</section>
+
+<section class="card">
+<h2>AI Mock Audit <span class="score">19/20</span></h2>
+<table><tr><th>维度</th><th>分</th><th>判断</th></tr>
+<tr><td>Data</td><td>2</td><td>当前 SSOT 数据；无占位假指标</td></tr>
+<tr><td>Logic</td><td>2</td><td>页面/验证逻辑真实执行</td></tr>
+<tr><td>Persistence</td><td>2</td><td>本 surface 不宣称持久化功能</td></tr>
+<tr><td>API / Tool</td><td>2</td><td>9 个真实外链；无假 API</td></tr>
+<tr><td>UI</td><td>2</td><td>真实托管 HTML/CSS/SVG</td></tr>
+<tr><td>Agent</td><td>2</td><td>描述项目，不伪装成正在运行的 Agent</td></tr>
+<tr><td>Provenance</td><td>1</td><td>企业交付 E1 仍主要来自本人履历材料，缺合同/签收/财务原件</td></tr>
+<tr><td>Browser Eval</td><td>2</td><td>真实 GitHub Pages + Chromium</td></tr>
+<tr><td>DB / State</td><td>2</td><td>该静态简历不宣称 DB/state 产品能力</td></tr>
+<tr><td>Evidence</td><td>2</td><td>snapshot + diff + PDF + JSON artifact</td></tr>
+</table>
+</section>
+</div>
+
+<div class="grid">
+<section class="card">
+<h2>Developer Audit</h2>
+<p class="pass">PASS · 0 个阻塞性开发者信息泄露</p>
+<ul>
+<li>页面未展示 prompt、内部 tool state、runner ID、调试日志、内部文件路径或 PR 状态。</li>
+<li>“事实边界 / 数据来源 / E1–E5”是用户明确要求的可溯源信息，因此保留合理。</li>
+<li>CI / RMSE / artifact ID 只出现在此 Audit 页面，不进入招聘简历主体。</li>
+</ul>
+</section>
+
+<section class="card">
+<h2>Runtime Surface Completeness</h2>
+<table><tr><td>GitHub Pages Desktop</td><td class="pass">PASS</td></tr>
+<tr><td>390px Mobile</td><td class="pass">PASS · reflow / no overflow</td></tr>
+<tr><td>Resume Gallery #07</td><td class="pass">PASS</td></tr>
+<tr><td>A4 PDF</td><td class="pass">PASS · one page</td></tr>
+<tr><td>PDF links</td><td class="pass">PASS · 9 annotations</td></tr>
+<tr><td>Source ↔ public mirror</td><td class="pass">PASS · latest content synchronized</td></tr>
+<tr><td>Private PR runner</td><td class="warn">INFRA BLOCKED · runner_id=0; no steps executed</td></tr>
+</table>
+</section>
+</div>
+
+<section class="card">
+<h2>Evidence / Traceability Audit</h2>
+<table><tr><th>Evidence</th><th>Status</th><th>Boundary</th></tr>
+<tr><td>E1 · 6 周上线 / 大会演示 / 验收回款 / 2 大区</td><td class="warn">PARTIAL PRIMARY</td><td>来自本人履历材料；SSOT 明确标 user_asserted，未取得合同/签收/财务原件。</td></tr>
+<tr><td>E2 · Agent PM 12 workflows</td><td class="pass">LINKED</td><td>项目 repo 可点击。</td></tr>
+<tr><td>E3 · Open VSX 8,028+</td><td class="pass">LINKED</td><td>Open VSX 产品页可点击；日期口径 2026-09-19。</td></tr>
+<tr><td>E4 · npm 9 包 / 3,410+</td><td class="warn">AGGREGATE</td><td>数值有明确口径，但简历页没有一个可直接证明总和的单一官方聚合链接。</td></tr>
+<tr><td>E5 · MICCAI 2024 / ADNI 795 / 78.74→85.83</td><td class="pass">PRIMARY LINK</td><td>已直接链接 MICCAI Open Access primary page。</td></tr>
+</table>
+</section>
+
+<section class="card">
+<h2>Visual Parity Audit</h2>
+<p><span class="pass">自动回归 gate 通过：</span> normalized RMSE <b>0.26173</b> ≤ 0.35。</p>
+<p><span class="warn">但不能称为 pixel-perfect：</span> 最大差异来自 Reference 的真实工业流水线照片，而当前按约束使用 SVG 机器人/流水线；其次是中文字体、段落密度与少量间距差异。结构、色系、信息层级和主要区域位置已经对齐。</p>
+<div class="decision"><b>当前真正的 Human Decision Boundary：</b>如果继续坚持 SVG-only，就把 0.26 级别当作“结构与视觉语言匹配”；如果目标是进一步逼近原参考图的像素表现，需要允许下一阶段使用 ImageMagick / approved reference crop 等非生成式视觉资产处理。当前没有擅自切换。</div>
+</section>
+</main></body></html>
