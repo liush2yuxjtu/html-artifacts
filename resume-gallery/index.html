@@ -36,7 +36,7 @@ h1{margin:8px 0 8px;font-size:clamp(30px,7vw,54px);line-height:1.02;letter-spaci
 <header>
 <div class="kicker">CURRENT · 2026-09-20</div>
 <h1>刘师宇 · 简历 Gallery</h1>
-<p class="lead">只展示当前有效版本，不包含 Git 历史、recovered、v1 或旧指标版本。手机上可直接切换、预览和打开 PDF。</p>
+<p class="lead">只展示当前有效版本，不包含 Git 历史、recovered、v1 或旧指标版本。手机上可直接切换、预览和打开当前版本；Black Lake 定向版已切换到最新代码视觉版本。</p>
 </header>
 <div class="bar" id="tabs" role="tablist" aria-label="简历版本"></div>
 <section class="viewer">
@@ -44,12 +44,12 @@ h1{margin:8px 0 8px;font-size:clamp(30px,7vw,54px);line-height:1.02;letter-spaci
     <div><h2 id="title"></h2><div class="meta" id="meta"></div></div>
     <div class="badge" id="badge"></div>
   </div>
-  <iframe class="frame" id="pdf" title="简历 PDF 预览" loading="eager"></iframe>
+  <iframe class="frame" id="pdf" title="简历预览" loading="eager"></iframe>
   <div class="actions">
-    <a class="btn primary" id="open" target="_blank" rel="noopener">打开 PDF</a>
-    <a class="btn" id="drive" target="_blank" rel="noopener">Google Drive</a>
+    <a class="btn primary" id="open" target="_blank" rel="noopener">打开</a>
+    <a class="btn" id="drive" target="_blank" rel="noopener">来源</a>
   </div>
-  <div class="note">若手机内嵌预览要求 Google 登录，直接点「打开 PDF」。PDF 文件保留原始可点击链接；Gallery 页面不把私密 PDF 二进制公开进 GitHub 仓库。</div>
+  <div class="note">手机端优先使用托管页面；私密 PDF 仍通过 Drive 打开。Black Lake 定向版直接使用公开 GitHub Pages 代码视觉版本。</div>
 </section>
 <section class="grid" id="grid" aria-label="当前简历清单"></section>
 </main>
@@ -60,7 +60,7 @@ const docs=[
  {id:"01",title:"AI 产品工程 / Agent 系统 / 应用 AI",short:"AI 产品工程",tag:"Current",links:20,privacy:"本人 Drive",desc:"双栏 STAR + 产品判断，偏 AI 产品工程与 Agent 系统落地。",gid:"1Fy7G0Dl1UBQq1cVSx0aVxOKYdfdpZ7wy"},
  {id:"03",title:"AI Agent 开发工程师",short:"Agent 工程",tag:"Current",links:18,privacy:"含私人联系方式",desc:"单栏工程证据优先，覆盖企业交付、Agent Runtime、开源工具与研究。",gid:"1m0h0yfXMSAaTaks5zYy81-5DPlkC30qU"},
  {id:"04",title:"Agent 工程 · 双栏量化版",short:"Agent 量化",tag:"Current",links:18,privacy:"含私人联系方式",desc:"工程方向双栏量化版，强调 PR/测试/开源/学术等可验证数据。",gid:"1_CDLdJuMxZySjAEY7DO19OecYCb9yFwU"},
- {id:"05",title:"BlackLake · Agent 产品经理视觉版",short:"BlackLake",tag:"定向",links:8,privacy:"本人 Drive",desc:"黑湖科技 Agent 产品经理定向视觉版；当前 canonical 视觉方向。",gid:"1heM1ltZHJK5rSiY79EB3yUjwSh72r_pa"}
+ {id:"07",title:"Black Lake · Agent 产品经理 · 代码视觉版",short:"Black Lake",tag:"最新定向",links:8,privacy:"GitHub Pages",desc:"以旧 Black Lake 视觉为像素回归 reference，用 HTML/CSS + SVG 重建；6 周上线、2 个核心大区、12 个工作流、8,028+ / 3,410+ 均带口径。",url:"https://liush2yuxjtu.github.io/html-artifacts/blacklake-agent-pm-resume/",source:"https://github.com/liush2yuxjtu/resumeVibe/pull/12"}
 ];
 let current="06";
 const byId=id=>docs.find(d=>d.id===id);
@@ -69,19 +69,22 @@ const view=d=>{
  document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-selected",x.dataset.id===d.id));
  document.querySelectorAll(".card").forEach(x=>x.classList.toggle("active",x.dataset.id===d.id));
  document.querySelector("#title").textContent=d.title;
- document.querySelector("#meta").textContent=d.desc+" · PDF 内部可点击链接："+d.links+" 个";
+ document.querySelector("#meta").textContent=d.desc+" · 可点击外链："+d.links+" 个";
  document.querySelector("#badge").textContent=d.tag;
- const preview="https://drive.google.com/file/d/"+d.gid+"/preview";
- const open="https://drive.google.com/file/d/"+d.gid+"/view";
+ const preview=d.url || ("https://drive.google.com/file/d/"+d.gid+"/preview");
+ const open=d.url || ("https://drive.google.com/file/d/"+d.gid+"/view");
+ const source=d.source || open;
  document.querySelector("#pdf").src=preview;
  document.querySelector("#open").href=open;
- document.querySelector("#drive").href=open;
+ document.querySelector("#open").textContent=d.url ? "打开 GitHub Page" : "打开 PDF";
+ document.querySelector("#drive").href=source;
+ document.querySelector("#drive").textContent=d.url ? "查看实现 PR" : "Google Drive";
  history.replaceState(null,"","#"+d.id);
 };
 const tabs=document.querySelector("#tabs"),grid=document.querySelector("#grid");
 docs.forEach(d=>{
  const b=document.createElement("button");b.className="chip";b.dataset.id=d.id;b.setAttribute("role","tab");b.textContent=d.short;b.onclick=()=>view(d);tabs.appendChild(b);
- const c=document.createElement("article");c.className="card";c.dataset.id=d.id;c.innerHTML="<h3>"+d.title+"</h3><p>"+d.desc+"</p><div class='small'>PDF 链接 "+d.links+" 个 · <span class='"+(d.privacy.includes("私人")?"private":"")+"'>"+d.privacy+"</span></div>";c.onclick=()=>{view(d);scrollTo({top:0,behavior:"smooth"})};grid.appendChild(c);
+ const c=document.createElement("article");c.className="card";c.dataset.id=d.id;c.innerHTML="<h3>"+d.title+"</h3><p>"+d.desc+"</p><div class='small'>可点击链接 "+d.links+" 个 · <span class='"+(d.privacy.includes("私人")?"private":"")+"'>"+d.privacy+"</span></div>";c.onclick=()=>{view(d);scrollTo({top:0,behavior:"smooth"})};grid.appendChild(c);
 });
 const initial=location.hash?byId(location.hash.slice(1)):null;view(initial||docs[0]);
 </script>
