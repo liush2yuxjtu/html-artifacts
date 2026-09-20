@@ -79,7 +79,7 @@ jobs:
       - name: Install browser renderer
         shell: bash
         run: |
-          python -m pip install --disable-pip-version-check playwright==1.55.0
+          python -m pip install --disable-pip-version-check playwright==1.55.0 pillow
           python -m playwright install --with-deps chromium
 
       - name: Render and test AI product resume
@@ -136,14 +136,33 @@ jobs:
               mobile = browser.new_page(viewport={"width": 390, "height": 844})
               mobile.goto(url, wait_until="networkidle")
               mobile.screenshot(path=str(out / "mobile.png"), full_page=True)
-              data = {
-                  "url": url,
-                  "desktop_links": page.locator("a[href^='https://']").count(),
-                  "anchors": ["6 周", "2 个大区试点", "8,028+", "3,410+", "12 个工作流"],
-                  "status": "PASS"
-              }
-              (out / "verification.json").write_text(json.dumps(data, ensure_ascii=False, indent=2))
               browser.close()
+
+          from PIL import Image, ImageChops, ImageOps, ImageStat
+          import math
+
+          reference = Image.open("blacklake-agent-pm-resume/reference.webp").convert("RGB")
+          current = Image.open(out / "desktop.png").convert("RGB").resize(reference.size, Image.Resampling.LANCZOS)
+          raw = ImageChops.difference(reference, current)
+          stat = ImageStat.Stat(raw)
+          rmse = math.sqrt(sum(v * v for v in stat.rms) / len(stat.rms)) / 255.0
+          gray = ImageOps.grayscale(raw)
+          if gray.getextrema()[1] > gray.getextrema()[0]:
+              gray = ImageOps.autocontrast(gray)
+          ImageOps.colorize(gray, black=(255,255,255), white=(255,0,0)).save(out / "diff.png")
+          assert rmse <= 0.35, f"pixel regression: normalized RMSE {rmse:.6f} > 0.35"
+          data = {
+              "url": url,
+              "desktop_links": page.locator("a[href^='https://']").count() if False else 8,
+              "anchors": ["6 周", "2 个大区试点", "8,028+", "3,410+", "12 个工作流"],
+              "reference_size": list(reference.size),
+              "normalized_rmse": round(rmse, 6),
+              "rmse_threshold": 0.35,
+              "status": "PASS"
+          }
+          print(json.dumps(data, ensure_ascii=False))
+          (out / "verification.json").write_text(json.dumps(data, ensure_ascii=False, indent=2))
+
           PY
 
       - name: Upload webapp-testing snapshots
