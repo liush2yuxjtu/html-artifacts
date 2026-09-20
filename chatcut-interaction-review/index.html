@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatCut · Homepage Demo Interaction Review</title>
+<style>
+:root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#4f46e5;--good:#047857;--warn:#b45309;--soft:#eef2ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1160px;margin:auto;padding:42px 22px 72px}
+.hero{background:linear-gradient(135deg,#111827,#312e81);color:white;border-radius:24px;padding:34px;box-shadow:0 24px 60px rgba(17,24,39,.16)}
+.hero h1{margin:0 0 10px;font-size:34px;line-height:1.15}.hero p{margin:0;max-width:830px;color:#dbeafe;font-size:16px}
+.rule{margin-top:18px;padding:14px 16px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(255,255,255,.08);font-weight:750}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 26px}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}.stat b{display:block;font-size:26px}.stat span{color:var(--muted)}
+h2{font-size:22px;margin:34px 0 14px}
+table{width:100%;border-collapse:separate;border-spacing:0;background:white;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#4b5563}tr:last-child td{border-bottom:0}
+.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800}.done{background:#ecfdf5;color:var(--good)}.proposal{background:#fff7ed;color:var(--warn)}.keep{background:#f3f4f6;color:#374151}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 6px;font-size:18px}.meta{color:var(--muted);font-size:13px}
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:15px 0}.step{padding:9px 11px;border-radius:11px;background:#f3f4f6;font-weight:700}.step.user{background:var(--soft);color:#3730a3;border:1px solid #c7d2fe}.arrow{color:#9ca3af;font-weight:900}.note{padding:12px 14px;border-left:3px solid var(--accent);background:#f8fafc;border-radius:8px;color:#374151}
+.legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.footer{margin-top:34px;color:var(--muted);font-size:13px}
+@media(max-width:800px){.summary,.grid{grid-template-columns:1fr 1fr}.table-wrap{overflow:auto}table{min-width:900px}}
+@media(max-width:520px){main{padding:20px 12px 48px}.hero{padding:24px 20px}.hero h1{font-size:28px}.summary,.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+  <h1>ChatCut 首页播片 → 轻交互 Demo</h1>
+  <p>评审页只定义“每个动画如何被用户触发”。目标不是把首页改成复杂编辑器，而是让用户先做一个极轻动作，再让原来的动画/结果自动演完。</p>
+  <div class="rule">最终规则：每个有“播片感”的 Feature Demo，都不能一进视口就自己演完；至少需要 1 次用户点击/选择触发。触发后允许自动播放到结果。</div>
+  <div class="legend"><span class="badge done">已符合</span><span class="badge proposal">需要补一层触发</span><span class="badge keep">非播片 / 保持</span></div>
+</section>
+
+<section class="summary">
+  <div class="stat"><b>7</b><span>首页主要 Feature Demo</span></div>
+  <div class="stat"><b>4</b><span>当前已基本符合“点一下再演”</span></div>
+  <div class="stat"><b>3</b><span>还需要阻止首屏自动播</span></div>
+  <div class="stat"><b>1–2</b><span>推荐每个 Demo 的用户动作数</span></div>
+</section>
+
+<h2>逐项梳理</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Element</th><th>原来的播片感</th><th>现在已经改成</th><th>这次最终要求</th><th>状态</th></tr></thead>
+<tbody>
+<tr><td><b>1. Edit Like an Expert Editor</b><br>Best Moments</td><td>页面展示结果/最终 clip，容易像在看别人编辑。</td><td>结果先被 Hold。用户点击 Send 后，原来的 final clip 和 playhead 自动继续播放。</td><td><b>保持当前方案。</b> 1 次点击即可，后面自动演完。</td><td><span class="badge done">已符合</span></td></tr>
+<tr><td><b>2. AI Motion Graphics</b></td><td>已有 motion cards / Remotion 结果容易直接呈现成展示动画。</td><td>结果先显示为 pending；用户点击 Generate 后，原来的结果 cards 在原位置 Reveal / 强调。</td><td><b>保持当前方案。</b> 点击 Generate 后允许动画自动完成。</td><td><span class="badge done">已符合</span></td></tr>
+<tr><td><b>3. Text-Based Editing</b></td><td>filler words 的清理过程如果自动发生，会像录屏。</td><td>先回到 raw transcript；用户点击 Send / Clean 后，filler words 按顺序自动消失，timeline 自动变短。</td><td><b>保持当前方案。</b> 不需要用户一个个删词。</td><td><span class="badge done">已符合</span></td></tr>
+<tr><td><b>4. Auto AI Captions</b></td><td>当前原生 caption preview 会自己播放，仍有明显“播片”感。</td><td>旧 intent 里是“保持原生，不改”。</td><td><b>补一个极轻触发：</b>用户点击任意 Caption preset / Preview 一次后，再开始自动播放字幕动画；左右切换仍保持原生。</td><td><span class="badge proposal">需补触发</span></td></tr>
+<tr><td><b>5. AI Image Generation</b></td><td>一开始就看见生成结果，像展示成片。</td><td>先显示 before/source image；点击 Generate → 短 loading → 自动换成原来的 generated result。</td><td><b>保持当前方案。</b> 1 次点击后自动完成。</td><td><span class="badge done">已符合</span></td></tr>
+<tr><td><b>6. AI Video Generation</b></td><td>生成视频直接展示/播放，像视频广告。</td><td>先显示 reference image；点击 Generate → loading → 自动 Reveal 并播放原 preview video。</td><td><b>保持当前方案。</b> 不要求用户再手动 Play / scrub。</td><td><span class="badge done">已符合</span></td></tr>
+<tr><td><b>7. AI Music Generator</b></td><td>silent source / waveform 如果自己切换，仍然像自动演示。</td><td>已有 Send 按钮：点击后 loading → 自动 Reveal waveform / generated music UI。</td><td><b>保持一键触发。</b> 若原页面仍有进入视口就开始的视觉动画，先暂停，直到用户第一次点 Send。</td><td><span class="badge proposal">需确认首帧</span></td></tr>
+<tr><td><b>Pricing</b></td><td>不是功能播片。</td><td>保持 Monthly / Annual 原生交互。</td><td>不纳入这次改造。</td><td><span class="badge keep">保持</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>你要的交互粒度</h2>
+<section class="grid">
+  <article class="card"><h3>Best Moments</h3><div class="meta">1 click</div><div class="flow"><span class="step">暂停首帧</span><span class="arrow">→</span><span class="step user">点 Send</span><span class="arrow">→</span><span class="step">自动播放完整 edit</span></div><div class="note">不是“点 → 再点 clip → 再拖 timeline”。一次触发已经够。</div></article>
+  <article class="card"><h3>Motion Graphics</h3><div class="meta">1 click</div><div class="flow"><span class="step">Pending</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">Cards 自动生成/展开</span></div></article>
+  <article class="card"><h3>Text Editing</h3><div class="meta">1 click</div><div class="flow"><span class="step">Raw transcript</span><span class="arrow">→</span><span class="step user">点 Clean</span><span class="arrow">→</span><span class="step">fillers 自动逐个消失</span></div></article>
+  <article class="card"><h3>Captions</h3><div class="meta">1 click + optional controls</div><div class="flow"><span class="step">静止预览</span><span class="arrow">→</span><span class="step user">点 Preset / Preview</span><span class="arrow">→</span><span class="step">字幕动画自动播放</span></div></article>
+  <article class="card"><h3>Image Generation</h3><div class="meta">1 click</div><div class="flow"><span class="step">Source image</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">Loading → Result</span></div></article>
+  <article class="card"><h3>Video Generation</h3><div class="meta">1 click</div><div class="flow"><span class="step">Reference image</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">自动生成态 → 自动播放</span></div></article>
+  <article class="card"><h3>Music</h3><div class="meta">1 click</div><div class="flow"><span class="step">Silent source</span><span class="arrow">→</span><span class="step user">点 Send</span><span class="arrow">→</span><span class="step">Loading → Waveform / Music UI</span></div></article>
+  <article class="card"><h3>不做的事情</h3><div class="meta">明确排除</div><div class="note">不强制把每段 Demo 做成“用户操作 → 产品响应 → 用户再操作 → 产品再响应”的多轮 state machine。除非某个 Feature 本身需要两步才能说清楚，否则默认 1 次触发。</div></article>
+</section>
+
+<h2>验收口径</h2>
+<section class="card">
+  <div class="flow"><span class="step">进入 viewport</span><span class="arrow">→</span><span class="step">停在有意义的 Before 状态</span><span class="arrow">→</span><span class="step user">用户 1 次轻操作</span><span class="arrow">→</span><span class="step">原动画自动演完</span></div>
+  <p class="note">PASS 条件：用户能明确感到“是我触发了这个功能”，但不需要像真的剪辑软件一样完成一长串操作。</p>
+</section>
+
+<div class="footer">Review artifact · ChatCut homepage causal demos · 2026-09-20 · 此页面仅用于产品评审，不代表 ChatCut AI 后端真实生成。</div>
+</main>
+</body>
+</html>
