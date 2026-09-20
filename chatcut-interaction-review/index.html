@@ -22,6 +22,14 @@ th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;t
 .legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.footer{margin-top:34px;color:var(--muted);font-size:13px}
 @media(max-width:800px){.summary,.grid{grid-template-columns:1fr 1fr}.table-wrap{overflow:auto}table{min-width:900px}}
 @media(max-width:520px){main{padding:20px 12px 48px}.hero{padding:24px 20px}.hero h1{font-size:28px}.summary,.grid{grid-template-columns:1fr}}
+
+.ab-list{display:grid;gap:24px;margin-top:16px}.ab-item{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 10px 30px rgba(15,23,42,.05)}
+.ab-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}.ab-id{font:800 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#111827;color:#fff;padding:7px 10px;border-radius:9px;white-space:nowrap}.ab-title h3{margin:0;font-size:20px}.ab-title p{margin:4px 0 0;color:var(--muted)}
+.ab-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ab-panel{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0b1020}.ab-label{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line);font-weight:800}.ab-label small{font-weight:500;color:var(--muted)}.ab-panel img{display:block;width:100%;height:auto;background:#111827}
+.ab-foot{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-top:14px}.ab-comment{border:1px dashed #cbd5e1;border-radius:12px;padding:10px 12px;color:#475569;background:#f8fafc}.jump{color:#4338ca;font-weight:800;text-decoration:none}
+.pending-shot{min-height:260px;display:grid;place-items:center;padding:26px;text-align:center;color:#cbd5e1;background:repeating-linear-gradient(135deg,#0f172a,#0f172a 14px,#111827 14px,#111827 28px)}
+@media(max-width:760px){.ab-pair{grid-template-columns:1fr}.ab-foot{grid-template-columns:1fr}.ab-head{flex-direction:column}.ab-id{order:-1}}
+
 </style>
 </head>
 <body>
@@ -38,6 +46,67 @@ th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;t
   <div class="stat"><b>4</b><span>当前已基本符合“点一下再演”</span></div>
   <div class="stat"><b>3</b><span>还需要阻止首屏自动播</span></div>
   <div class="stat"><b>1–2</b><span>推荐每个 Demo 的用户动作数</span></div>
+</section>
+
+
+<h2>逐素材 A/B 审阅</h2>
+<p class="note">下面每个素材都有固定 Index。你后续可以直接说：<b>“A03 的右侧不对”</b>、<b>“A05 的 Before 要换”</b>。左边是触发前，右边是当前触发后的真实 runtime 截图。</p>
+<section class="ab-list">
+  <article class="ab-item" id="A01">
+    <div class="ab-head"><div class="ab-title"><h3>Best Moments / Edit Like an Expert</h3><p>点 Send 后允许原 final clip + playhead 自动演完。</p></div><span class="ab-id">A01</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>等待用户触发</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/02-expert-before.png" alt="A01 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Send 后自动播放</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/03-expert-after.png" alt="A01 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A01 + 你希望改的具体位置/状态。</div><a class="jump" href="#A01">#A01</a></div>
+  </article>
+
+  <article class="ab-item" id="A02">
+    <div class="ab-head"><div class="ab-title"><h3>AI Motion Graphics</h3><p>点 Generate 后，原 motion cards 在原位置自动 Reveal / 演完。</p></div><span class="ab-id">A02</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>Pending</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/04-motion-before.png" alt="A02 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Generate 后结果</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/05-motion-after.png" alt="A02 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A02 + 具体意见。</div><a class="jump" href="#A02">#A02</a></div>
+  </article>
+
+  <article class="ab-item" id="A03">
+    <div class="ab-head"><div class="ab-title"><h3>Text-Based Editing</h3><p>点 Clean / Send 后，filler words 自动逐个消失。</p></div><span class="ab-id">A03</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>Raw transcript</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/06-transcript-before.png" alt="A03 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Clean 后结果</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/07-transcript-after.png" alt="A03 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A03 + 具体意见。</div><a class="jump" href="#A03">#A03</a></div>
+  </article>
+
+  <article class="ab-item" id="A04">
+    <div class="ab-head"><div class="ab-title"><h3>Auto AI Captions</h3><p>当前只有 native 状态截图；本轮要补“先停住 → 点 preset/preview → 再自动播”的触发层。</p></div><span class="ab-id">A04</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Current Native <small>真实现状</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/08-captions-native.png" alt="A04 Current"></div>
+      <div class="ab-panel"><div class="ab-label">B · Target <small>待补真实截图</small></div><div class="pending-shot"><div><b>A04-B 尚未实现/截图</b><br>目标：静止首帧 → 用户点 preset / Preview → 原字幕动画自动播放。</div></div></div>
+    </div><div class="ab-foot"><div class="ab-comment">你可以先对 A04 的触发方式提建议；实现后这里替换成真实 After。</div><a class="jump" href="#A04">#A04</a></div>
+  </article>
+
+  <article class="ab-item" id="A05">
+    <div class="ab-head"><div class="ab-title"><h3>AI Image Generation</h3><p>Source image → 点 Generate → loading → generated result。</p></div><span class="ab-id">A05</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>Source image</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/09-image-before.png" alt="A05 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Generate 后结果</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/10-image-after.png" alt="A05 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A05 + 具体意见。</div><a class="jump" href="#A05">#A05</a></div>
+  </article>
+
+  <article class="ab-item" id="A06">
+    <div class="ab-head"><div class="ab-title"><h3>AI Video Generation</h3><p>Reference image → 点 Generate → loading → 自动 Reveal 并播放 preview video。</p></div><span class="ab-id">A06</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>Reference image</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/11-video-before.png" alt="A06 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Generated preview</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/12-video-after.png" alt="A06 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A06 + 具体意见。</div><a class="jump" href="#A06">#A06</a></div>
+  </article>
+
+  <article class="ab-item" id="A07">
+    <div class="ab-head"><div class="ab-title"><h3>AI Music Generator</h3><p>Silent source → 点 Send → loading → waveform / music result。</p></div><span class="ab-id">A07</span></div>
+    <div class="ab-pair">
+      <div class="ab-panel"><div class="ab-label">A · Before <small>Silent source</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/13-music-before.png" alt="A07 Before"></div>
+      <div class="ab-panel"><div class="ab-label">B · Now <small>Send 后结果</small></div><img src="https://raw.githubusercontent.com/liush2yuxjtu/html-artifacts/main/chatcut-production-mirror/intent-assets/14-music-after.png" alt="A07 Now"></div>
+    </div><div class="ab-foot"><div class="ab-comment">反馈格式：A07 + 具体意见。</div><a class="jump" href="#A07">#A07</a></div>
+  </article>
 </section>
 
 <h2>逐项梳理</h2>
