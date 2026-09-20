@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f4f6f3">
+<title>刘师宇 · Current Resume Gallery</title>
+<style>
+:root{--bg:#f4f6f3;--paper:#fff;--ink:#17211d;--muted:#66736c;--accent:#006b57;--soft:#eaf5f1;--line:#dbe5df;--warn:#8a5a00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","Microsoft YaHei",sans-serif}
+main{width:min(1160px,100%);margin:auto;padding:18px 14px 56px}
+header{padding:16px 4px 10px}.kicker{font-size:12px;font-weight:900;letter-spacing:.12em;color:var(--accent)}
+h1{margin:8px 0 8px;font-size:clamp(30px,7vw,54px);line-height:1.02;letter-spacing:-.045em}
+.lead{margin:0;color:var(--muted);font-size:15px;line-height:1.55;max-width:760px}
+.bar{position:sticky;top:0;z-index:5;margin:14px -14px 14px;padding:10px 14px;background:rgba(244,246,243,.94);backdrop-filter:blur(14px);border-block:1px solid var(--line);overflow:auto;white-space:nowrap}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:9px 12px;margin-right:7px;font-weight:800;font-size:13px;cursor:pointer}
+.chip[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.viewer{background:var(--paper);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 10px 30px rgba(23,33,29,.06)}
+.viewerHead{padding:14px 15px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.viewerHead h2{margin:0;font-size:19px;line-height:1.25}.meta{color:var(--muted);font-size:12px;margin-top:5px;line-height:1.45}
+.badge{font-size:11px;font-weight:900;color:var(--accent);background:var(--soft);padding:5px 8px;border-radius:999px;white-space:nowrap}
+.frame{width:100%;height:min(72vh,860px);border:0;background:#eef1ef;display:block}
+.actions{display:flex;gap:9px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--line)}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line);text-decoration:none;font-weight:850;color:var(--ink);background:#fff}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.note{font-size:12px;line-height:1.5;color:var(--muted);padding:0 14px 14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer}
+.card.active{outline:2px solid var(--accent);outline-offset:1px}.card h3{font-size:16px;margin:0 0 7px}.card p{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
+.small{font-size:11px;color:var(--muted);margin-top:8px}.private{color:var(--warn);font-weight:800}
+@media(max-width:680px){main{padding:8px 10px 36px}header{padding-top:14px}.bar{margin-left:-10px;margin-right:-10px;padding-left:10px}.frame{height:66vh}.grid{grid-template-columns:1fr}.viewerHead{padding:12px}.actions{padding:10px 12px}.btn{flex:1 1 auto}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<div class="kicker">CURRENT · 2026-09-20</div>
+<h1>刘师宇 · 简历 Gallery</h1>
+<p class="lead">只展示当前有效版本，不包含 Git 历史、recovered、v1 或旧指标版本。手机上可直接切换、预览和打开 PDF。</p>
+</header>
+<div class="bar" id="tabs" role="tablist" aria-label="简历版本"></div>
+<section class="viewer">
+  <div class="viewerHead">
+    <div><h2 id="title"></h2><div class="meta" id="meta"></div></div>
+    <div class="badge" id="badge"></div>
+  </div>
+  <iframe class="frame" id="pdf" title="简历 PDF 预览" loading="eager"></iframe>
+  <div class="actions">
+    <a class="btn primary" id="open" target="_blank" rel="noopener">打开 PDF</a>
+    <a class="btn" id="drive" target="_blank" rel="noopener">Google Drive</a>
+  </div>
+  <div class="note">若手机内嵌预览要求 Google 登录，直接点「打开 PDF」。PDF 文件保留原始可点击链接；Gallery 页面不把私密 PDF 二进制公开进 GitHub 仓库。</div>
+</section>
+<section class="grid" id="grid" aria-label="当前简历清单"></section>
+</main>
+<script>
+const docs=[
+ {id:"06",title:"AI PM · 业务结果与证据版",short:"最新 AI PM",tag:"最新",links:11,privacy:"公开安全入口",desc:"业务结果优先：6 周上线、验收/回款、2 个核心大区试点；保留 Agent 产品方法、Evals 与近期产品实践。",gid:"1MzOZTX99-iAEm70hPjwDdVibl06cQD15"},
+ {id:"02",title:"AI 产品经理 / Agent 产品经理",short:"AI PM",tag:"Current",links:10,privacy:"公开安全入口",desc:"现有 AI 产品经理 canonical 版：Agent Workflow、Human-in-the-loop、MCP、Evals、产品实验。",gid:"1IrA7wJIca2r5pEUrzvEpzAZOkwZIGv9o"},
+ {id:"01",title:"AI 产品工程 / Agent 系统 / 应用 AI",short:"AI 产品工程",tag:"Current",links:20,privacy:"本人 Drive",desc:"双栏 STAR + 产品判断，偏 AI 产品工程与 Agent 系统落地。",gid:"1Fy7G0Dl1UBQq1cVSx0aVxOKYdfdpZ7wy"},
+ {id:"03",title:"AI Agent 开发工程师",short:"Agent 工程",tag:"Current",links:18,privacy:"含私人联系方式",desc:"单栏工程证据优先，覆盖企业交付、Agent Runtime、开源工具与研究。",gid:"1m0h0yfXMSAaTaks5zYy81-5DPlkC30qU"},
+ {id:"04",title:"Agent 工程 · 双栏量化版",short:"Agent 量化",tag:"Current",links:18,privacy:"含私人联系方式",desc:"工程方向双栏量化版，强调 PR/测试/开源/学术等可验证数据。",gid:"1_CDLdJuMxZySjAEY7DO19OecYCb9yFwU"},
+ {id:"05",title:"BlackLake · Agent 产品经理视觉版",short:"BlackLake",tag:"定向",links:8,privacy:"本人 Drive",desc:"黑湖科技 Agent 产品经理定向视觉版；当前 canonical 视觉方向。",gid:"1heM1ltZHJK5rSiY79EB3yUjwSh72r_pa"}
+];
+let current="06";
+const byId=id=>docs.find(d=>d.id===id);
+const view=d=>{
+ current=d.id;
+ document.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-selected",x.dataset.id===d.id));
+ document.querySelectorAll(".card").forEach(x=>x.classList.toggle("active",x.dataset.id===d.id));
+ document.querySelector("#title").textContent=d.title;
+ document.querySelector("#meta").textContent=d.desc+" · PDF 内部可点击链接："+d.links+" 个";
+ document.querySelector("#badge").textContent=d.tag;
+ const preview="https://drive.google.com/file/d/"+d.gid+"/preview";
+ const open="https://drive.google.com/file/d/"+d.gid+"/view";
+ document.querySelector("#pdf").src=preview;
+ document.querySelector("#open").href=open;
+ document.querySelector("#drive").href=open;
+ history.replaceState(null,"","#"+d.id);
+};
+const tabs=document.querySelector("#tabs"),grid=document.querySelector("#grid");
+docs.forEach(d=>{
+ const b=document.createElement("button");b.className="chip";b.dataset.id=d.id;b.setAttribute("role","tab");b.textContent=d.short;b.onclick=()=>view(d);tabs.appendChild(b);
+ const c=document.createElement("article");c.className="card";c.dataset.id=d.id;c.innerHTML="<h3>"+d.title+"</h3><p>"+d.desc+"</p><div class='small'>PDF 链接 "+d.links+" 个 · <span class='"+(d.privacy.includes("私人")?"private":"")+"'>"+d.privacy+"</span></div>";c.onclick=()=>{view(d);scrollTo({top:0,behavior:"smooth"})};grid.appendChild(c);
+});
+const initial=location.hash?byId(location.hash.slice(1)):null;view(initial||docs[0]);
+</script>
+</body></html>
