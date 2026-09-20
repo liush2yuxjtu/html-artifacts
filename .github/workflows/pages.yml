@@ -7,6 +7,7 @@ on:
       - 'business-world-agent-design-system/**'
       - 'live-project-registry/**'
       - 'ai-product-resume/**'
+      - 'resume-gallery/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -43,10 +44,13 @@ jobs:
             mkdir -p _site/ai-product-resume
             cp ai-product-resume/index.html _site/ai-product-resume/
           fi
+          if [ -d resume-gallery ]; then
+            cp -R resume-gallery _site/
+          fi
           touch _site/.nojekyll
           cat > _site/index.html <<'HTML'
           <!doctype html>
-          <html lang="en">
+          <html lang="zh-CN">
           <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -59,8 +63,10 @@ jobs:
           </head>
           <body><main>
             <h1>HTML Artifacts</h1>
+            <a href="./resume-gallery/">刘师宇 · Current Resume Gallery</a>
             <a href="./business-world-agent-design-system/">Business World Agent Design System</a>
-            <a href="./live-project-registry/">Live Project Registry</a>\n            <a href="./ai-product-resume/">刘师宇 · AI 产品简历</a>
+            <a href="./live-project-registry/">Live Project Registry</a>
+            <a href="./ai-product-resume/">刘师宇 · AI 产品简历</a>
           </main></body>
           </html>
           HTML
