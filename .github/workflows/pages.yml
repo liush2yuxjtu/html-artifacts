@@ -87,6 +87,17 @@ jobs:
           python -m pip install --disable-pip-version-check playwright==1.55.0 pillow pypdf
           python -m playwright install --with-deps chromium
 
+      - name: Build current ChatCut preview and capture Baseline vs Preview keyframes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd chatcut-production-mirror
+          npm run build
+          cd ..
+          python chatcut-interaction-review/capture.py
+          mkdir -p _site/chatcut-interaction-review/keyframes
+          cp -R chatcut-interaction-review/keyframes/. _site/chatcut-interaction-review/keyframes/
+
       - name: Render and test AI product resume
         shell: bash
         run: |
