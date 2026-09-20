@@ -1,371 +1,46 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ChatCut · Homepage Demo Interaction Review</title>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut Interaction Review</title>
 <style>
-:root{--bg:#f6f7fb;--card:#fff;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#4f46e5;--good:#047857;--warn:#b45309;--soft:#eef2ff}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:1160px;margin:auto;padding:42px 22px 72px}
-.hero{background:linear-gradient(135deg,#111827,#312e81);color:white;border-radius:24px;padding:34px;box-shadow:0 24px 60px rgba(17,24,39,.16)}
-.hero h1{margin:0 0 10px;font-size:34px;line-height:1.15}.hero p{margin:0;max-width:830px;color:#dbeafe;font-size:16px}
-.rule{margin-top:18px;padding:14px 16px;border:1px solid rgba(255,255,255,.18);border-radius:14px;background:rgba(255,255,255,.08);font-weight:750}
-.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 26px}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}.stat b{display:block;font-size:26px}.stat span{color:var(--muted)}
-h2{font-size:22px;margin:34px 0 14px}
-table{width:100%;border-collapse:separate;border-spacing:0;background:white;border:1px solid var(--line);border-radius:18px;overflow:hidden}
-th,td{padding:14px 14px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}th{background:#f9fafb;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#4b5563}tr:last-child td{border-bottom:0}
-.badge{display:inline-block;border-radius:999px;padding:4px 9px;font-size:12px;font-weight:800}.done{background:#ecfdf5;color:var(--good)}.proposal{background:#fff7ed;color:var(--warn)}.keep{background:#f3f4f6;color:#374151}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.card{background:white;border:1px solid var(--line);border-radius:18px;padding:20px}.card h3{margin:0 0 6px;font-size:18px}.meta{color:var(--muted);font-size:13px}
-.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:15px 0}.step{padding:9px 11px;border-radius:11px;background:#f3f4f6;font-weight:700}.step.user{background:var(--soft);color:#3730a3;border:1px solid #c7d2fe}.arrow{color:#9ca3af;font-weight:900}.note{padding:12px 14px;border-left:3px solid var(--accent);background:#f8fafc;border-radius:8px;color:#374151}
-.legend{display:flex;gap:9px;flex-wrap:wrap;margin-top:16px}.footer{margin-top:34px;color:var(--muted);font-size:13px}
-@media(max-width:800px){.summary,.grid{grid-template-columns:1fr 1fr}.table-wrap{overflow:auto}table{min-width:900px}}
-@media(max-width:520px){main{padding:20px 12px 48px}.hero{padding:24px 20px}.hero h1{font-size:28px}.summary,.grid{grid-template-columns:1fr}}
-
-.ab-list{display:grid;gap:24px;margin-top:16px}.ab-item{background:#fff;border:1px solid var(--line);border-radius:22px;padding:20px;box-shadow:0 10px 30px rgba(15,23,42,.05)}
-.ab-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}.ab-id{font:800 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#111827;color:#fff;padding:7px 10px;border-radius:9px;white-space:nowrap}.ab-title h3{margin:0;font-size:20px}.ab-title p{margin:4px 0 0;color:var(--muted)}
-.ab-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ab-panel{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#0b1020}.ab-label{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#fff;border-bottom:1px solid var(--line);font-weight:800}.ab-label small{font-weight:500;color:var(--muted)}.ab-panel img{display:block;width:100%;height:auto;background:#111827}
-.ab-foot{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-top:14px}.ab-comment{border:1px dashed #cbd5e1;border-radius:12px;padding:10px 12px;color:#475569;background:#f8fafc}.jump{color:#4338ca;font-weight:800;text-decoration:none}
-.pending-shot{min-height:260px;display:grid;place-items:center;padding:26px;text-align:center;color:#cbd5e1;background:repeating-linear-gradient(135deg,#0f172a,#0f172a 14px,#111827 14px,#111827 28px)}
-@media(max-width:760px){.ab-pair{grid-template-columns:1fr}.ab-foot{grid-template-columns:1fr}.ab-head{flex-direction:column}.ab-id{order:-1}}
-
-
-.live-preview{background:#0b1020;border-radius:16px;padding:14px;min-height:280px;color:#e5e7eb;display:flex;flex-direction:column;gap:12px;overflow:hidden}
-.live-preview *{box-sizing:border-box}
-.lp-toolbar{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-.lp-title{font-size:13px;font-weight:800;color:#f8fafc}.lp-status{font-size:12px;color:#94a3b8}
-.lp-stage{background:#111827;border:1px solid #263041;border-radius:14px;padding:14px;min-height:176px;position:relative;overflow:hidden}
-.lp-btn{min-height:44px;min-width:44px;padding:10px 14px;border:0;border-radius:12px;background:#eef2ff;color:#3730a3;font-weight:800;font-size:14px;cursor:pointer}
-.lp-btn:active{transform:translateY(1px)}.lp-btn[disabled]{opacity:.45;cursor:not-allowed}
-.lp-reset{background:#1f2937;color:#e5e7eb}.lp-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.lp-card{background:#1f2937;border:1px solid #374151;border-radius:10px;padding:12px;min-width:0}
-.lp-progress{height:7px;background:#1f2937;border-radius:999px;overflow:hidden}.lp-progress>i{display:block;height:100%;width:0;background:#c7d2fe;transition:width 1.1s ease}
-.lp-film{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.lp-film span{aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#9ca3af,#374151)}
-.lp-motion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.lp-motion-grid div{height:60px;border-radius:9px;background:#1f2937;border:1px solid #374151;display:grid;place-items:center;font-size:12px;transition:.6s ease;opacity:.4;transform:translateY(8px)}
-.lp-motion-grid.generated div{opacity:1;transform:none;background:#312e81}
-.lp-transcript{font-size:15px;line-height:1.8}.filler{display:inline-block;padding:0 4px;border-radius:5px;background:#7c2d12;color:#fed7aa;transition:.35s ease}.filler.gone{opacity:0;transform:scale(.7);width:0;padding:0;margin:0;overflow:hidden}
-.lp-caption-canvas{height:160px;border-radius:12px;background:linear-gradient(135deg,#334155,#0f172a);display:grid;place-items:center;padding:20px;text-align:center}.lp-caption-text{font-size:24px;font-weight:900;padding:7px 10px;border-radius:9px;background:rgba(0,0,0,.65);transition:.3s}
-.lp-image-stage,.lp-video-stage{height:180px;border-radius:12px;background:linear-gradient(135deg,#c4b5fd,#334155);display:grid;place-items:center;position:relative;overflow:hidden}.lp-image-stage.result{background:linear-gradient(135deg,#f59e0b,#7c3aed)}.lp-video-stage.playing:after{content:"▶  Preview playing";position:absolute;inset:auto 12px 12px 12px;padding:8px 10px;border-radius:8px;background:rgba(0,0,0,.6);font-weight:800}
-.lp-wave{height:90px;display:flex;align-items:center;gap:3px}.lp-wave i{display:block;width:4px;height:12px;background:#64748b;border-radius:999px;transition:.45s}.lp-wave.generated i{background:#a5b4fc}.lp-wave.generated i:nth-child(3n){height:52px}.lp-wave.generated i:nth-child(2n){height:34px}.lp-wave.generated i:nth-child(5n){height:64px}
-.lp-keyframes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.lp-keyframes figure{margin:0}.lp-keyframes img{width:100%;display:block;border-radius:8px;border:1px solid #e5e7eb}.lp-keyframes figcaption{font-size:11px;color:#6b7280;margin-top:4px}
-.review-live-note{font-size:12px;color:#64748b;margin-top:8px}
-@media(max-width:760px){.ab-pair{grid-template-columns:1fr}.live-preview{min-height:0}.lp-motion-grid{grid-template-columns:repeat(2,1fr)}.lp-keyframes{grid-template-columns:1fr}.lp-btn{width:100%}}
-@media(prefers-reduced-motion:reduce){.live-preview *{transition:none!important;animation:none!important}}
-
-</style>
-</head>
-<body>
-<main>
-<section class="hero">
-  <h1>ChatCut 首页播片 → 轻交互 Demo</h1>
-  <p>评审页只定义“每个动画如何被用户触发”。目标不是把首页改成复杂编辑器，而是让用户先做一个极轻动作，再让原来的动画/结果自动演完。</p>
-  <div class="rule">最终规则：每个有“播片感”的 Feature Demo，都不能一进视口就自己演完；至少需要 1 次用户点击/选择触发。触发后允许自动播放到结果。</div>
-  <div class="legend"><span class="badge done">已符合</span><span class="badge proposal">需要补一层触发</span><span class="badge keep">非播片 / 保持</span></div>
-</section>
-
-<section class="summary">
-  <div class="stat"><b>7</b><span>首页主要 Feature Demo</span></div>
-  <div class="stat"><b>4</b><span>当前已基本符合“点一下再演”</span></div>
-  <div class="stat"><b>3</b><span>还需要阻止首屏自动播</span></div>
-  <div class="stat"><b>1–2</b><span>推荐每个 Demo 的用户动作数</span></div>
-</section>
-
-
-<h2>Baseline vs Live Preview · 逐素材审阅</h2>
-<p class="note">左侧是 Baseline；右侧现在是<b>可交互 Live Preview</b>。手机直接点按钮即可体验“先由用户触发，再自动演完”。每项下面保留 exact Preview 的三个关键帧证据：Baseline / K0 / K1。</p>
-<section class="ab-list">
-<article class="ab-item" id="A01">
-  <div class="ab-head"><div class="ab-title"><h3>Best Moments / Edit Like an Expert</h3><p>Preview 里点一次 Send，后续剪辑播放自动完成。</p></div><span class="ab-id">A01</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a01-baseline.png" alt="A01 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A01">
-        <div class="lp-toolbar"><div class="lp-title">Best Moments / Edit Like an Expert</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-film"><span></span><span></span><span></span><span></span><span></span><span></span></div><div style="margin-top:14px" class="lp-progress"><i></i></div><div style="margin-top:12px;font-size:13px;color:#94a3b8">Find the highlights and add B-roll to my video.</div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Send</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a01-baseline.png" alt="A01 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a01-preview-idle.png" alt="A01 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a01-preview-after.png" alt="A01 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A01">等待 CI interaction report</span></div><a class="jump" href="#A01">#A01</a></div>
-</article>
-<article class="ab-item" id="A02">
-  <div class="ab-head"><div class="ab-title"><h3>AI Motion Graphics</h3><p>Preview 里点一次 Generate，motion cards 自动 Reveal。</p></div><span class="ab-id">A02</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a02-baseline.png" alt="A02 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A02">
-        <div class="lp-toolbar"><div class="lp-title">AI Motion Graphics</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-motion-grid"><div>01</div><div>02</div><div>03</div><div>04</div><div>05</div><div>06</div></div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a02-baseline.png" alt="A02 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a02-preview-idle.png" alt="A02 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a02-preview-after.png" alt="A02 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A02">等待 CI interaction report</span></div><a class="jump" href="#A02">#A02</a></div>
-</article>
-<article class="ab-item" id="A03">
-  <div class="ab-head"><div class="ab-title"><h3>Text-Based Editing</h3><p>Preview 里点一次 Clean，filler words 自动依次消失。</p></div><span class="ab-id">A03</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a03-baseline.png" alt="A03 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A03">
-        <div class="lp-toolbar"><div class="lp-title">Text-Based Editing</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-transcript">Today <span class="filler">um</span> I want to <span class="filler">like</span> show how <span class="filler">you know</span> text editing works.</div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Clean filler words</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a03-baseline.png" alt="A03 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a03-preview-idle.png" alt="A03 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a03-preview-after.png" alt="A03 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A03">等待 CI interaction report</span></div><a class="jump" href="#A03">#A03</a></div>
-</article>
-<article class="ab-item" id="A04">
-  <div class="ab-head"><div class="ab-title"><h3>Auto AI Captions</h3><p>这个 Review Preview 已可交互；真实产品实现仍标记 GAP，直到同样的 click gate 进入 ChatCut Preview。</p></div><span class="ab-id">A04</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a04-baseline.png" alt="A04 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A04">
-        <div class="lp-toolbar"><div class="lp-title">Auto AI Captions</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-caption-canvas"><div class="lp-caption-text">Readable captions, styled fast.</div></div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="preset" data-style="plain">Plain</button><button class="lp-btn" data-action="preset" data-style="pop">TikTok Pop</button><button class="lp-btn" data-action="preset" data-style="noir">Noir Glass</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a04-baseline.png" alt="A04 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a04-preview-idle.png" alt="A04 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a04-preview-after.png" alt="A04 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A04">等待 CI interaction report</span></div><a class="jump" href="#A04">#A04</a></div>
-</article>
-<article class="ab-item" id="A05">
-  <div class="ab-head"><div class="ab-title"><h3>AI Image Generation</h3><p>Preview 里点一次 Generate，source → loading → result。</p></div><span class="ab-id">A05</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a05-baseline.png" alt="A05 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A05">
-        <div class="lp-toolbar"><div class="lp-title">AI Image Generation</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-image-stage"><b>Source image</b></div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a05-baseline.png" alt="A05 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a05-preview-idle.png" alt="A05 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a05-preview-after.png" alt="A05 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A05">等待 CI interaction report</span></div><a class="jump" href="#A05">#A05</a></div>
-</article>
-<article class="ab-item" id="A06">
-  <div class="ab-head"><div class="ab-title"><h3>AI Video Generation</h3><p>Preview 里点一次 Generate，reference → loading → 自动播放 preview。</p></div><span class="ab-id">A06</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a06-baseline.png" alt="A06 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A06">
-        <div class="lp-toolbar"><div class="lp-title">AI Video Generation</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div class="lp-video-stage"><b>Reference frame</b></div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Generate</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a06-baseline.png" alt="A06 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a06-preview-idle.png" alt="A06 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a06-preview-after.png" alt="A06 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A06">等待 CI interaction report</span></div><a class="jump" href="#A06">#A06</a></div>
-</article>
-<article class="ab-item" id="A07">
-  <div class="ab-head"><div class="ab-title"><h3>AI Music Generator</h3><p>Preview 里点一次 Send，silent source → loading → waveform result。</p></div><span class="ab-id">A07</span></div>
-  <div class="ab-pair">
-    <div class="ab-panel">
-      <div class="ab-label">Baseline <small>2026-09-15 基础版本</small></div>
-      <img src="./keyframes/a07-baseline.png" alt="A07 Baseline" onerror="this.parentElement.innerHTML='<div class=&quot;pending-shot&quot;>等待 CI 生成 Baseline 截图</div>'">
-    </div>
-    <div>
-      <div class="ab-label" style="border:1px solid var(--line);border-radius:14px 14px 0 0">Live Preview <small>手机可点</small></div>
-      <div class="live-preview" data-live="A07">
-        <div class="lp-toolbar"><div class="lp-title">AI Music Generator</div><div class="lp-status" aria-live="polite">Idle · waiting for you</div></div>
-        
-    <div class="lp-stage"><div style="font-size:13px;color:#94a3b8">Upbeat lo-fi hip hop, relaxed mood, 90 BPM</div><div class="lp-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
-    <div class="lp-row"><button class="lp-btn" data-action="run">Send</button><button class="lp-btn lp-reset" data-action="reset">Reset</button></div>
-      </div>
-      <div class="review-live-note">这是交互评审组件，用来审“触发方式与节奏”；下面关键帧仍由 exact Preview CI 生成，用来核对真实实现。</div>
-    </div>
-  </div>
-  <div class="lp-keyframes">
-    <figure><img src="./keyframes/a07-baseline.png" alt="A07 baseline keyframe"><figcaption>Baseline</figcaption></figure>
-    <figure><img src="./keyframes/a07-preview-idle.png" alt="A07 preview idle keyframe"><figcaption>Preview K0 · idle</figcaption></figure>
-    <figure><img src="./keyframes/a07-preview-after.png" alt="A07 preview after keyframe"><figcaption>Preview K1 · after trigger</figcaption></figure>
-  </div>
-  <div class="ab-foot"><div class="ab-comment"><span data-status="A07">等待 CI interaction report</span></div><a class="jump" href="#A07">#A07</a></div>
-</article></section>
-<script>
-(() => {
-  const roots = document.querySelectorAll('[data-live]');
-  roots.forEach(root => {
-    if (root.dataset.bound === '1') return;
-    root.dataset.bound = '1';
-    const id = root.dataset.live;
-    const status = root.querySelector('.lp-status');
-    let timers = [];
-    const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
-    const setStatus = t => { status.textContent = t; };
-
-    function reset() {
-      clearTimers();
-      setStatus('Idle · waiting for you');
-      const progress = root.querySelector('.lp-progress > i'); if (progress) progress.style.width='0%';
-      const motion = root.querySelector('.lp-motion-grid'); if (motion) motion.classList.remove('generated');
-      root.querySelectorAll('.filler').forEach(x => x.classList.remove('gone'));
-      const cap = root.querySelector('.lp-caption-text'); if (cap) { cap.style.background='rgba(0,0,0,.65)'; cap.style.color='#fff'; cap.style.transform='none'; }
-      const img = root.querySelector('.lp-image-stage'); if (img) { img.classList.remove('result'); img.innerHTML='<b>Source image</b>'; }
-      const vid = root.querySelector('.lp-video-stage'); if (vid) { vid.classList.remove('playing'); vid.innerHTML='<b>Reference frame</b>'; }
-      const wave = root.querySelector('.lp-wave'); if (wave) wave.classList.remove('generated');
-      root.querySelectorAll('.lp-btn').forEach(b => b.disabled=false);
-    }
-
-    function run() {
-      if (id==='A01') {
-        setStatus('Running · finding highlights + adding B-roll');
-        const p=root.querySelector('.lp-progress > i'); p.style.width='100%';
-        timers.push(setTimeout(()=>setStatus('Done · first cut updated'),1200));
-      } else if (id==='A02') {
-        setStatus('Generating motion graphics…');
-        timers.push(setTimeout(()=>{root.querySelector('.lp-motion-grid').classList.add('generated');setStatus('Done · motion cards ready')},380));
-      } else if (id==='A03') {
-        setStatus('Cleaning transcript…');
-        root.querySelectorAll('.filler').forEach((x,i)=>timers.push(setTimeout(()=>x.classList.add('gone'),180+i*220)));
-        timers.push(setTimeout(()=>setStatus('Done · filler words removed'),1100));
-      } else if (id==='A05') {
-        const el=root.querySelector('.lp-image-stage'); setStatus('Generating image…'); el.innerHTML='<b>Generating…</b>';
-        timers.push(setTimeout(()=>{el.classList.add('result');el.innerHTML='<b>Generated result</b>';setStatus('Done · image ready')},850));
-      } else if (id==='A06') {
-        const el=root.querySelector('.lp-video-stage'); setStatus('Generating video…'); el.innerHTML='<b>Generating…</b>';
-        timers.push(setTimeout(()=>{el.classList.add('playing');el.innerHTML='<b>Generated video</b>';setStatus('Done · preview playing')},950));
-      } else if (id==='A07') {
-        setStatus('Generating music…');
-        timers.push(setTimeout(()=>{root.querySelector('.lp-wave').classList.add('generated');setStatus('Done · waveform ready')},850));
-      }
-    }
-
-    root.addEventListener('click', e => {
-      const btn=e.target.closest('button[data-action]'); if(!btn) return;
-      const action=btn.dataset.action;
-      if(action==='reset'){reset();return;}
-      if(action==='preset'){
-        const cap=root.querySelector('.lp-caption-text');
-        const s=btn.dataset.style;
-        if(s==='plain'){cap.style.background='rgba(0,0,0,.65)';cap.style.color='#fff';cap.style.transform='none';}
-        if(s==='pop'){cap.style.background='#fff';cap.style.color='#111827';cap.style.transform='scale(1.05) rotate(-1deg)';}
-        if(s==='noir'){cap.style.background='rgba(15,23,42,.85)';cap.style.color='#e2e8f0';cap.style.transform='scale(.98)';}
-        setStatus('Playing captions · '+btn.textContent);
-        timers.push(setTimeout(()=>setStatus('Done · caption style previewed'),900));
-        return;
-      }
-      btn.disabled=true;
-      run();
-      timers.push(setTimeout(()=>{btn.disabled=false},1300));
-    });
-  });
-
-  fetch('./keyframes/report.json?ts='+Date.now()).then(r=>r.ok?r.json():Promise.reject()).then(report=>{
-    for(const item of report.items||[]){
-      const el=document.querySelector('[data-status="'+item.id+'"]');
-      if(!el) continue;
-      el.textContent=item.status+(item.errors&&item.errors.length?' · '+item.errors.join(' / '):'');
-      el.style.fontWeight='800';
-      el.style.color=item.status==='PASS'?'#047857':item.status==='GAP'?'#b45309':'#b91c1c';
-    }
-  }).catch(()=>{});
-})();
-</script>
-<h2>逐项梳理</h2>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Element</th><th>原来的播片感</th><th>现在已经改成</th><th>这次最终要求</th><th>状态</th></tr></thead>
-<tbody>
-<tr><td><b>1. Edit Like an Expert Editor</b><br>Best Moments</td><td>页面展示结果/最终 clip，容易像在看别人编辑。</td><td>结果先被 Hold。用户点击 Send 后，原来的 final clip 和 playhead 自动继续播放。</td><td><b>保持当前方案。</b> 1 次点击即可，后面自动演完。</td><td><span class="badge done">已符合</span></td></tr>
-<tr><td><b>2. AI Motion Graphics</b></td><td>已有 motion cards / Remotion 结果容易直接呈现成展示动画。</td><td>结果先显示为 pending；用户点击 Generate 后，原来的结果 cards 在原位置 Reveal / 强调。</td><td><b>保持当前方案。</b> 点击 Generate 后允许动画自动完成。</td><td><span class="badge done">已符合</span></td></tr>
-<tr><td><b>3. Text-Based Editing</b></td><td>filler words 的清理过程如果自动发生，会像录屏。</td><td>先回到 raw transcript；用户点击 Send / Clean 后，filler words 按顺序自动消失，timeline 自动变短。</td><td><b>保持当前方案。</b> 不需要用户一个个删词。</td><td><span class="badge done">已符合</span></td></tr>
-<tr><td><b>4. Auto AI Captions</b></td><td>当前原生 caption preview 会自己播放，仍有明显“播片”感。</td><td>旧 intent 里是“保持原生，不改”。</td><td><b>补一个极轻触发：</b>用户点击任意 Caption preset / Preview 一次后，再开始自动播放字幕动画；左右切换仍保持原生。</td><td><span class="badge proposal">需补触发</span></td></tr>
-<tr><td><b>5. AI Image Generation</b></td><td>一开始就看见生成结果，像展示成片。</td><td>先显示 before/source image；点击 Generate → 短 loading → 自动换成原来的 generated result。</td><td><b>保持当前方案。</b> 1 次点击后自动完成。</td><td><span class="badge done">已符合</span></td></tr>
-<tr><td><b>6. AI Video Generation</b></td><td>生成视频直接展示/播放，像视频广告。</td><td>先显示 reference image；点击 Generate → loading → 自动 Reveal 并播放原 preview video。</td><td><b>保持当前方案。</b> 不要求用户再手动 Play / scrub。</td><td><span class="badge done">已符合</span></td></tr>
-<tr><td><b>7. AI Music Generator</b></td><td>silent source / waveform 如果自己切换，仍然像自动演示。</td><td>已有 Send 按钮：点击后 loading → 自动 Reveal waveform / generated music UI。</td><td><b>保持一键触发。</b> 若原页面仍有进入视口就开始的视觉动画，先暂停，直到用户第一次点 Send。</td><td><span class="badge proposal">需确认首帧</span></td></tr>
-<tr><td><b>Pricing</b></td><td>不是功能播片。</td><td>保持 Monthly / Annual 原生交互。</td><td>不纳入这次改造。</td><td><span class="badge keep">保持</span></td></tr>
-</tbody>
-</table>
-</div>
-
-<h2>你要的交互粒度</h2>
-<section class="grid">
-  <article class="card"><h3>Best Moments</h3><div class="meta">1 click</div><div class="flow"><span class="step">暂停首帧</span><span class="arrow">→</span><span class="step user">点 Send</span><span class="arrow">→</span><span class="step">自动播放完整 edit</span></div><div class="note">不是“点 → 再点 clip → 再拖 timeline”。一次触发已经够。</div></article>
-  <article class="card"><h3>Motion Graphics</h3><div class="meta">1 click</div><div class="flow"><span class="step">Pending</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">Cards 自动生成/展开</span></div></article>
-  <article class="card"><h3>Text Editing</h3><div class="meta">1 click</div><div class="flow"><span class="step">Raw transcript</span><span class="arrow">→</span><span class="step user">点 Clean</span><span class="arrow">→</span><span class="step">fillers 自动逐个消失</span></div></article>
-  <article class="card"><h3>Captions</h3><div class="meta">1 click + optional controls</div><div class="flow"><span class="step">静止预览</span><span class="arrow">→</span><span class="step user">点 Preset / Preview</span><span class="arrow">→</span><span class="step">字幕动画自动播放</span></div></article>
-  <article class="card"><h3>Image Generation</h3><div class="meta">1 click</div><div class="flow"><span class="step">Source image</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">Loading → Result</span></div></article>
-  <article class="card"><h3>Video Generation</h3><div class="meta">1 click</div><div class="flow"><span class="step">Reference image</span><span class="arrow">→</span><span class="step user">点 Generate</span><span class="arrow">→</span><span class="step">自动生成态 → 自动播放</span></div></article>
-  <article class="card"><h3>Music</h3><div class="meta">1 click</div><div class="flow"><span class="step">Silent source</span><span class="arrow">→</span><span class="step user">点 Send</span><span class="arrow">→</span><span class="step">Loading → Waveform / Music UI</span></div></article>
-  <article class="card"><h3>不做的事情</h3><div class="meta">明确排除</div><div class="note">不强制把每段 Demo 做成“用户操作 → 产品响应 → 用户再操作 → 产品再响应”的多轮 state machine。除非某个 Feature 本身需要两步才能说清楚，否则默认 1 次触发。</div></article>
-</section>
-
-<h2>验收口径</h2>
-<section class="card">
-  <div class="flow"><span class="step">进入 viewport</span><span class="arrow">→</span><span class="step">停在有意义的 Before 状态</span><span class="arrow">→</span><span class="step user">用户 1 次轻操作</span><span class="arrow">→</span><span class="step">原动画自动演完</span></div>
-  <p class="note">PASS 条件：用户能明确感到“是我触发了这个功能”，但不需要像真的剪辑软件一样完成一长串操作。</p>
-</section>
-
-<div class="footer">Review artifact · ChatCut homepage causal demos · 2026-09-20 · 此页面仅用于产品评审，不代表 ChatCut AI 后端真实生成。</div>
-</main>
-</body>
-</html>
+:root{--bg:#f7f7f8;--card:#fff;--ink:#18181b;--muted:#71717a;--line:#e4e4e7;--accent:#4f46e5;--soft:#eef2ff;--dark:#111827}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button{font:inherit}
+main{max-width:1180px;margin:auto;padding:24px 18px 56px}.top{display:flex;justify-content:space-between;gap:18px;align-items:end;margin-bottom:18px}.top h1{font-size:26px;line-height:1.1;margin:0}.top p{margin:6px 0 0;color:var(--muted);max-width:760px}.pill{white-space:nowrap;font:700 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:#18181b;color:white;padding:8px 10px;border-radius:9px}
+.nav{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:thin}.nav button{min-height:42px;padding:9px 12px;border:1px solid var(--line);background:white;border-radius:10px;white-space:nowrap;font-weight:700;color:#52525b}.nav button[aria-selected="true"]{border-color:#a5b4fc;background:var(--soft);color:#3730a3}
+.review{background:white;border:1px solid var(--line);border-radius:18px;overflow:hidden}.head{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line)}.head h2{font-size:18px;margin:0}.head .desc{color:var(--muted);margin-top:3px}.status{font-size:12px;font-weight:800;padding:6px 9px;border-radius:999px;background:#f4f4f5;color:#52525b}
+.compare{display:grid;grid-template-columns:1fr 1fr;min-height:470px}.pane{min-width:0;padding:16px}.pane+.pane{border-left:1px solid var(--line)}.label{display:flex;justify-content:space-between;gap:10px;margin-bottom:10px;font-weight:800}.label small{font-weight:500;color:var(--muted)}
+.baseline{aspect-ratio:16/10;border-radius:14px;background:#f1f5f9;border:1px solid #e2e8f0;overflow:hidden;display:grid;place-items:center;color:#64748b;text-align:center;padding:18px}.baseline img{width:100%;height:100%;object-fit:contain;display:block}.baseline .fallback{max-width:260px}
+.live{background:#0b1020;border-radius:14px;padding:14px;color:#e5e7eb;min-height:294px;display:flex;flex-direction:column;gap:12px}.livebar{display:flex;justify-content:space-between;gap:10px;align-items:center}.livebar strong{font-size:13px}.livebar span{font-size:12px;color:#94a3b8}.stage{flex:1;background:#111827;border:1px solid #263041;border-radius:12px;padding:14px;overflow:hidden;display:flex;flex-direction:column;justify-content:center}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{min-height:44px;padding:10px 14px;border:0;border-radius:10px;background:#eef2ff;color:#3730a3;font-weight:800;cursor:pointer}.btn.secondary{background:#1f2937;color:#e5e7eb}.btn:disabled{opacity:.45}.btn:focus-visible,.nav button:focus-visible{outline:3px solid #a5b4fc;outline-offset:2px}
+.film{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.film i{aspect-ratio:16/10;border-radius:6px;background:linear-gradient(135deg,#94a3b8,#334155)}.progress{height:7px;background:#1f2937;border-radius:999px;overflow:hidden;margin-top:14px}.progress i{display:block;height:100%;width:0;background:#a5b4fc;transition:width 1s ease}
+.motion{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.motion i{height:58px;border-radius:8px;background:#1f2937;border:1px solid #374151;opacity:.42;transform:translateY(7px);transition:.55s ease}.motion.done i{opacity:1;transform:none;background:#312e81}.transcript{font-size:15px;line-height:1.9}.filler{display:inline-block;background:#7c2d12;color:#fed7aa;border-radius:5px;padding:0 4px;transition:.3s}.filler.gone{opacity:0;transform:scale(.7);width:0;padding:0;margin:0;overflow:hidden}.caption{height:170px;border-radius:12px;background:linear-gradient(135deg,#334155,#0f172a);display:grid;place-items:center;text-align:center;padding:18px}.caption b{font-size:23px;padding:7px 10px;border-radius:8px;background:rgba(0,0,0,.68);transition:.25s}.visual{height:180px;border-radius:12px;background:linear-gradient(135deg,#c4b5fd,#334155);display:grid;place-items:center;font-weight:800;transition:.5s}.visual.result{background:linear-gradient(135deg,#f59e0b,#7c3aed)}.visual.playing::after{content:'▶  Preview playing';position:absolute}.wave{height:100px;display:flex;align-items:center;gap:3px}.wave i{width:4px;height:12px;border-radius:999px;background:#64748b;transition:.4s}.wave.done i{background:#a5b4fc}.wave.done i:nth-child(2n){height:36px}.wave.done i:nth-child(3n){height:58px}.wave.done i:nth-child(5n){height:70px}
+.evidence{border-top:1px solid var(--line);padding:14px 18px;background:#fafafa}.evidence summary{cursor:pointer;font-weight:800}.frames{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}.frame{border:1px solid var(--line);border-radius:10px;background:white;padding:8px}.frame .shot{aspect-ratio:16/9;background:#f1f5f9;border-radius:7px;overflow:hidden;display:grid;place-items:center;color:#94a3b8;font-size:12px}.frame img{width:100%;height:100%;object-fit:contain}.frame small{display:block;margin-top:6px;color:var(--muted)}
+.feedback{margin-top:12px;color:var(--muted);font-size:13px}.feedback code{color:#3730a3;background:#eef2ff;padding:2px 5px;border-radius:5px}
+@media(max-width:760px){main{padding:14px 10px 40px}.top{align-items:flex-start}.top h1{font-size:22px}.pill{display:none}.review{border-radius:14px}.head{align-items:flex-start}.compare{grid-template-columns:1fr;min-height:0}.pane{padding:12px}.pane+.pane{border-left:0;border-top:1px solid var(--line)}.baseline{aspect-ratio:16/9}.live{min-height:0}.actions .btn{flex:1 1 130px}.motion{grid-template-columns:repeat(2,1fr)}.frames{grid-template-columns:1fr}.nav{margin-inline:-2px}.status{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><main>
+<div class="top"><div><h1>ChatCut · Baseline vs Preview</h1><p>一次只审一个素材。左边看基础版本，右边直接点最新交互。手机上同样可用。</p></div><div class="pill" id="indexPill">A01</div></div>
+<div class="nav" role="tablist" aria-label="Review elements" id="nav"></div>
+<section class="review"><div class="head"><div><h2 id="title"></h2><div class="desc" id="desc"></div></div><span class="status" id="status">Review</span></div>
+<div class="compare"><div class="pane"><div class="label">Baseline <small>2026-09-15</small></div><div class="baseline" id="baseline"></div></div><div class="pane"><div class="label">Interactive Preview <small>current concept</small></div><div class="live" id="live"></div><div class="feedback" id="feedback"></div></div></div>
+<details class="evidence"><summary>关键帧证据（Baseline / Preview K0 / Preview K1）</summary><div class="frames" id="frames"></div></details></section>
+</main><script>
+(()=>{const data=[
+{id:'A01',title:'Best Moments',desc:'用户点一次 Send，后续自动演完。',trigger:'Send',type:'expert'},
+{id:'A02',title:'AI Motion Graphics',desc:'用户点一次 Generate，motion cards 自动 Reveal。',trigger:'Generate',type:'motion'},
+{id:'A03',title:'Text-Based Editing',desc:'用户点一次 Clean，filler words 自动消失。',trigger:'Clean',type:'transcript'},
+{id:'A04',title:'Auto AI Captions',desc:'用户点一个 Caption preset 后才开始预览。',trigger:'Preset',type:'captions'},
+{id:'A05',title:'AI Image Generation',desc:'用户点一次 Generate，source → loading → result。',trigger:'Generate',type:'image'},
+{id:'A06',title:'AI Video Generation',desc:'用户点一次 Generate，reference → loading → preview。',trigger:'Generate',type:'video'},
+{id:'A07',title:'AI Music Generator',desc:'用户点一次 Send，silent source → waveform。',trigger:'Send',type:'music'}];
+let current=0,timers=[];const $=s=>document.querySelector(s),nav=$('#nav'),live=$('#live');
+function baselineUrl(id){return `https://liush2yuxjtu.github.io/html-artifacts/chatcut-interaction-review/keyframes/${id.toLowerCase()}-baseline.png`}
+function keyUrl(id,k){return `https://liush2yuxjtu.github.io/html-artifacts/chatcut-interaction-review/keyframes/${id.toLowerCase()}-${k}.png`}
+function clear(){timers.forEach(clearTimeout);timers=[]}
+function stage(d){if(d.type==='expert')return `<div class="stage"><div class="film">${'<i></i>'.repeat(6)}</div><div class="progress"><i></i></div><div style="margin-top:12px;color:#94a3b8">Find the highlights and add B-roll.</div></div><div class="actions"><button class="btn" data-run>Send</button><button class="btn secondary" data-reset>Reset</button></div>`;
+if(d.type==='motion')return `<div class="stage"><div class="motion">${'<i></i>'.repeat(6)}</div></div><div class="actions"><button class="btn" data-run>Generate</button><button class="btn secondary" data-reset>Reset</button></div>`;
+if(d.type==='transcript')return `<div class="stage"><div class="transcript">Today <span class="filler">um</span> I want to <span class="filler">like</span> show how <span class="filler">you know</span> text editing works.</div></div><div class="actions"><button class="btn" data-run>Clean filler words</button><button class="btn secondary" data-reset>Reset</button></div>`;
+if(d.type==='captions')return `<div class="stage"><div class="caption"><b>Readable captions, styled fast.</b></div></div><div class="actions"><button class="btn" data-preset="plain">Plain</button><button class="btn" data-preset="pop">TikTok Pop</button><button class="btn" data-preset="noir">Noir</button><button class="btn secondary" data-reset>Reset</button></div>`;
+if(d.type==='image')return `<div class="stage"><div class="visual">Source image</div></div><div class="actions"><button class="btn" data-run>Generate</button><button class="btn secondary" data-reset>Reset</button></div>`;
+if(d.type==='video')return `<div class="stage"><div class="visual">Reference frame</div></div><div class="actions"><button class="btn" data-run>Generate</button><button class="btn secondary" data-reset>Reset</button></div>`;
+return `<div class="stage"><div style="color:#94a3b8;font-size:13px">Upbeat lo-fi hip hop · 90 BPM</div><div class="wave">${'<i></i>'.repeat(24)}</div></div><div class="actions"><button class="btn" data-run>Send</button><button class="btn secondary" data-reset>Reset</button></div>`}
+function render(i){clear();current=i;const d=data[i];$('#indexPill').textContent=d.id;$('#title').textContent=`${d.id} · ${d.title}`;$('#desc').textContent=d.desc;$('#baseline').innerHTML=`<img src="${baselineUrl(d.id)}" alt="${d.id} baseline">`;live.innerHTML=`<div class="livebar"><strong>${d.title}</strong><span aria-live="polite">Idle · waiting for you</span></div>${stage(d)}`;$('#feedback').innerHTML=`评审反馈可直接写：<code>${d.id}：……</code>`;$('#frames').innerHTML=['baseline','preview-idle','preview-after'].map((k,j)=>`<div class="frame"><div class="shot"><img src="${keyUrl(d.id,k)}" alt="${d.id} ${k}" /></div><small>${['Baseline','Preview K0 · idle','Preview K1 · after trigger'][j]}</small></div>`).join('');[...nav.children].forEach((b,n)=>b.setAttribute('aria-selected',n===i?'true':'false'));}
+function reset(){clear();render(current)}function run(){const d=data[current],st=live.querySelector('.livebar span');if(d.type==='expert'){st.textContent='Running…';live.querySelector('.progress i').style.width='100%';timers.push(setTimeout(()=>st.textContent='Done · first cut updated',1100))}else if(d.type==='motion'){st.textContent='Generating…';timers.push(setTimeout(()=>{live.querySelector('.motion').classList.add('done');st.textContent='Done · motion ready'},350))}else if(d.type==='transcript'){st.textContent='Cleaning…';live.querySelectorAll('.filler').forEach((x,n)=>timers.push(setTimeout(()=>x.classList.add('gone'),160+n*180)));timers.push(setTimeout(()=>st.textContent='Done · fillers removed',850))}else if(d.type==='image'||d.type==='video'){const v=live.querySelector('.visual');st.textContent='Generating…';v.textContent='Generating…';timers.push(setTimeout(()=>{v.classList.add('result');v.textContent=d.type==='image'?'Generated result':'Generated preview';st.textContent='Done'},850))}else if(d.type==='music'){st.textContent='Generating…';timers.push(setTimeout(()=>{live.querySelector('.wave').classList.add('done');st.textContent='Done · waveform ready'},750))}}
+nav.innerHTML=data.map((d,i)=>`<button type="button" role="tab" data-i="${i}">${d.id}</button>`).join('');nav.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(b)render(+b.dataset.i)});live.addEventListener('click',e=>{if(e.target.closest('[data-reset]'))return reset();if(e.target.closest('[data-run]'))return run();const p=e.target.closest('[data-preset]');if(p){const b=live.querySelector('.caption b'),st=live.querySelector('.livebar span');if(p.dataset.preset==='plain'){b.style.background='rgba(0,0,0,.68)';b.style.color='#fff';b.style.transform='none'}if(p.dataset.preset==='pop'){b.style.background='#fff';b.style.color='#111827';b.style.transform='scale(1.06) rotate(-1deg)'}if(p.dataset.preset==='noir'){b.style.background='rgba(15,23,42,.9)';b.style.color='#e2e8f0';b.style.transform='scale(.98)'}st.textContent='Playing · '+p.textContent;clear();timers.push(setTimeout(()=>st.textContent='Done · caption previewed',800))}});render(0)})();
+</script></body></html>
