@@ -10,6 +10,7 @@ on:
       - 'resume-gallery/**'
       - 'blacklake-agent-pm-resume/**'
       - 'chatcut-interaction-review/**'
+      - 'chatcut-interaction-review-a06-v2/**'
       - 'original-homepages-2026-09-15/**'
       - 'chatcut-production-mirror/**'
       - 'chatcut-product-thesis-v2/**'
@@ -58,6 +59,9 @@ jobs:
           if [ -d chatcut-interaction-review ]; then
             cp -R chatcut-interaction-review _site/
           fi
+          if [ -d chatcut-interaction-review-a06-v2 ]; then
+            cp -R chatcut-interaction-review-a06-v2 _site/
+          fi
           if [ -d chatcut-product-thesis-v2 ]; then
             cp -R chatcut-product-thesis-v2 _site/
           fi
@@ -83,6 +87,7 @@ jobs:
             <a href="./live-project-registry/">Live Project Registry</a>
             <a href="./ai-product-resume/">刘师宇 · AI 产品简历</a>
             <a href="./chatcut-interaction-review/">ChatCut · 首页 Demo 交互评审</a>
+            <a href="./chatcut-interaction-review-a06-v2/">ChatCut · A06 单 Reference 评审</a>
             <a href="./chatcut-product-thesis-v2/">ChatCut · 产品与商业化思考（多页版）</a>
           </main></body>
           </html>
