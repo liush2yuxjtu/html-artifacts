@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChatCut A06 Review v2</title>
+<style>
+:root{--bg:#f7f7f8;--card:#fff;--ink:#18181b;--muted:#71717a;--line:#e4e4e7;--accent:#4f46e5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1120px;margin:auto;padding:22px 14px 56px}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:end;margin-bottom:16px}.top h1{margin:0;font-size:26px}.top p{margin:6px 0 0;color:var(--muted);max-width:760px}.tag{background:#18181b;color:#fff;border-radius:9px;padding:8px 10px;font:700 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}.head{padding:15px 18px;border-bottom:1px solid var(--line)}.head h2{margin:0;font-size:18px}.head p{margin:5px 0 0;color:var(--muted)}
+.compare{display:grid;grid-template-columns:1fr 1fr}.pane{padding:14px;min-width:0}.pane+.pane{border-left:1px solid var(--line)}.label{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;font-weight:800}.label small{font-weight:500;color:var(--muted)}
+.frame{border:1px solid #d4d4d8;border-radius:14px;overflow:hidden;background:#fff}.browserbar{height:34px;background:#fafafa;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 10px}.dot{width:8px;height:8px;border-radius:50%;background:#d4d4d8}.url{margin-left:6px;color:#71717a;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.open{margin-left:auto;color:#4338ca;text-decoration:none;font-weight:800;font-size:12px}
+iframe{display:block;width:100%;height:520px;border:0;background:#fff}
+.flow{padding:14px 18px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;flex-wrap:wrap}.step{padding:8px 10px;border-radius:9px;background:#f4f4f5;font-weight:700}.step.user{background:#eef2ff;color:#3730a3}.arrow{color:#a1a1aa;font-weight:900}
+.evidence{padding:12px 18px;border-top:1px solid var(--line);background:#fafafa}.evidence summary{font-weight:800;cursor:pointer}.shots{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.shot{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px}.shot img{width:100%;display:block;border-radius:7px;background:#f4f4f5}.shot small{display:block;margin-top:5px;color:var(--muted)}
+.note{margin-top:14px;padding:11px 13px;border:1px solid #c7d2fe;background:#eef2ff;color:#3730a3;border-radius:10px}
+@media(max-width:780px){.top{align-items:flex-start}.tag{display:none}.compare{grid-template-columns:1fr}.pane+.pane{border-left:0;border-top:1px solid var(--line)}iframe{height:460px}.shots{grid-template-columns:1fr}.top h1{font-size:22px}}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <div>
+      <h1>ChatCut A06 · 单 Reference 漫画 → 单视频</h1>
+      <p>这是独立实验版，不覆盖之前的 Review。这里只验证一件事：这个 Feature 应该只有 1 张真实漫画 Reference，以及 1 个对应生成视频。</p>
+    </div>
+    <div class="tag">A06-v2</div>
+  </div>
+
+  <section class="card">
+    <div class="head">
+      <h2>AI Video Generation for the Shots You Couldn't Film</h2>
+      <p>目标交互：真实漫画稳定展示 → 用户点 Generate → 原视频结果出现并播放。不要展示额外 3 个“素材”。</p>
+    </div>
+
+    <div class="compare">
+      <div class="pane">
+        <div class="label">Baseline <small>原始版本</small></div>
+        <div class="frame">
+          <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">original-homepages-2026-09-15/chatcut</span><a class="open" href="../original-homepages-2026-09-15/chatcut/" target="_blank" rel="noreferrer">打开</a></div>
+          <iframe id="baseline" src="../original-homepages-2026-09-15/chatcut/" title="ChatCut baseline A06"></iframe>
+        </div>
+      </div>
+
+      <div class="pane">
+        <div class="label">Preview <small>真实可玩版本</small></div>
+        <div class="frame">
+          <div class="browserbar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="url">chatcut-production-mirror-preview-73uactwqj.vercel.app/#image-to-video</span><a class="open" href="https://chatcut-production-mirror-preview-73uactwqj.vercel.app/#image-to-video" target="_blank" rel="noreferrer">打开真实 Preview</a></div>
+          <iframe src="https://chatcut-production-mirror-preview-73uactwqj.vercel.app/#image-to-video" title="ChatCut A06 verified preview"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow">
+      <span class="step">1 张真实漫画 Reference</span>
+      <span class="arrow">→</span>
+      <span class="step user">Generate</span>
+      <span class="arrow">→</span>
+      <span class="step">1 个真实生成视频</span>
+    </div>
+
+    <details class="evidence">
+      <summary>只看 A06 的真实关键帧证据</summary>
+      <div class="shots">
+        <div class="shot"><img src="../chatcut-production-mirror/intent-assets/11-video-before.png" alt="A06 reference keyframe"><small>Reference 漫画 / trigger 前</small></div>
+        <div class="shot"><img src="../chatcut-production-mirror/intent-assets/12-video-after.png" alt="A06 generated video keyframe"><small>Generated video / trigger 后</small></div>
+      </div>
+    </details>
+  </section>
+
+  <div class="note">旧 Review 页面保持不变。这个页面只是 A06 的独立候选方案，方便你先判断结构是不是对的。</div>
+</main>
+<script>
+(() => {
+  const frame = document.getElementById('baseline');
+  function scrollBaseline() {
+    try {
+      const d = frame.contentDocument;
+      const hs = [...d.querySelectorAll('h1,h2,h3')];
+      const h = hs.find(x => x.textContent.includes("AI Video Generation for the Shots You Couldn't Film"));
+      if (h) (h.closest('section') || h).scrollIntoView({block:'start'});
+    } catch {}
+  }
+  frame.addEventListener('load', () => setTimeout(scrollBaseline, 200));
+})();
+</script>
+</body>
+</html>
