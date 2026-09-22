@@ -421,15 +421,15 @@ const PATCH_JS = String.raw`
 })();
 `;
 
-function absoluteize(html) {
+function absoluteize(html, assetOrigin = ORIGIN) {
   const attrs = ['href','src','poster','component-url','renderer-url','before-hydration-url'];
   for (const attr of attrs) {
     const re = new RegExp(`(${attr}\\s*=\\s*["'])(/(?!/)[^"']*)(["'])`, 'gi');
-    html = html.replace(re, (_m,a,p,z) => `${a}${ORIGIN}${p}${z}`);
+    html = html.replace(re, (_m,a,p,z) => `${a}${assetOrigin}${p}${z}`);
   }
-  html = html.replace(/url\(\s*(["']?)(\/(?!\/)[^"')]+)\1\s*\)/gi, (_m,q,p)=>`url(${q}${ORIGIN}${p}${q})`);
-  html = html.replace(/(&quot;)(\/(?!\/)[^&<>\s]*?)(?=&quot;)/g, (_m,q,p)=>`${q}${ORIGIN}${p}`);
-  html = html.replace(/(["'])(\/(?!\/)[A-Za-z0-9._~!$&()*+,;=:@%/?#-]*)(\1)/g, (_m,q,p)=>`${q}${ORIGIN}${p}${q}`);
+  html = html.replace(/url\(\s*(["']?)(\/(?!\/)[^"')]+)\1\s*\)/gi, (_m,q,p)=>`url(${q}${assetOrigin}${p}${q})`);
+  html = html.replace(/(&quot;)(\/(?!\/)[^&<>\s]*?)(?=&quot;)/g, (_m,q,p)=>`${q}${assetOrigin}${p}`);
+  html = html.replace(/(["'])(\/(?!\/)[A-Za-z0-9._~!$&()*+,;=:@%/?#-]*)(\1)/g, (_m,q,p)=>`${q}${assetOrigin}${p}${q}`);
   return html;
 }
 
@@ -468,15 +468,17 @@ await fs.rm(OUT,{recursive:true,force:true});
 await fs.mkdir(OUT,{recursive:true});
 let html = await fetchPage(`${ORIGIN}/`);
 let source = 'production';
+let assetOrigin = ORIGIN;
 if (!hasHomepageContract(html)) {
   console.warn('[build] current production variant does not expose the reviewed ChatCut demo surfaces; using immutable verified fallback');
   html = stripPreviousPlayableLayer(await fetchPage(VERIFIED_FALLBACK));
   source = 'verified-fallback';
+  assetOrigin = new URL(VERIFIED_FALLBACK).origin;
 }
 for (const required of REQUIRED_HOME_SURFACES) {
   if (!html.includes(required)) throw new Error(`Homepage contract changed: missing ${required}`);
 }
-html = stripTracking(absoluteize(html));
+html = stripTracking(absoluteize(html, assetOrigin));
 html = html.replace(/<html([^>]*)>/i, (match, attrs) => {
   if (/data-cc-mirror-source=/.test(attrs)) return match;
   return `<html${attrs} data-cc-mirror-source="${source}">`;
