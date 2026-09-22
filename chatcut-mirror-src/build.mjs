@@ -200,9 +200,12 @@ const PATCH_JS = String.raw`
   function renderCaptions() {
     const root = q('#transcript-captions [data-tc-part="captions"]');
     if (!root) return;
+    root.setAttribute('data-cc-demo', 'captions');
     root.classList.toggle('cc-captions-awaiting', session.captions === 'idle');
     const video = q('#tc-video', root);
     if (!video) return;
+    video.muted = true;
+    video.playsInline = true;
     if (video.dataset.ccGateBound !== '1') {
       video.dataset.ccGateBound = '1';
       video.addEventListener('play', () => {
@@ -214,6 +217,11 @@ const PATCH_JS = String.raw`
     if (session.captions === 'idle') {
       video.pause();
       try { if (video.currentTime > .05) video.currentTime = 0; } catch {}
+      return;
+    }
+    if (video.paused) {
+      const p = video.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
     }
   }
 
@@ -489,4 +497,4 @@ html = html.replace(/<\/body\s*>/i, `<script data-cc-playable-patch>${PATCH_JS.r
 await fs.writeFile(path.join(OUT,'index.html'),html,'utf8');
 await fs.writeFile(path.join(OUT,'intent.html'),'<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatCut playable intent</title><style>body{font-family:Inter,system-ui;margin:0;background:#fcfbfd;color:#211a13}main{max-width:900px;margin:auto;padding:64px 24px}h1{font-size:clamp(40px,7vw,72px);line-height:.98}p{font-size:20px;line-height:1.55;color:#6b6256}.card{margin-top:28px;padding:24px;border:1px solid #e5e0d8;border-radius:18px;background:#fff}</style><main><h1>Copy first. Edit second.</h1><p>Production ChatCut homepage is fetched at build time. Original layout, CSS, scripts, images and videos stay authoritative. The patch only turns existing demos into local cause→effect interactions.</p><div class="card">Send → original Best Moments cut advances · Transcript → filler words visibly disappear · Generate image/video/music → the original result state appears in place.</div></main>','utf8');
 await fs.writeFile(path.join(OUT,'.nojekyll'),'','utf8');
-console.log(JSON.stringify({ok:true,bytes:Buffer.byteLength(html),out:OUT,patchVersion:2},null,2));
+console.log(JSON.stringify({ok:true,bytes:Buffer.byteLength(html),out:OUT,patchVersion:3},null,2));
