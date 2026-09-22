@@ -14,6 +14,7 @@ on:
       - 'original-homepages-2026-09-15/**'
       - 'chatcut-production-mirror/**'
       - 'chatcut-product-thesis-v2/**'
+      - 'telemetry-observatory-v2/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 
@@ -65,6 +66,9 @@ jobs:
           if [ -d chatcut-product-thesis-v2 ]; then
             cp -R chatcut-product-thesis-v2 _site/
           fi
+          if [ -d telemetry-observatory-v2 ]; then
+            cp -R telemetry-observatory-v2 _site/
+          fi
           touch _site/.nojekyll
           cat > _site/index.html <<'HTML'
           <!doctype html>
@@ -89,6 +93,7 @@ jobs:
             <a href="./chatcut-interaction-review/">ChatCut · 首页 Demo 交互评审</a>
             <a href="./chatcut-interaction-review-a06-v2/">ChatCut · A06 单 Reference 评审</a>
             <a href="./chatcut-product-thesis-v2/">ChatCut · 产品与商业化思考（多页版）</a>
+            <a href="./telemetry-observatory-v2/">Telemetry · 安装来源与转化看板</a>
           </main></body>
           </html>
           HTML
