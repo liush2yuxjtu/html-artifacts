@@ -126,7 +126,11 @@ async function collectErrors(browser, url, waitMs = 1400) {
       const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
       await captions.scrollIntoViewIfNeeded();
       const next = page.locator('#tc-style-next');
+      const captionsVideo = page.locator('#transcript-captions [data-tc-part="captions"] #tc-video');
       await next.waitFor({ state: 'visible', timeout: 10000 });
+      await captionsVideo.waitFor({ state: 'visible', timeout: 10000 });
+      await page.waitForTimeout(350);
+      const captionsInitiallyPaused = await captionsVideo.evaluate(video => video.paused && video.currentTime < 0.1);
       const before = await page.evaluate(() => {
         const line = document.querySelector('#tc-cap-line');
         const root = document.querySelector('#transcript-captions [data-tc-part="captions"]');
@@ -140,6 +144,9 @@ async function collectErrors(browser, url, waitMs = 1400) {
         return JSON.stringify({ preset: line?.getAttribute('data-preset'), cls: line?.className, html: root?.innerHTML });
       });
       const captionsChanged = before !== after;
+      const captionsPlayingAfterAction = await captionsVideo.evaluate(video => !video.paused);
+      const captionsState = await page.evaluate(() => window.__chatcutDemoSession?.captions);
+      const captionsGated = captionsInitiallyPaused && captionsPlayingAfterAction && captionsState === 'playing';
 
       const localRelevant = relevant(errors);
       const localOnlyErrors = localRelevant.filter(message => !baselineSignatures.has(signature(message)));
@@ -160,6 +167,7 @@ async function collectErrors(browser, url, waitMs = 1400) {
         localizedCount,
         astroIslands,
         captionsChanged,
+        captionsGated,
         productionBaselineErrors: baselineRelevant,
         pageErrors: localRelevant,
         localOnlyErrors,
@@ -171,6 +179,7 @@ async function collectErrors(browser, url, waitMs = 1400) {
       if (localOnlyErrors.length) failures.push('local-only-page-errors');
       if (failed.length) failures.push('asset-request-failures');
       if (!captionsChanged) failures.push('captions-native-control');
+      if (!captionsGated) failures.push('captions-click-gate');
       console.log(JSON.stringify({ ...result, failures }, null, 2));
       if (failures.length) process.exitCode = 1;
     } finally {
