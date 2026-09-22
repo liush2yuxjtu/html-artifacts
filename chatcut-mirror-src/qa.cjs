@@ -131,6 +131,7 @@ async function main() {
     video: false,
     music: false,
     captionsGated: false,
+    mobile: false,
     stayedLocal: true,
     pageErrors: [],
     snapshotErrors,
@@ -272,7 +273,37 @@ async function main() {
     report.stayedLocal = new URL(page.url()).hostname === '127.0.0.1';
     report.pageErrors = pageErrors.filter(message => !/ResizeObserver loop/i.test(message));
 
-    const required = ['publicShape','expert','motion','transcript','captionsGated','image','video','music','stayedLocal'];
+    const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+    try {
+      await mobile.goto(LOCAL_URL + '&mobile=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
+      await mobile.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
+      await mobile.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '3', null, { timeout: 15000 });
+      const noOverflow = await mobile.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
+
+      const mobileCaptions = mobile.locator('#transcript-captions [data-tc-part="captions"]');
+      await settleLocator(mobile, mobileCaptions);
+      const mobileCaptionVideo = mobile.locator('#transcript-captions [data-tc-part="captions"] #tc-video');
+      const mobileCaptionPaused = await mobileCaptionVideo.evaluate(video => video.paused && video.currentTime < 0.1);
+      await mobile.locator('#tc-style-next').click();
+      await mobile.waitForFunction(() => {
+        const video = document.querySelector('#transcript-captions [data-tc-part="captions"] #tc-video');
+        return Boolean(video && !video.paused);
+      }, null, { timeout: 5000 });
+
+      const mobileVideoStory = mobile.locator('#image-to-video .itv-story-video');
+      await settleLocator(mobile, mobileVideoStory);
+      const visibleVideoOptions = await mobileVideoStory.evaluate(root => [...root.querySelectorAll('.itv-option-button')].filter(button => {
+        const style = getComputedStyle(button);
+        return !button.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+      }).length);
+
+      report.mobile = noOverflow && mobileCaptionPaused && visibleVideoOptions === 1;
+      await mobile.screenshot({ path: path.join(SNAP_ROOT, '17-mobile-latest.png'), fullPage: false, animations: 'disabled' });
+    } finally {
+      await mobile.close();
+    }
+
+    const required = ['publicShape','expert','motion','transcript','captionsGated','image','video','music','mobile','stayedLocal'];
     const failures = required.filter(key => !report[key]);
     if (snapshotErrors.length) failures.push('snapshots');
     console.log(JSON.stringify({ ...report, failures }, null, 2));
