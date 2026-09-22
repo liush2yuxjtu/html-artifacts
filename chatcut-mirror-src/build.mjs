@@ -40,6 +40,7 @@ const PATCH_CSS = String.raw`
 #image-to-video .itv-story-video.cc-video-loading .itv-video-poster{opacity:1!important}
 #image-to-video .itv-story-video.cc-video-generated .itv-showcase-video{opacity:1!important}
 #image-to-video .itv-story-video.cc-video-generated .itv-video-poster{opacity:0!important}
+#image-to-video .itv-story-video .itv-option-dock>.itv-option-button:nth-child(n+2){display:none!important}
 #image-to-video .itv-story-video .itv-option-button[hidden]{display:none!important}
 
 #music-generation .cc-music-prompt-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 10px 10px 12px;border:1px solid #e5e0d8;border-radius:12px;background:#fff;color:#211a13;box-shadow:0 10px 28px rgba(35,28,20,.06)}
