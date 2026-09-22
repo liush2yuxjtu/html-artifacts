@@ -12,6 +12,8 @@ on:
       - 'chatcut-interaction-review/**'
       - 'chatcut-interaction-review-a06-v2/**'
       - 'chatcut-latest/**'
+      - 'chatcut-playable/**'
+      - 'chatcut-snapshots/**'
       - 'original-homepages-2026-09-15/**'
       - 'chatcut-production-mirror/**'
       - 'chatcut-product-thesis-v2/**'
@@ -66,6 +68,12 @@ jobs:
           fi
           if [ -d chatcut-latest ]; then
             cp -R chatcut-latest _site/
+          fi
+          if [ -d chatcut-playable ]; then
+            cp -R chatcut-playable _site/
+          fi
+          if [ -d chatcut-snapshots ]; then
+            cp -R chatcut-snapshots _site/
           fi
           if [ -d chatcut-product-thesis-v2 ]; then
             cp -R chatcut-product-thesis-v2 _site/
