@@ -26,13 +26,21 @@ const css = `
 }
 
 #image-to-video .itv-story.cc-image-source .itv-showcase-img{
-  opacity:.60!important;
-  filter:saturate(.68)!important;
+  opacity:1!important;
+  filter:none!important;
 }
 #image-to-video .itv-story.cc-image-source .itv-showcase::after{
+  content:'Ready to generate'!important;
+  inset:auto 10px 10px auto!important;
+  width:auto!important;
+  height:auto!important;
+  display:block!important;
+  padding:5px 8px!important;
+  border:1px solid rgba(111,103,95,.16)!important;
+  border-radius:999px!important;
   color:#6f675f!important;
-  background:rgba(252,251,253,.36)!important;
-  backdrop-filter:blur(1px);
+  background:rgba(252,251,253,.90)!important;
+  backdrop-filter:blur(4px);
 }
 #image-to-video .itv-story.cc-image-generated .itv-showcase-img{
   opacity:1!important;
