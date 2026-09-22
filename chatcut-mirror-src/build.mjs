@@ -21,6 +21,7 @@ const PATCH_CSS = String.raw`
 #best-moments.cc-expert-running .bm-final-row,#best-moments.cc-expert-done .bm-final-row{opacity:1!important}
 
 #motion-graphics.cc-motion-awaiting .agentic-thinking-card{opacity:.28;filter:saturate(.55) blur(.5px);transition:opacity .35s ease,filter .35s ease,transform .35s ease}
+#motion-graphics.cc-motion-awaiting .agentic-thinking-card *{animation-play-state:paused!important}
 #motion-graphics.cc-motion-generated .agentic-thinking-card{opacity:1;filter:none;transition:opacity .35s ease,filter .35s ease,transform .35s ease}
 #motion-graphics.cc-motion-generated .agentic-thinking-card:nth-child(2){transform:translateY(-4px);box-shadow:0 18px 42px rgba(35,28,20,.14)}
 
@@ -32,9 +33,13 @@ const PATCH_CSS = String.raw`
 #image-to-video .itv-story.cc-image-source .itv-showcase-img{filter:saturate(.35) blur(2px);opacity:.34;transition:filter .35s ease,opacity .35s ease}
 #image-to-video .itv-story.cc-image-source .itv-showcase::after{content:'Waiting to generate';position:absolute;inset:0;z-index:9;display:grid;place-items:center;color:#6f675f;font-size:12px;font-weight:650;letter-spacing:.01em;background:linear-gradient(180deg,rgba(252,251,253,.18),rgba(252,251,253,.42));pointer-events:none}
 #image-to-video .itv-story.cc-image-generated .itv-showcase-img{filter:none;opacity:1;transition:filter .35s ease,opacity .35s ease}
-#image-to-video .cc-video-reference-overlay{position:absolute;inset:0;z-index:12;width:100%;height:100%;object-fit:cover;background:#f3f0ea}
-#image-to-video .itv-story-video.cc-video-awaiting .itv-showcase-video,#image-to-video .itv-story-video.cc-video-awaiting .itv-video-poster{opacity:0!important}
+#image-to-video .itv-story-video.cc-video-awaiting .itv-showcase-video,
+#image-to-video .itv-story-video.cc-video-loading .itv-showcase-video{opacity:0!important}
+#image-to-video .itv-story-video.cc-video-awaiting .itv-video-poster,
+#image-to-video .itv-story-video.cc-video-loading .itv-video-poster{opacity:1!important}
 #image-to-video .itv-story-video.cc-video-generated .itv-showcase-video{opacity:1!important}
+#image-to-video .itv-story-video.cc-video-generated .itv-video-poster{opacity:0!important}
+#image-to-video .itv-story-video .itv-option-button[hidden]{display:none!important}
 
 #music-generation .cc-music-prompt-bar{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 10px 10px 12px;border:1px solid #e5e0d8;border-radius:12px;background:#fff;color:#211a13;box-shadow:0 10px 28px rgba(35,28,20,.06)}
 #music-generation .cc-music-state-pill{flex:none;padding:5px 8px;border-radius:999px;background:#f3f0ea;color:#71685f;font-size:10px;font-weight:700;white-space:nowrap}
@@ -42,6 +47,7 @@ const PATCH_CSS = String.raw`
 #music-generation .cc-music-prompt-bar>.cc-local-send{flex:none}
 #music-generation .cc-music-prompt-bar>.cc-demo-status{display:none}
 #music-generation.cc-music-awaiting .tc-music-board{opacity:.3;filter:saturate(.35);transition:opacity .4s ease,filter .4s ease}
+#music-generation.cc-music-awaiting .tc-music-board *{animation-play-state:paused!important}
 #music-generation.cc-music-loading .tc-music-board{opacity:.45;filter:saturate(.5);transition:opacity .4s ease,filter .4s ease}
 #music-generation.cc-music-generated .tc-music-board{opacity:1;filter:none;transition:opacity .4s ease,filter .4s ease}
 
@@ -51,10 +57,11 @@ const PATCH_CSS = String.raw`
 
 const PATCH_JS = String.raw`
 (() => {
-  const DEFAULT_SESSION = { expert:'idle', motion:'idle', transcript:'raw', image:'source', video:'reference', music:'silent' };
+  const DEFAULT_SESSION = { expert:'idle', motion:'idle', transcript:'raw', captions:'idle', image:'source', video:'reference', music:'silent' };
   const session = window.__chatcutDemoSession || { ...DEFAULT_SESSION };
   window.__chatcutDemoSession = session;
-  document.documentElement.dataset.ccPlayableVersion = '2';
+  document.documentElement.dataset.ccPlayableVersion = '3';
+  const IMAGE_BEFORE_ASSET = 'https://chatcut.io/features/ai-image-generator/cat-white-before.webp';
 
   const q = (s, r=document) => r.querySelector(s);
   const qa = (s, r=document) => Array.from(r.querySelectorAll(s));
@@ -189,6 +196,26 @@ const PATCH_JS = String.raw`
     }
   }
 
+  function renderCaptions() {
+    const root = q('#transcript-captions [data-tc-part="captions"]');
+    if (!root) return;
+    root.classList.toggle('cc-captions-awaiting', session.captions === 'idle');
+    const video = q('#tc-video', root);
+    if (!video) return;
+    if (video.dataset.ccGateBound !== '1') {
+      video.dataset.ccGateBound = '1';
+      video.addEventListener('play', () => {
+        if (session.captions !== 'idle') return;
+        video.pause();
+        try { video.currentTime = 0; } catch {}
+      });
+    }
+    if (session.captions === 'idle') {
+      video.pause();
+      try { if (video.currentTime > .05) video.currentTime = 0; } catch {}
+    }
+  }
+
   function renderImage() {
     const root = q('#image-to-video .itv-story:not(.itv-story-video)');
     if (!root) return;
@@ -196,51 +223,55 @@ const PATCH_JS = String.raw`
     root.classList.toggle('cc-image-loading', session.image === 'loading');
     root.classList.toggle('cc-image-generated', session.image === 'generated');
     const showcase = q('.itv-showcase', root);
+    const image = q('.itv-showcase-img', root);
     const status = ensureStatus(root, 'image', '.itv-prompt-shell', 'Source ready · result not generated yet');
+    if (image && !image.dataset.ccGeneratedSrc) image.dataset.ccGeneratedSrc = image.currentSrc || image.src;
+    if (image && session.image !== 'generated' && image.src !== IMAGE_BEFORE_ASSET) {
+      image.src = IMAGE_BEFORE_ASSET;
+      image.alt = 'Original source before AI generation';
+    }
     if (session.image === 'loading') {
       ensureLoading(showcase, 'image', 'Generating image…');
       text(status, 'Generating image…');
     } else {
       clearLoading(showcase, 'image');
+      if (image && session.image === 'generated' && image.dataset.ccGeneratedSrc) {
+        image.src = image.dataset.ccGeneratedSrc;
+        image.alt = 'Generated image ready for the edit';
+      }
       text(status, session.image === 'generated' ? 'Generated · ready to add to the edit' : 'Source ready · result not generated yet');
     }
-  }
-
-  function ensureVideoReference(root) {
-    const showcase = q('.itv-video-showcase', root);
-    const reference = q('.itv-reference-card img', root);
-    if (!showcase || !reference) return;
-    let overlay = q('.cc-video-reference-overlay', showcase);
-    if (!overlay) {
-      overlay = document.createElement('img');
-      overlay.className = 'cc-video-reference-overlay';
-      overlay.alt = 'Selected reference image waiting to become video';
-      showcase.append(overlay);
-    }
-    const src = reference.currentSrc || reference.src;
-    if (src && overlay.src !== src) overlay.src = src;
   }
 
   function renderVideo() {
     const root = q('#image-to-video .itv-story-video');
     if (!root) return;
     root.classList.toggle('cc-video-awaiting', session.video === 'reference');
+    root.classList.toggle('cc-video-loading', session.video === 'loading');
     root.classList.toggle('cc-video-generated', session.video === 'generated');
     const showcase = q('.itv-video-showcase', root);
     const video = q('.itv-showcase-video', root);
+    const options = qa('.itv-option-button', root);
+    options.forEach((button, index) => {
+      button.hidden = index > 0;
+      button.setAttribute('aria-hidden', index > 0 ? 'true' : 'false');
+      if (index === 0) button.removeAttribute('tabindex');
+      else button.setAttribute('tabindex', '-1');
+    });
     const status = ensureStatus(root, 'video', '.itv-prompt-shell', 'Reference image ready · video not generated yet');
     if (session.video === 'reference') {
-      ensureVideoReference(root);
       clearLoading(showcase, 'video');
-      if (video) video.pause();
+      if (video) {
+        video.pause();
+        try { if (video.currentTime > .05) video.currentTime = 0; } catch {}
+      }
       text(status, 'Reference image ready · video not generated yet');
     } else if (session.video === 'loading') {
-      ensureVideoReference(root);
+      if (video) video.pause();
       ensureLoading(showcase, 'video', 'Generating video…');
       text(status, 'Generating video from reference…');
     } else {
       clearLoading(showcase, 'video');
-      q('.cc-video-reference-overlay', showcase)?.remove();
       text(status, 'Generated · original preview video loaded');
     }
   }
@@ -269,7 +300,7 @@ const PATCH_JS = String.raw`
   }
 
   function renderAll() {
-    renderExpert(); renderMotion(); renderTranscript(); renderImage(); renderVideo(); renderMusic();
+    renderExpert(); renderMotion(); renderTranscript(); renderCaptions(); renderImage(); renderVideo(); renderMusic();
   }
 
   function handleClick(event) {
@@ -308,6 +339,20 @@ const PATCH_JS = String.raw`
       return;
     }
 
+    const captionsRoot = target.closest('#transcript-captions [data-tc-part="captions"]');
+    if (captionsRoot && target.closest('.tc-style-item,#tc-style-prev,#tc-style-next,.tc-video-card')) {
+      if (session.captions === 'idle') setState('captions', 'playing');
+      renderCaptions();
+      const video = q('#tc-video', captionsRoot);
+      if (video) {
+        video.muted = true;
+        video.playsInline = true;
+        const p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(() => {});
+      }
+      return;
+    }
+
     const imageRoot = target.closest('#image-to-video .itv-story:not(.itv-story-video)');
     if (imageRoot && target.closest('.itv-send-btn,[aria-label="Generate"]')) {
       stopLocal(event);
@@ -338,6 +383,11 @@ const PATCH_JS = String.raw`
       return;
     }
     if (videoRoot && target.closest('.itv-option-button')) {
+      const options = qa('.itv-option-button', videoRoot);
+      if (target.closest('.itv-option-button') !== options[0]) {
+        stopLocal(event);
+        return;
+      }
       setTimeout(() => { setState('video', 'reference'); renderVideo(); }, 0);
       return;
     }
