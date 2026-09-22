@@ -70,6 +70,42 @@ const PATCH_JS = String.raw`
     session[key] = value;
     document.documentElement.dataset.ccDemoSession = JSON.stringify(session);
   };
+
+  const captionGateVideos = new WeakSet();
+  let captionGateObserver = null;
+  const lockCaptionFirstFrame = video => {
+    if (!video || session.captions !== 'idle') return;
+    video.pause();
+    try {
+      if (video.readyState >= 1 && video.currentTime > .01) video.currentTime = 0;
+    } catch {}
+  };
+  const playCaptionVideo = video => {
+    if (!video || session.captions === 'idle') return;
+    video.muted = true;
+    video.playsInline = true;
+    if (!video.paused) return;
+    const p = video.play();
+    if (p && typeof p.catch === 'function') p.catch(() => {});
+  };
+  const syncEarlyCaptionGate = () => {
+    const video = document.querySelector('#transcript-captions [data-tc-part="captions"] #tc-video');
+    if (!video) return;
+    if (!captionGateVideos.has(video)) {
+      captionGateVideos.add(video);
+      for (const eventName of ['play', 'playing', 'timeupdate', 'loadedmetadata']) {
+        video.addEventListener(eventName, () => lockCaptionFirstFrame(video));
+      }
+    }
+    if (session.captions === 'idle') lockCaptionFirstFrame(video);
+    else playCaptionVideo(video);
+  };
+  const startEarlyCaptionGate = () => {
+    if (captionGateObserver) return;
+    syncEarlyCaptionGate();
+    captionGateObserver = new MutationObserver(syncEarlyCaptionGate);
+    captionGateObserver.observe(document.documentElement, { childList:true, subtree:true });
+  };
   const text = (el, value) => { if (el && el.textContent !== value) el.textContent = value; };
   const stopLocal = (event) => {
     event.preventDefault();
@@ -204,33 +240,8 @@ const PATCH_JS = String.raw`
     root.classList.toggle('cc-captions-awaiting', session.captions === 'idle');
     const video = q('#tc-video', root);
     if (!video) return;
-    video.muted = true;
-    video.playsInline = true;
-
-    const lockCaptionFirstFrame = () => {
-      if (session.captions !== 'idle') return;
-      video.pause();
-      try {
-        if (video.readyState >= 1 && video.currentTime > .01) video.currentTime = 0;
-      } catch {}
-    };
-
-    if (video.dataset.ccGateBound !== '1') {
-      video.dataset.ccGateBound = '1';
-      video.addEventListener('play', lockCaptionFirstFrame);
-      video.addEventListener('playing', lockCaptionFirstFrame);
-      video.addEventListener('timeupdate', lockCaptionFirstFrame);
-      video.addEventListener('loadedmetadata', lockCaptionFirstFrame);
-    }
-
-    if (session.captions === 'idle') {
-      lockCaptionFirstFrame();
-      return;
-    }
-    if (video.paused) {
-      const p = video.play();
-      if (p && typeof p.catch === 'function') p.catch(() => {});
-    }
+    if (session.captions === 'idle') lockCaptionFirstFrame(video);
+    else playCaptionVideo(video);
   }
 
   function renderImage() {
@@ -424,6 +435,9 @@ const PATCH_JS = String.raw`
     queued = true;
     queueMicrotask(() => { queued = false; renderAll(); });
   };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startEarlyCaptionGate, { once:true });
+  else startEarlyCaptionGate();
 
   function boot() {
     document.addEventListener('click', handleClick, true);
