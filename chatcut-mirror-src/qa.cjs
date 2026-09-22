@@ -132,6 +132,7 @@ async function main() {
     music: false,
     captionsGated: false,
     mobile: false,
+    mobileDiagnostics: null,
     stayedLocal: true,
     pageErrors: [],
     snapshotErrors,
@@ -200,7 +201,7 @@ async function main() {
       const img = root.querySelector('.itv-showcase-img');
       const showcase = root.querySelector('.itv-showcase');
       const pseudo = showcase ? getComputedStyle(showcase, '::after').content : '';
-      return Boolean(img && img.src.includes('cat-white-before') && pseudo.includes('Waiting to generate'));
+      return Boolean(img && img.src.includes('cat-white-before') && pseudo.includes('Ready to generate'));
     });
     await safeElementShot(page, imageStory, '09-image-before', snapshotErrors);
     await clickFirstVisible(imageStory.locator('.itv-send-btn,[aria-label="Generate"]'));
@@ -297,6 +298,13 @@ async function main() {
         return !button.hidden && style.display !== 'none' && style.visibility !== 'hidden';
       }).length);
 
+      report.mobileDiagnostics = {
+        noOverflow,
+        scrollWidth: await mobile.evaluate(() => document.documentElement.scrollWidth),
+        clientWidth: await mobile.evaluate(() => document.documentElement.clientWidth),
+        captionPaused: mobileCaptionPaused,
+        visibleVideoOptions,
+      };
       report.mobile = noOverflow && mobileCaptionPaused && visibleVideoOptions === 1;
       await mobile.screenshot({ path: path.join(SNAP_ROOT, '17-mobile-latest.png'), fullPage: false, animations: 'disabled' });
     } finally {
