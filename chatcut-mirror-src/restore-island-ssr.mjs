@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const ORIGIN = 'https://chatcut.io';
+const VERIFIED_FALLBACK = 'https://chatcut-production-mirror-preview-73uactwqj.vercel.app';
 const FILE = path.resolve('chatcut-playable/index.html');
 
 function extractIslands(html) {
@@ -33,27 +34,28 @@ function runtimeKey(tag) {
   return `${component}|${attr(tag, 'component-export') || ''}|${attr(tag, 'client') || ''}`;
 }
 
-function localizableOpening(tag) {
+function localizableOpening(tag, sourceOrigin) {
   for (const name of ['component-url', 'renderer-url', 'before-hydration-url']) {
     const re = new RegExp(`(${name}\\s*=\\s*["'])(/(?!/)[^"']*)(["'])`, 'gi');
-    tag = tag.replace(re, (_m, a, p, z) => `${a}${ORIGIN}${p}${z}`);
+    tag = tag.replace(re, (_m, a, p, z) => `${a}${sourceOrigin}${p}${z}`);
   }
   return tag;
 }
 
-const response = await fetch(`${ORIGIN}/?mirror-ssr=${Date.now()}`, {
+let frozen = await fs.readFile(FILE, 'utf8');
+const sourceOrigin = frozen.includes('data-cc-mirror-source="verified-fallback"') ? VERIFIED_FALLBACK : ORIGIN;
+const response = await fetch(`${sourceOrigin}/?mirror-ssr=${Date.now()}`, {
   redirect: 'follow',
   cache: 'no-store',
   headers: {
-    'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.2',
+    'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.3',
     accept: 'text/html,application/xhtml+xml',
     'cache-control': 'no-cache',
     pragma: 'no-cache',
   },
 });
-if (!response.ok) throw new Error(`Fetch failed ${response.status} ${ORIGIN}/`);
+if (!response.ok) throw new Error(`Fetch failed ${response.status} ${sourceOrigin}/`);
 const live = await response.text();
-let frozen = await fs.readFile(FILE, 'utf8');
 
 const liveIslands = extractIslands(live);
 const frozenIslands = extractIslands(frozen);
@@ -68,10 +70,10 @@ for (let i = 0; i < frozenIslands.length; i += 1) {
   if (runtimeKey(liveTag) !== runtimeKey(frozenTag)) {
     throw new Error(`Snapshot mismatch: island runtime changed at index ${i}`);
   }
-  const restored = `${localizableOpening(liveTag)}${body(liveIslands[i])}</astro-island>`;
+  const restored = `${localizableOpening(liveTag, sourceOrigin)}${body(liveIslands[i])}</astro-island>`;
   replacements.push([frozenIslands[i], restored]);
 }
 
 for (const [from, to] of replacements) frozen = frozen.replace(from, to);
 await fs.writeFile(FILE, frozen, 'utf8');
-console.log(JSON.stringify({ ok: true, restoredIslands: replacements.length }, null, 2));
+console.log(JSON.stringify({ ok: true, restoredIslands: replacements.length, sourceOrigin }, null, 2));
