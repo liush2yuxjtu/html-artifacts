@@ -497,17 +497,14 @@ new Function(PATCH_JS);
 
 await fs.rm(OUT,{recursive:true,force:true});
 await fs.mkdir(OUT,{recursive:true});
-let html = await fetchPage(`${ORIGIN}/`);
-let source = 'production';
-let assetOrigin = ORIGIN;
-if (!hasHomepageContract(html)) {
-  console.warn('[build] current production variant does not expose the reviewed ChatCut demo surfaces; using immutable verified fallback');
-  html = stripPreviousPlayableLayer(await fetchPage(VERIFIED_FALLBACK));
-  source = 'verified-fallback';
-  assetOrigin = new URL(VERIFIED_FALLBACK).origin;
-}
+// The reviewed standalone is intentionally based on the immutable PR #10
+// surface. chatcut.io runs homepage experiments, so using the live homepage as
+// the build input would silently change the product underneath human review.
+let html = stripPreviousPlayableLayer(await fetchPage(VERIFIED_FALLBACK));
+const source = 'verified-fallback';
+const assetOrigin = new URL(VERIFIED_FALLBACK).origin;
 for (const required of REQUIRED_HOME_SURFACES) {
-  if (!html.includes(required)) throw new Error(`Homepage contract changed: missing ${required}`);
+  if (!html.includes(required)) throw new Error(`Verified homepage contract changed: missing ${required}`);
 }
 html = stripTracking(absoluteize(html, assetOrigin));
 html = html.replace(/<html([^>]*)>/i, (match, attrs) => {
