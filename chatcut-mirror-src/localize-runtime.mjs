@@ -2,13 +2,15 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 const ORIGIN = 'https://chatcut.io';
+const VERIFIED_FALLBACK = 'https://chatcut-production-mirror-preview-73uactwqj.vercel.app';
 const ROOT = path.resolve('chatcut-playable');
 const HTML_FILE = path.join(ROOT, 'index.html');
 
 const seen = new Set();
 const mirrored = [];
+let sourceOrigin = ORIGIN;
 
-function normalize(rawUrl, base = `${ORIGIN}/`) {
+function normalize(rawUrl, base = `${sourceOrigin}/`) {
   const u = new URL(rawUrl, base);
   u.hash = '';
   return u;
@@ -17,7 +19,7 @@ function normalize(rawUrl, base = `${ORIGIN}/`) {
 function isAstroAsset(rawUrl, base) {
   try {
     const u = normalize(rawUrl, base);
-    return u.origin === ORIGIN && u.pathname.startsWith('/_astro/');
+    return u.origin === sourceOrigin && u.pathname.startsWith('/_astro/');
   } catch {
     return false;
   }
@@ -41,7 +43,7 @@ async function fetchAsset(url) {
     redirect: 'follow',
     cache: 'no-store',
     headers: {
-      'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.0',
+      'user-agent': 'Mozilla/5.0 ChatCutPlayableMirror/4.3',
       accept: '*/*',
       'cache-control': 'no-cache',
       pragma: 'no-cache',
@@ -51,7 +53,7 @@ async function fetchAsset(url) {
   return Buffer.from(await response.arrayBuffer());
 }
 
-async function mirrorAsset(rawUrl, base = `${ORIGIN}/`) {
+async function mirrorAsset(rawUrl, base = `${sourceOrigin}/`) {
   const u = normalize(rawUrl, base);
   const url = u.href;
   if (!isAstroAsset(url) || seen.has(url)) return;
@@ -67,9 +69,9 @@ async function mirrorAsset(rawUrl, base = `${ORIGIN}/`) {
     const dependencies = new Set();
 
     // Vite/Astro chunks use quoted module specs for static and dynamic imports.
-    // Rewrite same-origin /_astro/ dependencies to relative local paths so the
-    // mirror also works under a GitHub Pages subdirectory.
-    const quoted = /(["'`])((?:https:\/\/chatcut\.io)?(?:\.\.?\/|\/)[^"'`\s]+?)\1/g;
+    // Accept either the live ChatCut origin or the immutable verified fallback,
+    // then localize only dependencies from the source chosen for this build.
+    const quoted = /(["'`])((?:https?:\/\/[^/"'`\s]+)?(?:\.\.?\/|\/)[^"'`\s]+?)\1/g;
     source = source.replace(quoted, (match, quote, spec) => {
       let dep;
       try { dep = normalize(spec, url); } catch { return match; }
@@ -109,24 +111,30 @@ async function mirrorAsset(rawUrl, base = `${ORIGIN}/`) {
 }
 
 let html = await fs.readFile(HTML_FILE, 'utf8');
-const entryUrls = new Set();
-for (const match of html.matchAll(/https:\/\/chatcut\.io\/_astro\/[^"'<>\s&)]+/g)) {
-  entryUrls.add(match[0]);
+sourceOrigin = html.includes('data-cc-mirror-source="verified-fallback"')
+  ? VERIFIED_FALLBACK
+  : ORIGIN;
+
+const escapedOrigin = sourceOrigin.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&');
+const entryPattern = new RegExp(`${escapedOrigin}/_astro/[^"'<>\\s&)]+`, 'g');
+const entryUrls = new Set(html.match(entryPattern) || []);
+if (!entryUrls.size) {
+  throw new Error(`No ${sourceOrigin} /_astro/ assets found in generated homepage`);
 }
-if (!entryUrls.size) throw new Error('No ChatCut /_astro/ assets found in generated homepage');
 
 for (const url of entryUrls) await mirrorAsset(url);
 
 // Every hashed Astro asset referenced by the frozen HTML is now local. This is
 // intentionally broader than JS-only localization: CSS and font hashes can be
 // rotated at the same time as JS hashes during a production deploy.
-html = html.replaceAll(`${ORIGIN}/_astro/`, './_astro/');
+html = html.replaceAll(`${sourceOrigin}/_astro/`, './_astro/');
 html = html.replace(/<meta name="cc-runtime-localized"[^>]*>/i, '');
 html = html.replace(/<\/head\s*>/i, `<meta name="cc-runtime-localized" content="${mirrored.length}"></head>`);
 await fs.writeFile(HTML_FILE, html, 'utf8');
 
 console.log(JSON.stringify({
   ok: true,
+  sourceOrigin,
   entryAssets: entryUrls.size,
   mirroredAssets: mirrored.length,
   js: mirrored.filter(x => /\.m?js$/i.test(x)).length,
