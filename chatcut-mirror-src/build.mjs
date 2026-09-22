@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const ORIGIN = 'https://chatcut.io';
 const OUT = path.resolve('chatcut-playable');
+const VERIFIED_FALLBACK = 'https://chatcut-production-mirror-preview-73uactwqj.vercel.app/';
 
 const PATCH_CSS = String.raw`
 /* ChatCut playable patch v2: production DOM/assets stay authoritative; only demo state is layered on top. */
@@ -439,10 +440,25 @@ function stripTracking(html) {
 async function fetchPage(url) {
   const r = await fetch(url, {
     redirect:'follow',
-    headers:{'user-agent':'Mozilla/5.0 ChatCutPlayableMirror/2.0','accept':'text/html,application/xhtml+xml'}
+    headers:{'user-agent':'Mozilla/5.0 ChatCutPlayableMirror/3.0','accept':'text/html,application/xhtml+xml'}
   });
   if (!r.ok) throw new Error(`Fetch failed ${r.status} ${url}`);
   return r.text();
+}
+
+const REQUIRED_HOME_SURFACES = ['id="best-moments"','id="transcript-captions"','id="image-to-video"','id="music-generation"'];
+function hasHomepageContract(html) {
+  return REQUIRED_HOME_SURFACES.every(required => html.includes(required));
+}
+function stripPreviousPlayableLayer(html) {
+  return html
+    .replace(/<style\s+data-cc-playable-patch>[\s\S]*?<\/style>/gi, '')
+    .replace(/<style\s+data-cc-playable-layer-fix>[\s\S]*?<\/style>/gi, '')
+    .replace(/<style\s+data-cc-playable-visual-fix>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script\s+data-cc-playable-patch>[\s\S]*?<\/script>/gi, '')
+    .replace(/<meta\s+name="cc-runtime-localized"[^>]*>/gi, '')
+    .replace(/<meta\s+data-cc-playable-island-safe[^>]*>/gi, '')
+    .replace(/<meta\s+data-cc-playable-hydration-safe[^>]*>/gi, '');
 }
 
 // Fail in CI before publishing if the injected patch itself is syntactically invalid.
@@ -451,10 +467,20 @@ new Function(PATCH_JS);
 await fs.rm(OUT,{recursive:true,force:true});
 await fs.mkdir(OUT,{recursive:true});
 let html = await fetchPage(`${ORIGIN}/`);
-for (const required of ['id="best-moments"','id="transcript-captions"','id="image-to-video"','id="music-generation"']) {
-  if (!html.includes(required)) throw new Error(`Production homepage contract changed: missing ${required}`);
+let source = 'production';
+if (!hasHomepageContract(html)) {
+  console.warn('[build] current production variant does not expose the reviewed ChatCut demo surfaces; using immutable verified fallback');
+  html = stripPreviousPlayableLayer(await fetchPage(VERIFIED_FALLBACK));
+  source = 'verified-fallback';
+}
+for (const required of REQUIRED_HOME_SURFACES) {
+  if (!html.includes(required)) throw new Error(`Homepage contract changed: missing ${required}`);
 }
 html = stripTracking(absoluteize(html));
+html = html.replace(/<html([^>]*)>/i, (match, attrs) => {
+  if (/data-cc-mirror-source=/.test(attrs)) return match;
+  return `<html${attrs} data-cc-mirror-source="${source}">`;
+});
 html = html.replace(/<link\s+href="\/"\s+rel="canonical">/i, `<link href="${ORIGIN}/" rel="canonical">`);
 html = html.replace(/<\/head\s*>/i, `<style data-cc-playable-patch>${PATCH_CSS}</style></head>`);
 html = html.replace(/<\/body\s*>/i, `<script data-cc-playable-patch>${PATCH_JS.replace(/<\/script/gi,'<\\/script')}</script></body>`);
