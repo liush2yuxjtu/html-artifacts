@@ -130,7 +130,7 @@ async function main() {
     image: false,
     video: false,
     music: false,
-    captionsUntouched: false,
+    captionsGated: false,
     stayedLocal: true,
     pageErrors: [],
     snapshotErrors,
@@ -144,7 +144,7 @@ async function main() {
     report.publicShape = /AI Video Editor|Edit videos by telling AI what you want/i.test(headline);
     await safeViewportShot(page, '01-hero', snapshotErrors);
 
-    await page.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '2', null, { timeout: 15000 });
+    await page.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '3', null, { timeout: 15000 });
     report.version = await page.evaluate(() => document.documentElement.dataset.ccPlayableVersion);
 
     const expert = page.locator('#best-moments');
@@ -177,12 +177,20 @@ async function main() {
 
     const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
     await settleLocator(page, captions);
+    const captionsVideo = page.locator('#transcript-captions [data-tc-part="captions"] #tc-video');
+    await captionsVideo.waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(350);
+    const captionsInitiallyPaused = await captionsVideo.evaluate(video => video.paused && video.currentTime < 0.1);
     await safeElementShot(page, captions, '08-captions-native', snapshotErrors);
     const captionsNext = page.locator('#tc-style-next');
     await captionsNext.waitFor({ state: 'visible', timeout: 10000 });
     await captionsNext.click();
-    await page.waitForTimeout(350);
-    report.captionsUntouched = (await captionsNext.isVisible()) && !(await captions.getAttribute('data-cc-demo'));
+    await page.waitForFunction(() => {
+      const video = document.querySelector('#transcript-captions [data-tc-part="captions"] #tc-video');
+      return Boolean(video && !video.paused);
+    }, null, { timeout: 5000 });
+    const captionsState = await page.evaluate(() => window.__chatcutDemoSession?.captions);
+    report.captionsGated = captionsInitiallyPaused && captionsState === 'playing';
 
     const imageStory = page.locator('#image-to-video .itv-story:not(.itv-story-video)');
     await settleLocator(page, imageStory);
@@ -191,7 +199,7 @@ async function main() {
       const img = root.querySelector('.itv-showcase-img');
       const showcase = root.querySelector('.itv-showcase');
       const pseudo = showcase ? getComputedStyle(showcase, '::after').content : '';
-      return Boolean(img && !img.src.includes('cat-white-before') && pseudo.includes('Waiting to generate'));
+      return Boolean(img && img.src.includes('cat-white-before') && pseudo.includes('Waiting to generate'));
     });
     await safeElementShot(page, imageStory, '09-image-before', snapshotErrors);
     await clickFirstVisible(imageStory.locator('.itv-send-btn,[aria-label="Generate"]'));
@@ -201,12 +209,47 @@ async function main() {
 
     const videoStory = page.locator('#image-to-video .itv-story-video');
     await settleLocator(page, videoStory);
-    await page.locator('#image-to-video .itv-story-video .cc-video-reference-overlay').waitFor({ state: 'visible', timeout: 10000 });
-    const initialReference = await page.locator('#image-to-video .itv-story-video .cc-video-reference-overlay').isVisible();
+    await page.waitForTimeout(300);
+    const videoInitial = await videoStory.evaluate(root => {
+      const visibleOptions = [...root.querySelectorAll('.itv-option-button')].filter(button => {
+        const style = getComputedStyle(button);
+        return !button.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+      });
+      const references = [...root.querySelectorAll('.itv-reference-card')].filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
+      const video = root.querySelector('.itv-showcase-video');
+      return {
+        visibleOptions: visibleOptions.length,
+        firstLabel: visibleOptions[0]?.getAttribute('aria-label') || '',
+        references: references.length,
+        overlayCount: root.querySelectorAll('.cc-video-reference-overlay').length,
+        paused: Boolean(video?.paused),
+      };
+    });
     await safeElementShot(page, videoStory, '11-video-before', snapshotErrors);
     await clickFirstVisible(videoStory.locator('.itv-send-btn,[aria-label="Generate"]'));
     await page.waitForFunction(() => document.querySelector('#image-to-video .itv-story-video [data-cc-status="video"]')?.textContent.trim() === 'Generated · original preview video loaded', null, { timeout: 8000 });
-    report.video = initialReference && await videoStory.evaluate(el => el.classList.contains('cc-video-generated')) && (await page.locator('#image-to-video .itv-story-video .cc-video-reference-overlay').count()) === 0;
+    const videoAfter = await videoStory.evaluate(root => {
+      const visibleOptions = [...root.querySelectorAll('.itv-option-button')].filter(button => {
+        const style = getComputedStyle(button);
+        return !button.hidden && style.display !== 'none' && style.visibility !== 'hidden';
+      });
+      return {
+        generated: root.classList.contains('cc-video-generated'),
+        visibleOptions: visibleOptions.length,
+        overlayCount: root.querySelectorAll('.cc-video-reference-overlay').length,
+      };
+    });
+    report.video = videoInitial.visibleOptions === 1
+      && /Comic to Live-Action Film/i.test(videoInitial.firstLabel)
+      && videoInitial.references === 1
+      && videoInitial.overlayCount === 0
+      && videoInitial.paused
+      && videoAfter.generated
+      && videoAfter.visibleOptions === 1
+      && videoAfter.overlayCount === 0;
     await safeElementShot(page, videoStory, '12-video-after', snapshotErrors);
 
     const music = page.locator('#music-generation');
@@ -229,7 +272,7 @@ async function main() {
     report.stayedLocal = new URL(page.url()).hostname === '127.0.0.1';
     report.pageErrors = pageErrors.filter(message => !/ResizeObserver loop/i.test(message));
 
-    const required = ['publicShape','expert','motion','transcript','image','video','music','captionsUntouched','stayedLocal'];
+    const required = ['publicShape','expert','motion','transcript','captionsGated','image','video','music','stayedLocal'];
     const failures = required.filter(key => !report[key]);
     if (snapshotErrors.length) failures.push('snapshots');
     console.log(JSON.stringify({ ...report, failures }, null, 2));
