@@ -206,17 +206,25 @@ const PATCH_JS = String.raw`
     if (!video) return;
     video.muted = true;
     video.playsInline = true;
+
+    const lockCaptionFirstFrame = () => {
+      if (session.captions !== 'idle') return;
+      video.pause();
+      try {
+        if (video.readyState >= 1 && video.currentTime > .01) video.currentTime = 0;
+      } catch {}
+    };
+
     if (video.dataset.ccGateBound !== '1') {
       video.dataset.ccGateBound = '1';
-      video.addEventListener('play', () => {
-        if (session.captions !== 'idle') return;
-        video.pause();
-        try { video.currentTime = 0; } catch {}
-      });
+      video.addEventListener('play', lockCaptionFirstFrame);
+      video.addEventListener('playing', lockCaptionFirstFrame);
+      video.addEventListener('timeupdate', lockCaptionFirstFrame);
+      video.addEventListener('loadedmetadata', lockCaptionFirstFrame);
     }
+
     if (session.captions === 'idle') {
-      video.pause();
-      try { if (video.currentTime > .05) video.currentTime = 0; } catch {}
+      lockCaptionFirstFrame();
       return;
     }
     if (video.paused) {
