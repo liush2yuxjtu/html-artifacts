@@ -62,6 +62,15 @@ jobs:
           fi
           if [ -d chatcut-interaction-review ]; then
             cp -R chatcut-interaction-review _site/
+            # Keep the exact URLs used by the durable review, in addition to
+            # the legacy chatcut-baseline/chatcut-preview aliases below.
+            mkdir -p _site/original-homepages-2026-09-15
+            cp -R original-homepages-2026-09-15/chatcut _site/original-homepages-2026-09-15/
+            mkdir -p _site/chatcut-production-mirror
+            cp -R chatcut-production-mirror/intent-assets _site/chatcut-production-mirror/
+            test -s _site/original-homepages-2026-09-15/chatcut/index.html
+            test -s _site/original-homepages-2026-09-15/chatcut/design-system.css
+            test -s _site/chatcut-production-mirror/intent-assets/11-video-before.png
           fi
           if [ -d chatcut-interaction-review-a06-v2 ]; then
             cp -R chatcut-interaction-review-a06-v2 _site/
