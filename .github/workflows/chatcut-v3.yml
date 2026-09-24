@@ -1,0 +1,48 @@
+name: ChatCut v3 playable
+
+on:
+  pull_request:
+    paths:
+      - 'chatcut-v3/**'
+      - '.github/workflows/chatcut-v3.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'chatcut-v3/**'
+      - '.github/workflows/chatcut-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Committed playable matches baseline + patch
+        run: |
+          node chatcut-v3/scripts/build.mjs
+          git diff --exit-code -- chatcut-v3/site/index.html chatcut-v3/site/sw.js
+      - name: Contract tests
+        run: node --test chatcut-v3/tests/build.test.mjs
+      - name: Install browser QA dependency
+        run: |
+          npm install --prefix /tmp/chatcut-v3-qa --no-save playwright@1.56.1
+          /tmp/chatcut-v3-qa/node_modules/.bin/playwright install --with-deps chromium
+      - name: Browser acceptance (desktop + mobile)
+        env:
+          PLAYWRIGHT_MODULE: /tmp/chatcut-v3-qa/node_modules/playwright
+        run: |
+          (cd chatcut-v3/site && python3 -m http.server 8777 >/tmp/serve.log 2>&1 &)
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:8777/ >/dev/null && break; sleep 0.5; done
+          node chatcut-v3/tests/qa.cjs http://127.0.0.1:8777/
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatcut-v3-evidence
+          path: chatcut-v3/evidence/
