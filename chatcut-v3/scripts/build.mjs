@@ -8,6 +8,7 @@
 // No network access: the build is deterministic for a given baseline.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve('chatcut-v3');
 const SITE = path.join(ROOT, 'site');
@@ -32,7 +33,8 @@ export function applyPatch(baseline, css, js) {
   return html;
 }
 
-const isMain = import.meta.url === `file://${process.argv[1]}`;
+// Compare URLs, not strings: argv[1] may contain spaces, symlinks or Windows paths.
+const isMain = !!process.argv[1] && import.meta.url === pathToFileURL(await fs.realpath(process.argv[1])).href;
 if (isMain) {
   const [baseline, css, js] = await Promise.all([
     fs.readFile(path.join(SITE, 'baseline.html'), 'utf8'),

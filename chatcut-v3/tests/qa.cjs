@@ -78,6 +78,14 @@ async function editorFlow(page, tag) {
   check(after.state === 'done' && after.reply && after.user, `${tag} B01 after: production reply shown in place`);
   check(Number(after.timelineOpacity) > 0.95, `${tag} B01 after: timeline result revealed`);
   check(after.statuses === 1 && after.ctaHidden, `${tag} B01 exactly one status line, trigger retired`);
+  // Regression: the patch must go quiet after a flow finishes (no per-frame rewrites).
+  const churn = await page.evaluate(() => new Promise(resolve => {
+    let n = 0;
+    const mo = new MutationObserver(ms => { n += ms.filter(m => m.target.closest && m.target.closest('.cc3-status,[data-cc3-send]')).length; });
+    mo.observe(document.documentElement, { subtree: true, attributes: true, childList: true });
+    setTimeout(() => { mo.disconnect(); resolve(n); }, 1500);
+  }));
+  check(churn === 0, `${tag} B01 patch idle after done (${churn} self-mutations in 1.5s)`);
 }
 
 async function agentFlow(page, tag) {

@@ -505,10 +505,13 @@
     }
     const label = el.querySelector('.cc3-status-text');
     if (label.textContent !== text) label.textContent = text;
+    // Write only real changes: the MutationObserver below watches `hidden`,
+    // and a same-value write still queues a record (a per-frame loop).
     const cta = el.querySelector('.cc3-cta');
-    cta.setAttribute('data-cc3-send', flow);
-    cta.hidden = state !== 'idle';
-    el.dataset.state = state;
+    if (cta.getAttribute('data-cc3-send') !== flow) cta.setAttribute('data-cc3-send', flow);
+    const hide = state !== 'idle';
+    if (cta.hidden !== hide) cta.hidden = hide;
+    if (el.dataset.state !== state) el.dataset.state = state;
   }
 
   // ---------- B01 · hero editor demo ----------
@@ -601,10 +604,10 @@
       el.classList.toggle('cc3-agent-awaiting', awaiting);
       const send = el.querySelector('button[aria-label="Send"]');
       if (send) {
-        send.setAttribute('data-cc3-send', agent.flow);
+        if (send.getAttribute('data-cc3-send') !== agent.flow) send.setAttribute('data-cc3-send', agent.flow);
         // Production ships Send disabled because the homepage skipped straight
         // to the finished run. It is the one trigger while the run is held.
-        if (awaiting) send.disabled = false;
+        if (awaiting && send.disabled) send.disabled = false;
       }
       const panel = document.querySelector(agent.panel);
       if (panel && !panel.hidden) shown = agent.flow;
