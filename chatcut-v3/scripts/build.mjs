@@ -4,6 +4,7 @@
 //
 // Input:  chatcut-v3/site/baseline.html (frozen by snapshot.mjs)
 // Output: chatcut-v3/site/index.html    (baseline + one patch layer)
+//         chatcut-v3/site/compare.html  (original vs playable, side by side)
 //
 // No network access: the build is deterministic for a given baseline.
 import fs from 'node:fs/promises';
@@ -44,5 +45,7 @@ if (isMain) {
   const html = applyPatch(baseline, css, js);
   await fs.writeFile(path.join(SITE, 'index.html'), html);
   await fs.copyFile(path.join(ROOT, 'runtime', 'sw.js'), path.join(SITE, 'sw.js'));
+  // Side-by-side review page: frozen original (baseline.html) vs playable (index.html).
+  await fs.copyFile(path.join(ROOT, 'runtime', 'compare.html'), path.join(SITE, 'compare.html'));
   console.log(JSON.stringify({ ok: true, bytes: html.length, out: 'chatcut-v3/site/index.html' }));
 }

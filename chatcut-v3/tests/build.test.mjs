@@ -67,3 +67,11 @@ test('rejects a variant A document', () => {
   if (!manifest.variants.a) return;
   assert.throws(() => applyPatch(read('baseline/raw/variant-a.html'), css, js), /variant B/);
 });
+
+test('compare page frames the frozen original next to the playable', () => {
+  const compare = read('runtime/compare.html');
+  assert.equal(read('site/compare.html'), compare, 'site/compare.html is stale: run build.mjs');
+  assert.match(compare, /id="frame-orig"[^>]*src="baseline\.html"/);
+  assert.match(compare, /id="frame-play"[^>]*src="index\.html"/);
+  for (const id of ['editor-demo', 'connect']) assert.ok(compare.includes(`data-jump="${id}"`), `missing jump to #${id}`);
+});

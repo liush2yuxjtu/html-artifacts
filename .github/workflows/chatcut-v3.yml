@@ -28,7 +28,7 @@ jobs:
       - name: Committed playable matches baseline + patch
         run: |
           node chatcut-v3/scripts/build.mjs
-          git diff --exit-code -- chatcut-v3/site/index.html chatcut-v3/site/sw.js
+          git diff --exit-code -- chatcut-v3/site/index.html chatcut-v3/site/sw.js chatcut-v3/site/compare.html
       - name: Contract tests
         run: node --test chatcut-v3/tests/build.test.mjs
       - name: Install browser QA dependency

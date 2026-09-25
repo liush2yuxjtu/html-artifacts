@@ -1,0 +1,16 @@
+#!/bin/sh
+# After `git pull` / `git merge`: when the merge brought ChatCut v3 changes,
+# rebuild the playable and (re)serve the local original-vs-playable page.
+# Install once per clone: sh chatcut-v3/scripts/install-hooks.sh
+#
+# Env: CHATCUT_V3_ALWAYS=1 to run even when chatcut-v3/ did not change,
+#      CHATCUT_V3_OPEN=0 to skip opening the browser.
+# A hook failure never undoes the merge, so problems are reported, not fatal.
+
+if [ "${CHATCUT_V3_ALWAYS:-0}" != "1" ] && [ -z "$(git diff --name-only ORIG_HEAD HEAD -- chatcut-v3 2>/dev/null)" ]; then
+  exit 0
+fi
+
+CHATCUT_V3_OPEN=${CHATCUT_V3_OPEN:-1} sh "$(git rev-parse --show-toplevel)/chatcut-v3/scripts/preview.sh" \
+  || echo "post-merge: chatcut-v3 preview did not start (see message above)" >&2
+exit 0

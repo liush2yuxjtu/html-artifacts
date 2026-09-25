@@ -22,6 +22,7 @@ chatcut-v3/
 ├── site/                            what GitHub Pages serves
 │   ├── baseline.html                variant B as captured (no product patch)
 │   ├── index.html                   variant B + v3 patch (the playable)
+│   ├── compare.html                 original vs playable, side by side
 │   ├── _astro/ fonts/               production runtime, localized
 │   └── sw.js                        media fallback (see below)
 ├── runtime/patch.{css,js} sw.js     the only hand-written product layer
@@ -77,6 +78,10 @@ node --test chatcut-v3/tests/build.test.mjs
 # browser acceptance against a local server
 (cd chatcut-v3/site && python3 -m http.server 8777) &
 node chatcut-v3/tests/qa.cjs http://127.0.0.1:8777/
+
+# local preview after every pull that touches chatcut-v3/ (once per clone)
+sh chatcut-v3/scripts/install-hooks.sh
+sh chatcut-v3/scripts/preview.sh           # by hand: build + serve http://127.0.0.1:8777/compare.html
 
 # re-capture from production (changes the baseline; review the diff)
 node chatcut-v3/scripts/snapshot.mjs && node chatcut-v3/scripts/build.mjs
