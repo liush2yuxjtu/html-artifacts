@@ -136,6 +136,22 @@ Once the `Publish HTML Artifacts to GitHub Pages` run for the merge commit succe
 
 The first visit installs `sw.js` and reloads once; measure after that reload.
 
+### 5. Show the human a claude.ai Artifact, not a GitHub Pages link
+
+When you present a candidate for human review, publish a **claude.ai Artifact** and give that link. Do not hand over GitHub Pages URLs as the preview. Before merge they return 404, since Pages deploys only from `main`, and after merge they show whatever `main` holds rather than the exact candidate. Pages links can be listed next to the Artifact as "live after merge".
+
+The live v3 runtime cannot run inside an Artifact: the Artifact CSP blocks chatcut.io / cdn.chatcut.dev images and media, service workers are unavailable, and the site's ~110 `_astro` files plus media exceed the 255-file limit. Preview it with real evidence from the candidate instead:
+
+```bash
+(cd chatcut-v3/site && python3 -m http.server 8777 --bind 127.0.0.1) &
+node chatcut-v3/tests/record-preview.cjs http://127.0.0.1:8777/ /tmp/chatcut-verify/preview
+# qa.cjs already wrote before/after stills to chatcut-v3/evidence/
+```
+
+Build one HTML page in the scratchpad that shows, per flow (B01, B02): original vs playable desktop recordings side by side, the mobile recording, and the `qa.cjs` before/after stills. Publish it with the Artifact tool, passing the `.webm` files (`contentType: video/webm`) and `.jpg` stills through `files`. On the page, state the candidate commit, how the clips were made, and that it is a recording rather than the live site. Before publishing, pull a couple of frames with `/opt/pw-browsers/ffmpeg-1011/ffmpeg-linux -ss <t> -i clip.webm -frames:v 1 out.png` and check that each clip shows the held state and then the result.
+
+Headless Chromium here cannot decode H.264, so product videos inside the mocks stay on their poster frame in recordings. Say so on the page; it is a recorder limitation, not a product defect.
+
 ### Re-capturing the original
 
 `node chatcut-v3/scripts/snapshot.mjs` refetches chatcut.io (retrying until variant B is served), rewrites `baseline/`, `site/_astro/**` and `site/baseline.html`, then `build.mjs` regenerates the playable. Review that diff like any product change and rerun steps 1–3; a changed baseline can silently move the patch's anchors.
@@ -154,7 +170,7 @@ PLAYWRIGHT_MODULE=/opt/node22/lib/node_modules/playwright CHROMIUM_PATH=/opt/pw-
 CHROMIUM_ARGS="--ignore-certificate-errors-spki-list=$SPKI" node chatcut-v3/tests/qa.cjs <url>
 ```
 
-Do not pass a Playwright `proxy` option: Chromium already uses the environment proxy and bypasses loopback, while an explicit proxy sends `127.0.0.1` through the agent proxy (HTTP 405). `snapshot.mjs` needs `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`. Never `pkill -f "http.server <port>"` inside a compound shell command: the pattern matches that shell itself.
+Do not pass a Playwright `proxy` option: Chromium already uses the environment proxy and bypasses loopback, while an explicit proxy sends `127.0.0.1` through the agent proxy (HTTP 405). `snapshot.mjs` needs `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`. Stop preview servers in a separate shell command from the one that started them: `pkill -f "http.server <port>"` (even with the `[h]ttp` bracket trick) also matches any shell whose own command line contains `http.server <port>`, and kills it.
 
 ## Evidence
 
