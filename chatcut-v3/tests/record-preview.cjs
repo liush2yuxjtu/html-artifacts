@@ -19,11 +19,11 @@ const DESKTOP = { width: 1280, height: 800 };
 const MOBILE = { width: 390, height: 844 };
 const CLIPS = [
   // name, viewport, mobile, page, section, trigger (null = original, no click), ms after trigger
-  ['b01-playable-desktop', DESKTOP, false, 'index.html', '#editor-demo', '#editor-demo .fe-send', 5000],
+  ['b01-playable-desktop', DESKTOP, false, 'index.html', '#editor-demo', '#editor-demo .cc3-video-overlay', 5000],
   ['b01-original-desktop', DESKTOP, false, 'baseline.html', '#editor-demo', null, 6000],
   ['b02-playable-desktop', DESKTOP, false, 'index.html', '#connect', '[data-cxwin] button[aria-label="Send"]', 21000],
   ['b02-original-desktop', DESKTOP, false, 'baseline.html', '#connect', null, 8000],
-  ['b01-playable-mobile', MOBILE, true, 'index.html', '#editor-demo', '#editor-demo .cc3-cta', 5000],
+  ['b01-playable-mobile', MOBILE, true, 'index.html', '#editor-demo', '#editor-demo .cc3-video-overlay', 5000],
   ['b02-playable-mobile', MOBILE, true, 'index.html', '#connect', '#connect .cc3-cta', 21000],
 ];
 

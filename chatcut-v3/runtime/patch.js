@@ -8,7 +8,7 @@
   if (window.ccV3) return;
   const session = { editor: 'idle', codex: 'idle', claude: 'idle' };
   const log = [];
-  window.ccV3 = { session, log, version: 'v3-2026-09-24' };
+  window.ccV3 = { session, log, version: 'v3.1-2026-09-25-b01-video-overlay' };
   const note = (flow, state) => { session[flow] = state; log.push(`${flow}:${state}`); };
 
   const COPY = {
@@ -20,9 +20,10 @@
     agentDone: 'Original run finished · the cut opens in ChatCut',
   };
 
-  // One status line per flow. While a flow is held it also carries a
-  // full-size Send button: inside the scaled product mocks the native Send is
-  // only a few pixels wide on phones. Both trigger the same single action.
+  // One status line per flow. For B02 a held flow also carries a full-size
+  // Send button (the agent window's own Send is tiny on phones). B01 uses the
+  // overlay on its video instead; its status-line Send is only a fallback for
+  // when the video cannot be found.
   function status(host, anchor, text, state, flow) {
     if (!host) return;
     let el = host.querySelector(':scope .cc3-status[data-for="' + anchor + '"]');
@@ -39,7 +40,7 @@
     // and a same-value write still queues a record (a per-frame loop).
     const cta = el.querySelector('.cc3-cta');
     if (cta.getAttribute('data-cc3-send') !== flow) cta.setAttribute('data-cc3-send', flow);
-    const hide = state !== 'idle';
+    const hide = state !== 'idle' || (flow === 'editor' && overlayAnchored);
     if (cta.hidden !== hide) cta.hidden = hide;
     if (el.dataset.state !== state) el.dataset.state = state;
   }
@@ -86,20 +87,55 @@
     // Hydration reuses the SSR nodes without DOM mutations, so poll until done.
     if (!hydrated(root)) { setTimeout(schedule, 200); return; }
     const composer = root.querySelector('.fe-composer');
-    const send = root.querySelector('.fe-send');
     if (composer && !composer.querySelector('.cc3-editor-prompt')) {
       const p = document.createElement('p');
       p.className = 'cc3-editor-prompt';
       p.textContent = editorPrompt(root);
       composer.appendChild(p);
     }
-    if (send && !send.hasAttribute('data-cc3-send')) {
-      send.setAttribute('data-cc3-send', 'editor');
-      send.setAttribute('role', 'button');
-      send.setAttribute('tabindex', '0');
-      send.setAttribute('aria-label', 'Send prompt');
-    }
+    placeVideoOverlay(section, root, awaiting);
     if (awaiting) pauseNativeVideo(root);
+  }
+
+  // B01's single trigger: a real <button> laid over the demo's video footage
+  // (.hve-viewer). Clicking anywhere on the held video runs the edit. It sits
+  // on the section, outside the React island, so re-renders cannot remove it
+  // and hydration stays clean; it is re-aligned to the viewer's rect on every
+  // resize, re-fit (the mock is scaled with a CSS transform) and re-render.
+  // If the viewer cannot be found the status line's Send appears instead.
+  let overlayAnchored = false;
+  let watchedFit = null;
+  function placeVideoOverlay(section, root, show) {
+    let btn = section.querySelector(':scope > .cc3-video-overlay');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cc3-video-overlay';
+      btn.setAttribute('data-cc3-send', 'editor');
+      btn.setAttribute('aria-label', 'Send the prompt and run this edit');
+      btn.innerHTML = '<span class="cc3-video-overlay-pill" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>Send · Run this edit</span>';
+      section.appendChild(btn);
+    }
+    const fit = root && root.querySelector('.es-scaled');
+    if (fit && fit !== watchedFit) {
+      watchedFit = fit;
+      new MutationObserver(schedule).observe(fit, { attributes: true, attributeFilter: ['style', 'class'] });
+    }
+    const viewer = root && root.querySelector('.hve-viewer');
+    const r = viewer && viewer.getBoundingClientRect();
+    overlayAnchored = !!(r && r.width > 0 && r.height > 0);
+    const visible = show && overlayAnchored;
+    if (btn.hidden !== !visible) btn.hidden = !visible;
+    if (!visible) return;
+    const s = section.getBoundingClientRect();
+    const box = [r.left - s.left, r.top - s.top, r.width, r.height].map(v => Math.round(v * 10) / 10);
+    const pos = box.join(',');
+    if (btn.dataset.pos === pos) return;
+    btn.dataset.pos = pos;
+    btn.style.left = `${box[0]}px`;
+    btn.style.top = `${box[1]}px`;
+    btn.style.width = `${box[2]}px`;
+    btn.style.height = `${box[3]}px`;
   }
 
   function runEditor() {
@@ -181,9 +217,6 @@
     }
   }
   document.addEventListener('click', trigger, true);
-  document.addEventListener('keydown', event => {
-    if ((event.key === 'Enter' || event.key === ' ') && event.target instanceof Element && event.target.matches('[data-cc3-send="editor"]')) trigger(event);
-  }, true);
 
   let queued = false;
   function ensureAll() {
@@ -194,5 +227,12 @@
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(ensureAll); } };
   // React islands hydrate and re-render after this runs; keep the gate in place.
   new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-home-demo-mode', 'hidden', 'aria-label', 'disabled', 'ssr'] });
+  // The overlay tracks the product's Send, which moves when the mock re-fits.
+  addEventListener('resize', schedule);
+  addEventListener('load', schedule);
+  if ('ResizeObserver' in window) {
+    const watch = () => { const s = editorSection(); if (s) new ResizeObserver(schedule).observe(s); else setTimeout(watch, 200); };
+    watch();
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ensureAll); else ensureAll();
 })();

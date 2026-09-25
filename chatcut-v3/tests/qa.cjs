@@ -54,12 +54,36 @@ async function editorFlow(page, tag) {
       status: s.querySelector('.cc3-status')?.textContent,
     };
   });
+  const overlayFit = () => page.evaluate(() => {
+    const s = document.getElementById('editor-demo');
+    const o = s.querySelector(':scope > .cc3-video-overlay');
+    const v = s.querySelector('[data-home-demo-mode="creator"] .hve-viewer');
+    if (!o || o.hidden || !v) return { ok: false, why: !o ? 'no overlay' : o.hidden ? 'hidden' : 'no viewer' };
+    const a = o.getBoundingClientRect(), b = v.getBoundingClientRect();
+    const drift = Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.width - b.width), Math.abs(a.height - b.height));
+    const cx = b.left + b.width / 2, cy = b.top + b.height / 2;
+    const hit = document.elementFromPoint(cx, cy);
+    const cta = s.querySelector('.cc3-status .cc3-cta');
+    return { ok: drift <= 1 && !!hit && !!hit.closest('.cc3-video-overlay'), drift: +drift.toFixed(2), hitOverlay: !!hit && !!hit.closest('.cc3-video-overlay'), ctaHidden: !cta || cta.hidden, w: Math.round(b.width) };
+  });
   await section.screenshot({ path: path.join(OUT, `${tag}-b01-before.jpg`), type: 'jpeg', quality: 70 });
   check(before.awaiting && !before.chatVisible, `${tag} B01 before: chat result held`);
   check(/retro feel/.test(before.prompt), `${tag} B01 before: production prompt waits in composer`);
   check(Number(before.timelineOpacity) < 0.5, `${tag} B01 before: timeline shows pending`);
-  // Desktop uses the product's own Send; mobile uses the full-size status button.
-  await page.locator(tag === 'mobile' ? '#editor-demo .cc3-cta' : '#editor-demo .fe-send').click();
+  const fit1 = await overlayFit();
+  check(fit1.ok, `${tag} B01 overlay covers the video exactly and receives the click (drift ${fit1.drift}px, ${fit1.why || 'hit ' + fit1.hitOverlay})`);
+  check(fit1.ctaHidden, `${tag} B01 overlay is the only trigger (status Send hidden)`);
+  // Stable under re-fit: resize, let the mock re-scale, re-check alignment.
+  const vp = page.viewportSize();
+  await page.setViewportSize({ width: Math.round(vp.width * 0.8), height: vp.height });
+  await page.waitForTimeout(600);
+  const fit2 = await overlayFit();
+  await page.setViewportSize(vp);
+  await page.waitForTimeout(600);
+  const fit3 = await overlayFit();
+  check(fit2.ok && fit3.ok, `${tag} B01 overlay stays aligned after resize (drift ${fit2.drift}px → ${fit3.drift}px)`);
+  await section.scrollIntoViewIfNeeded();
+  await page.locator('#editor-demo .cc3-video-overlay').click();
   await page.waitForFunction(() => window.ccV3.session.editor === 'done', null, { timeout: 8000 }).catch(() => {});
   await page.waitForTimeout(800);
   const after = await page.evaluate(() => {
@@ -72,12 +96,13 @@ async function editorFlow(page, tag) {
       timelineOpacity: getComputedStyle(s.querySelector('.feh-tl')).opacity,
       statuses: s.querySelectorAll('.cc3-status').length,
       ctaHidden: s.querySelector('.cc3-cta')?.hidden,
+      overlayHidden: s.querySelector('.cc3-video-overlay')?.hidden,
     };
   });
   await section.screenshot({ path: path.join(OUT, `${tag}-b01-after.jpg`), type: 'jpeg', quality: 70 });
   check(after.state === 'done' && after.reply && after.user, `${tag} B01 after: production reply shown in place`);
   check(Number(after.timelineOpacity) > 0.95, `${tag} B01 after: timeline result revealed`);
-  check(after.statuses === 1 && after.ctaHidden, `${tag} B01 exactly one status line, trigger retired`);
+  check(after.statuses === 1 && after.ctaHidden && after.overlayHidden, `${tag} B01 exactly one status line, overlay retired`);
   // Regression: the patch must go quiet after a flow finishes (no per-frame rewrites).
   const churn = await page.evaluate(() => new Promise(resolve => {
     let n = 0;

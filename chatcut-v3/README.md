@@ -37,7 +37,7 @@ chatcut-v3/
 
 | Flow | Production surface | Before | One action | After |
 | --- | --- | --- | --- | --- |
-| B01 | `#editor-demo`, Creators project | Chat empty, the production prompt waits in the composer, timeline pending, video paused on the raw first frame | Send (native button, or the full-size Send under the demo) | Production user bubble, tool steps and reply appear with their own entrance animation; timeline un-dims; native player starts |
+| B01 | `#editor-demo`, Creators project | Chat empty, the production prompt waits in the composer, timeline pending, video paused on the raw first frame | Send overlay on the demo video (sits outside the React island, re-aligned to `.hve-viewer` on resize/re-fit; falls back to the Send under the demo if the viewer is missing) | Production user bubble, tool steps and reply appear with their own entrance animation; timeline un-dims; native player starts |
 | B02 | `#connect` agent window (Codex, and Claude via the dock) | Agent window at its first frame, destination editor pending | Send | The production `cxwin:play` / `ccr:play` timeline runs: steps run → done, then the ChatCut editor is revealed |
 | KEEP | Hero, creator wall, creative workflow tabs, skills gallery, editing-apps export, features gallery, creative tools, pricing, FAQ, final CTA | — | — | Native behavior, untouched |
 

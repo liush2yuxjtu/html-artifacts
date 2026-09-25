@@ -102,7 +102,7 @@ node --test chatcut-v3/tests/build.test.mjs
 node chatcut-v3/tests/qa.cjs http://127.0.0.1:8777/
 ```
 
-`qa.cjs` drives desktop 1440 and mobile 390 and must print `PASS`: no overflow, patch injected once, B01 (`#editor-demo`) held → Send → production reply + timeline revealed, B02 (`#connect` Codex window) held at frame 0 → Send → all production steps done and destination editor revealed, patch idle afterwards (0 self-mutations), no page/console/HTTP errors except the dm-sans font that 404s on chatcut.io too. Desktop clicks the product's own Send, mobile the full-size status Send. Evidence lands in `chatcut-v3/evidence/` (or `QA_OUT=`).
+`qa.cjs` drives desktop 1440 and mobile 390 and must print `PASS`: no overflow, patch injected once, B01 (`#editor-demo`) held → Send overlay on the demo video (must cover `.hve-viewer` within 1px, receive the center click, stay aligned after a resize) → production reply + timeline revealed, B02 (`#connect` Codex window) held at frame 0 → Send → all production steps done and destination editor revealed, patch idle afterwards (0 self-mutations), no page/console/HTTP errors except the dm-sans font that 404s on chatcut.io too. B01 clicks the video overlay on both viewports; B02 clicks the product's own Send on desktop, the full-size status Send on mobile. Evidence lands in `chatcut-v3/evidence/` (or `QA_OUT=`).
 
 ### 3. Exact Pages artifact under the real path prefix
 
