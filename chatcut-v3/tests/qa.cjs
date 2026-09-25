@@ -82,6 +82,15 @@ async function editorFlow(page, tag) {
   await page.waitForTimeout(600);
   const fit3 = await overlayFit();
   check(fit2.ok && fit3.ok, `${tag} B01 overlay stays aligned after resize (drift ${fit2.drift}px → ${fit3.drift}px)`);
+  // Another carousel tab has no creator demo: the overlay must not offer a Send that runs nothing.
+  const overlayShown = () => page.evaluate(() => { const b = document.querySelector('#editor-demo .cc3-video-overlay'); return !!b && !b.hidden; });
+  await page.locator('#editor-demo button', { hasText: /^Marketing$/ }).first().click();
+  await page.waitForTimeout(600);
+  const hiddenOnOtherTab = !(await overlayShown());
+  await page.locator('#editor-demo button', { hasText: /^Creators$/ }).first().click();
+  await page.waitForTimeout(800);
+  const fit4 = await overlayFit();
+  check(hiddenOnOtherTab && fit4.ok, `${tag} B01 overlay hides on another tab and returns aligned on Creators (hidden ${hiddenOnOtherTab}, drift ${fit4.drift}px)`);
   await section.scrollIntoViewIfNeeded();
   await page.locator('#editor-demo .cc3-video-overlay').click();
   await page.waitForFunction(() => window.ccV3.session.editor === 'done', null, { timeout: 8000 }).catch(() => {});

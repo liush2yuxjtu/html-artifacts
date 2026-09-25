@@ -117,7 +117,7 @@ Every final acceptance must independently verify all of the following against th
 
 1. The build raw snapshot still records `https://chatcut.io` as source origin.
 2. Homepage patch injection occurs exactly once.
-3. Every interactive demo has exactly one current `.cc-demo-status` and, where applicable, one local trigger/overlay.
+3. Every interactive demo that uses a `.cc-demo-status` has exactly one current `.cc-demo-status` and, where applicable, one local trigger/overlay.
 4. F01–F07 complete their intended before→action→after behavior in a real browser.
 5. Pricing remains production behavior, and Captions keep the production video, overlay, presets and controls; the only caption change is the first-frame hold until the first user action (F07). Neither is replaced by mock UI.
 6. Desktop and mobile have no horizontal overflow caused by the patch.

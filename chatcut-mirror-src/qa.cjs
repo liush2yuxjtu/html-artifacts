@@ -183,7 +183,7 @@ async function main() {
     await captionsVideo.waitFor({ state: 'visible', timeout: 10000 });
     await page.waitForTimeout(350);
     const captionsInitiallyPaused = await captionsVideo.evaluate(video => video.paused && video.currentTime < 0.1);
-    await safeElementShot(page, captions, '08-captions-native', snapshotErrors);
+    await safeElementShot(page, captions, '08a-captions-before', snapshotErrors);
     const captionsNext = page.locator('#tc-style-next');
     await captionsNext.waitFor({ state: 'visible', timeout: 10000 });
     await captionsNext.click();
@@ -191,6 +191,8 @@ async function main() {
       const video = document.querySelector('#transcript-captions [data-tc-part="captions"] #tc-video');
       return Boolean(video && !video.paused);
     }, null, { timeout: 5000 });
+    await page.waitForTimeout(800);
+    await safeElementShot(page, captions, '08-captions-native', snapshotErrors);
     const captionsState = await page.evaluate(() => window.__chatcutDemoSession?.captions);
     report.captionsGated = captionsInitiallyPaused && captionsState === 'playing';
 

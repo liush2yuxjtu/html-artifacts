@@ -241,6 +241,7 @@ export async function buildVercel() {
     asset.sha256 = createHash('sha256').update(bytes).digest('hex');
   }
   await fs.copyFile(path.join(ROOT, 'chatcut-production-mirror/intent.html'), path.join(STATIC, 'intent.html'));
+  await fs.cp(path.join(ROOT, 'chatcut-production-mirror/intent-assets'), path.join(STATIC, 'intent-assets'), { recursive: true });
   const provenance = {
     generatedAt: new Date().toISOString(),
     sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),

@@ -557,7 +557,14 @@
   function ensureEditor() {
     const section = editorSection();
     const root = creatorRoot();
-    if (!section || !root) return;
+    if (!section) return;
+    if (!root) {
+      // Another carousel tab (marketing / product ads) is showing: its Send would run nothing.
+      const btn = section.querySelector(':scope > .cc3-video-overlay');
+      if (btn && !btn.hidden) btn.hidden = true;
+      overlayAnchored = false;
+      return;
+    }
     const awaiting = session.editor === 'idle';
     section.classList.toggle('cc3-editor-awaiting', awaiting);
     const text = { idle: COPY.editorIdle, running: COPY.editorRunning, done: COPY.editorDone }[session.editor];
