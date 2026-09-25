@@ -75,3 +75,13 @@ test('compare page frames the frozen original next to the playable', () => {
   assert.match(compare, /id="frame-play"[^>]*src="index\.html"/);
   for (const id of ['editor-demo', 'connect']) assert.ok(compare.includes(`data-jump="${id}"`), `missing jump to #${id}`);
 });
+
+test('SessionStart soft gate points at an existing, non-blocking check', () => {
+  const settings = JSON.parse(fs.readFileSync(path.resolve('.claude/settings.json'), 'utf8'));
+  const cmd = settings.hooks.SessionStart.flatMap(h => h.hooks).map(h => h.command).join('\n');
+  assert.match(cmd, /chatcut-v3\/scripts\/check-hooks\.sh" --claude/);
+  assert.match(cmd, /\|\| true/, 'the reminder must never fail the session');
+  const script = fs.readFileSync(path.resolve('chatcut-v3/scripts/check-hooks.sh'), 'utf8');
+  assert.match(script, /exit 0\s*$/, 'check-hooks.sh must always exit 0');
+  assert.ok(fs.existsSync(path.resolve('.githooks/post-merge')));
+});

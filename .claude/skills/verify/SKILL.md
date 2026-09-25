@@ -79,6 +79,14 @@ If the deployed browser surface cannot be reached from the current verifier envi
 
 The v3 playable covers chatcut.io homepage **experiment variant B** (cookie `chatcut_homepage_415_20260920_id`, ~50/50 with the legacy variant A the steps above cover). It has no Vercel preview: the candidate is the Pages artifact. Verified end to end on PR #19; run every step below before opening a PR that touches `chatcut-v3/**`, `.githooks/**` or the v3 lines of `.github/workflows/pages.yml`.
 
+### 0. Local hooks (soft gate, never blocks)
+
+```bash
+sh chatcut-v3/scripts/check-hooks.sh     # silent = installed
+```
+
+If it warns about a missing hook, run `sh chatcut-v3/scripts/install-hooks.sh` and say so in the report; never override a different existing `core.hooksPath`. Record the hook state in the report either way. A missing hook is not a reason to report FAIL or BLOCKED.
+
 ### 1. Offline gate
 
 ```bash

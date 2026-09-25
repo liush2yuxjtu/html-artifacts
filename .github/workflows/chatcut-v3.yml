@@ -4,11 +4,15 @@ on:
   pull_request:
     paths:
       - 'chatcut-v3/**'
+      - '.githooks/**'
+      - '.claude/settings.json'
       - '.github/workflows/chatcut-v3.yml'
   push:
     branches: [main]
     paths:
       - 'chatcut-v3/**'
+      - '.githooks/**'
+      - '.claude/settings.json'
       - '.github/workflows/chatcut-v3.yml'
   workflow_dispatch:
 
