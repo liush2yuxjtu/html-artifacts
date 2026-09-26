@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { sanitizeMirror, prepareHomepage, outputConfig, PAGES, HOME_ALIASES, guardProductionSession, synchronizeAstroHydration, stopAutoplayTranscript, prepareVisibleControls } from '../vercel-build.mjs';
+import { sanitizeMirror, prepareHomepage, playableVersion, outputConfig, PAGES, HOME_ALIASES, guardProductionSession, synchronizeAstroHydration, stopAutoplayTranscript, prepareVisibleControls } from '../vercel-build.mjs';
 test('removes production-only locale and session redirects without removing product islands', () => {
   const input = '<script>function runBrowserLocaleBootstrap(){location.href="/zh"}</script><script>fetch("https://api.chatcut.io/auth/get-session")</script><astro-island></astro-island><script>window.product=true</script>';
   const output = sanitizeMirror(input);
@@ -27,6 +27,13 @@ test('preserves the full latest playable homepage and same-origin runtime on Ver
   assert.doesNotMatch(output, /runBrowserLocaleBootstrap|auth\/get-session|\.\/_astro\//);
   assert.match(output, /\/_astro\//);
   assert.throws(() => prepareHomepage('<h1>Fake page</h1>'), /checked-in homepage/);
+});
+test('accepts every playable revision from v2 on, not one pinned version', () => {
+  const page = v => `<meta data-cc-playable-hydration-safe content="1"><script>document.documentElement.dataset.ccPlayableVersion = '${v}';</script>`;
+  for (const v of ['2', '3', '12']) assert.doesNotThrow(() => prepareHomepage(page(v)), `v${v}`);
+  assert.throws(() => prepareHomepage(page('1')), /v2\+/);
+  assert.equal(playableVersion(page('3')), 3);
+  assert.equal(playableVersion('<h1>none</h1>'), 0);
 });
 test('keeps all previously supported feature pages and directory routes', () => {
   assert.equal(PAGES.length, 12);
@@ -55,7 +62,7 @@ test('commits initial Astro React hydration before releasing DOM ownership', () 
 test('does not let the passive transcript animation overwrite an interactive edit', () => {
   const result = stopAutoplayTranscript('St=e=>{const n=e>=.22,s=e>=.38;');
   assert.match(result, /window\.__chatcutDemoSession/);
-  assert.match(result, /ccPlayableVersion==="2"/);
+  assert.match(result, /\+document\.documentElement\.dataset\.ccPlayableVersion>=2/);
   assert.equal(stopAutoplayTranscript(result), result);
 });
 test('prefers live visible controls over hidden static fallback duplicates', async () => {

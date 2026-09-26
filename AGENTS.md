@@ -19,6 +19,6 @@ git never installs hooks on `clone` or `pull`: a cloned repository must not be a
 - **Check:** `sh chatcut-v3/scripts/check-hooks.sh` prints nothing when `core.hooksPath=.githooks`, otherwise the fix. Claude Code runs it at session start (`.claude/settings.json` → `SessionStart`) and passes any warning into the session context.
 - **Install:** `sh chatcut-v3/scripts/install-hooks.sh`. It is local and reversible (`git config --unset core.hooksPath`). An agent that sees the warning may install it and must tell the human it did.
 - **Never override** a different existing `core.hooksPath`: the installer refuses, and the agent asks the human how to chain `.githooks/post-merge` into their own hook.
-- **What it does:** after any `git pull`/`git merge` that changes `chatcut-v3/`, `.githooks/post-merge` rebuilds the playable and serves `http://127.0.0.1:8777/compare.html` (frozen original vs our playable). Stop the server with `sh chatcut-v3/scripts/preview.sh stop`.
+- **What it does:** after any `git pull`/`git merge` that changes `chatcut-v3/`, `.githooks/post-merge` rebuilds the playable and serves `http://127.0.0.1:8777/compare.html` (frozen original vs our playable). Stop the server with `sh chatcut-v3/scripts/preview.sh stop`. Before any `git push`, `.githooks/pre-push` runs `sh scripts/test-fast.sh` (offline contract tests, about 1s) and blocks the push if one fails; `git push --no-verify` skips it knowingly.
 - **Soft gate:** a missing hook never blocks work or a PR. `/verify` step 0 records its state in the report.
 <!-- local-git-hooks:end -->

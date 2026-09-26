@@ -9,6 +9,6 @@ if [ -n "$current" ] && [ "$current" != ".githooks" ]; then
   echo "Copy or call $ROOT/.githooks/post-merge from your own post-merge hook instead." >&2
   exit 1
 fi
-chmod +x "$ROOT/.githooks/post-merge" "$ROOT/chatcut-v3/scripts/preview.sh"
+chmod +x "$ROOT/.githooks/post-merge" "$ROOT/.githooks/pre-push" "$ROOT/scripts/test-fast.sh" "$ROOT/chatcut-v3/scripts/preview.sh"
 git config core.hooksPath .githooks
-echo "Installed: core.hooksPath=.githooks (post-merge rebuilds and serves the ChatCut v3 compare page)"
+echo "Installed: core.hooksPath=.githooks (post-merge serves the ChatCut v3 compare page; pre-push runs the offline contract tests)"

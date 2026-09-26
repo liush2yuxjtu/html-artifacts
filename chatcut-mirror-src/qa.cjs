@@ -6,6 +6,8 @@ const { chromium } = require('playwright');
 const ROOT = path.resolve('chatcut-playable');
 const SNAP_ROOT = path.resolve('chatcut-snapshots');
 const PORT = 4173;
+// The version build.mjs currently stamps; the QA must see exactly that build.
+const PLAYABLE_VERSION = fs.readFileSync(path.join(__dirname, 'build.mjs'), 'utf8').match(/ccPlayableVersion = '(\d+)'/)[1];
 const LOCAL_URL = `http://127.0.0.1:${PORT}/?qa=1`;
 
 function contentType(file) {
@@ -146,7 +148,7 @@ async function main() {
     report.publicShape = /AI Video Editor|Edit videos by telling AI what you want/i.test(headline);
     await safeViewportShot(page, '01-hero', snapshotErrors);
 
-    await page.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '3', null, { timeout: 15000 });
+    await page.waitForFunction(v => document.documentElement.dataset.ccPlayableVersion === v, PLAYABLE_VERSION, { timeout: 15000 });
     report.version = await page.evaluate(() => document.documentElement.dataset.ccPlayableVersion);
 
     const expert = page.locator('#best-moments');
@@ -174,7 +176,15 @@ async function main() {
     await page.waitForFunction(() => document.querySelector('#tc-edit-status')?.textContent.trim().startsWith('Done —'), null, { timeout: 10000 });
     const fillerVisibleCount = await page.locator('#transcript-captions [data-tc-part="edit"] .tc-word[data-tc-filler="true"]:visible').count();
     const transcriptMeta = (await page.locator('#tc-edit-meta').innerText()).trim();
-    report.transcript = fillerVisibleCount === 0 && transcriptMeta === '46 words · 0:31';
+    // The passive transcript animation keeps ticking; it must not undo the edit.
+    await transcript.evaluate(el => el.scrollIntoView({ block: 'end' }));
+    await page.waitForTimeout(2000);
+    await transcript.evaluate(el => el.scrollIntoView({ block: 'start' }));
+    await page.waitForTimeout(2000);
+    const fillerVisibleLater = await page.locator('#transcript-captions [data-tc-part="edit"] .tc-word[data-tc-filler="true"]:visible').count();
+    const transcriptMetaLater = (await page.locator('#tc-edit-meta').innerText()).trim();
+    report.transcriptHeld = fillerVisibleLater === 0 && transcriptMetaLater === transcriptMeta;
+    report.transcript = fillerVisibleCount === 0 && transcriptMeta === '46 words · 0:31' && report.transcriptHeld;
     await safeElementShot(page, transcript, '07-transcript-after', snapshotErrors);
 
     const captions = page.locator('#transcript-captions [data-tc-part="captions"]');
@@ -280,7 +290,7 @@ async function main() {
     try {
       await mobile.goto(LOCAL_URL + '&mobile=1', { waitUntil: 'domcontentloaded', timeout: 60000 });
       await mobile.locator('h1').first().waitFor({ state: 'visible', timeout: 30000 });
-      await mobile.waitForFunction(() => document.documentElement.dataset.ccPlayableVersion === '3', null, { timeout: 15000 });
+      await mobile.waitForFunction(v => document.documentElement.dataset.ccPlayableVersion === v, PLAYABLE_VERSION, { timeout: 15000 });
       const noOverflow = await mobile.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
 
       const mobileCaptions = mobile.locator('#transcript-captions [data-tc-part="captions"]');
