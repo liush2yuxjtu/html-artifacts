@@ -37,6 +37,8 @@ jobs:
         run: node chatcut-mirror-src/postbuild-fix.mjs
       - name: Apply snapshot-driven visual polish
         run: node chatcut-mirror-src/visual-fix.mjs
+      - name: Make the playable portable (public media hosts, current transcript guard)
+        run: node chatcut-mirror-src/normalize-playable.mjs
       - name: Verify generated homepage contract
         run: |
           test -s chatcut-playable/index.html
@@ -55,6 +57,8 @@ jobs:
           grep -q 'transcript-captions' chatcut-playable/index.html
           grep -q 'image-to-video' chatcut-playable/index.html
           grep -q 'music-generation' chatcut-playable/index.html
+          ! grep -rq '/_media/' chatcut-playable --include=*.html --include=*.js --include=*.css
+          ! grep -rq 'ccPlayableVersion==="[0-9]*"' chatcut-playable/_astro
       - name: Install browser QA dependency
         run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0 sharp@0.34.3
       - name: Install Chromium for QA

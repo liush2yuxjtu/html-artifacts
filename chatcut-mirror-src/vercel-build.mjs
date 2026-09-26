@@ -17,9 +17,16 @@ export function sanitizeMirror(html) {
   return sanitizeHtml(html).replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, tag =>
     /runBrowserLocaleBootstrap|auth\/get-session/.test(tag) ? '' : tag);
 }
+// The playable layer bumps its version on each interaction revision (build.mjs);
+// every revision from v2 on carries the demo session this packaging relies on.
+export const MIN_PLAYABLE_VERSION = 2;
+export function playableVersion(html) {
+  const match = html.match(/ccPlayableVersion = '(\d+)'/);
+  return match ? Number(match[1]) : 0;
+}
 export function prepareHomepage(html) {
-  if (!html.includes('data-cc-playable-hydration-safe') || !html.includes("ccPlayableVersion = '2'"))
-    throw new Error('The checked-in homepage must contain playable v2 and the hydration fix.');
+  if (!html.includes('data-cc-playable-hydration-safe') || playableVersion(html) < MIN_PLAYABLE_VERSION)
+    throw new Error(`The checked-in homepage must contain playable v${MIN_PLAYABLE_VERSION}+ and the hydration fix.`);
   return sanitizeMirror(html)
     .replaceAll('./_astro/', '/_astro/')
     .replace(/(href=["'])https:\/\/chatcut\.io(\/(?:features(?:\/[^"'?#]*)?)?)([?#][^"']*)?(["'])/g,
@@ -42,9 +49,12 @@ export function synchronizeAstroHydration(source) {
   return source.replace(before, after);
 }
 export function stopAutoplayTranscript(source) {
+  const guard = `window.__chatcutDemoSession&&+document.documentElement.dataset.ccPlayableVersion>=${MIN_PLAYABLE_VERSION}`;
+  // Inputs packaged before v3 carry a guard pinned to one version, which turns
+  // off as soon as the playable layer is bumped. Upgrade it in place.
+  source = source.replace(/window\.__chatcutDemoSession&&document\.documentElement\.dataset\.ccPlayableVersion==="\d+"/g, guard);
   const before = 'St=e=>{const n=e>=.22';
-  const after = 'St=e=>{if(window.__chatcutDemoSession&&document.documentElement.dataset.ccPlayableVersion==="2")return;const n=e>=.22';
-  return source.includes(before) ? source.replace(before, after) : source;
+  return source.includes(before) ? source.replace(before, `St=e=>{if(${guard})return;const n=e>=.22`) : source;
 }
 export function prepareVisibleControls(html) {
   const before = "const el = r.querySelector(s);\n    return el && !touchesHydrationPending(el) ? el : null;";
@@ -63,10 +73,14 @@ export function prepareVisibleControls(html) {
 export function localizePlaybackFactory(source, imageMap) {
   const marker = 'p="https://cdn.chatcut.dev/playback",a=(t,i)=>';
   if (!source.includes(marker)) return source;
+  const wrap = expression => `a=(t,i)=>{const u=${expression};return (${JSON.stringify(imageMap)})[u]||u}`;
+  // The pinned build input is itself a packaged mirror, so the factory may
+  // already be wrapped: swap in this build's map instead of failing.
+  const wrapped = /a=\(t,i\)=>\{const u=(`[^`]+`);return \(\{[^{}]*\}\)\[u\]\|\|u\}/;
+  if (wrapped.test(source)) return source.replace(wrapped, (_, expression) => wrap(expression));
   const pattern = /a=\(t,i\)=>(`[^`]+`)/;
   if (!pattern.test(source)) throw new Error('Playback URL factory contract changed.');
-  return source.replace(pattern, (_, expression) =>
-    `a=(t,i)=>{const u=${expression};return (${JSON.stringify(imageMap)})[u]||u}`);
+  return source.replace(pattern, (_, expression) => wrap(expression));
 }
 export function outputConfig() {
   return { version: 3, routes: [
@@ -136,6 +150,8 @@ async function mirrorAsset(url) {
     let source = stopAutoplayTranscript(synchronizeAstroHydration(guardProductionSession(bytes.toString('utf8'))));
     collectCdnImages(source);
     for (const match of source.matchAll(/(["'`])(\/(?!\/)[^"'`\s${}<>]+\.(?:svg|png|webp|jpe?g|gif|avif|ico))\1/g)) staticMedia.add(match[2]);
+    // normalize-playable.mjs points root assets at chatcut.io for GitHub Pages; package them again.
+    for (const match of source.matchAll(/(["'`])https:\/\/chatcut\.io(\/[^"'`\s${}<>]+\.(?:svg|png|webp|jpe?g|gif|avif|ico))\1/g)) staticMedia.add(match[2]);
     source = source.replace(/(["'`])((?:https:\/\/chatcut\.io)?(?:\.\.?\/|\/)[^"'`\s]+?)\1/g,
       (match, quote, spec) => { const rel = replaceSpec(spec); return rel ? quote + rel + quote : match; });
     bytes = Buffer.from(source);
@@ -165,7 +181,8 @@ export async function buildVercel() {
   await fs.rm(OUT, { recursive: true, force: true });
   await fs.mkdir(STATIC, { recursive: true });
   await fs.cp(path.join(ROOT, 'chatcut-playable/_astro'), path.join(STATIC, '_astro'), { recursive: true });
-  const home = prepareVisibleControls(prepareHomepage(await fs.readFile(path.join(ROOT, 'chatcut-playable/index.html'), 'utf8')));
+  const homepageSource = await fs.readFile(path.join(ROOT, 'chatcut-playable/index.html'), 'utf8');
+  const home = prepareVisibleControls(prepareHomepage(homepageSource));
   collectImages(home);
   await write(path.join(STATIC, 'index.html'), await localizeHtml(home));
   const pages = [{ path: '/', source: 'chatcut-playable/index.html', bytes: Buffer.byteLength(home) }];
@@ -247,7 +264,7 @@ export async function buildVercel() {
     sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim(),
     sourceDirty: Boolean(execFileSync('git', ['status', '--porcelain'], { cwd: ROOT, encoding: 'utf8' }).trim()),
     homepageSha256: createHash('sha256').update(await fs.readFile(path.join(STATIC, 'index.html'))).digest('hex'),
-    homepage: 'Checked-in production DOM with playable v2, hydration and hit-test fixes',
+    homepage: `Checked-in production DOM with playable v${playableVersion(homepageSource)}, hydration and hit-test fixes`,
     localePolicy: 'English-only mirror: locale home aliases redirect to the canonical English homepage.',
     mediaPolicy: 'Original public ChatCut CDN media; required runtime JS/CSS is same-origin.',
     pages, assets

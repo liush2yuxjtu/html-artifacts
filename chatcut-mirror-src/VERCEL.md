@@ -1,6 +1,6 @@
 # ChatCut Vercel preview
 
-This packaging path reuses the committed `chatcut-playable` homepage, including playable v2, the hydration lifecycle, and the hit-test fixes. It does not rebuild the older v1 homepage from `chatcut-production-mirror`.
+This packaging path reuses the committed `chatcut-playable` homepage, including the playable layer (v2 or later; currently v3), the hydration lifecycle, and the hit-test fixes. It does not rebuild the older v1 homepage from `chatcut-production-mirror`.
 
 ## Build and verify
 

@@ -199,7 +199,8 @@ def run_once(browser, target: str, out: Path, mobile: bool=False, cpu: int=1):
     if any(not step.get("exists") for step in report["scroll_journey"]): failures.append("missing-required-section")
     if report["horizontal_overflow"]: failures.append("horizontal-overflow")
     if not report["is_404"] and not report["vercel_auth_detected"]:
-        if report["playable_version"] != "2": failures.append("playable-patch-not-booted")
+        # Every playable revision from v2 on boots the demo session (see MIN_PLAYABLE_VERSION in vercel-build.mjs).
+        if not str(report["playable_version"] or "").isdigit() or int(report["playable_version"]) < 2: failures.append("playable-patch-not-booted")
         if report["pending_astro_islands"]>0: failures.append("astro-islands-still-pending")
         if report["local_send_count"]==0: failures.append("no-playable-controls")
         if not report["controls"].get("expert",False): failures.append("expert-control-not-visible")
