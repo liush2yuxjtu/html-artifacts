@@ -59,6 +59,8 @@ jobs:
           grep -q 'music-generation' chatcut-playable/index.html
           ! grep -rq '/_media/' chatcut-playable --include=*.html --include=*.js --include=*.css
           ! grep -rq 'ccPlayableVersion==="[0-9]*"' chatcut-playable/_astro
+      - name: Offline contract tests (same command as the local pre-push hook)
+        run: sh scripts/test-fast.sh
       - name: Install browser QA dependency
         run: npm install --prefix /tmp/chatcut-qa --no-save playwright@1.55.0 sharp@0.34.3
       - name: Install Chromium for QA

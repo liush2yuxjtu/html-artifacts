@@ -1,0 +1,12 @@
+#!/bin/sh
+# Before `git push`: run the offline contract tests (a few seconds) so a broken
+# pipeline contract fails here instead of on main.
+# Install once per clone: sh chatcut-v3/scripts/install-hooks.sh
+# Skip once, knowingly: git push --no-verify
+
+if ! out=$(sh "$(git rev-parse --show-toplevel)/scripts/test-fast.sh" 2>&1); then
+  printf '%s\n' "$out" | grep -E '^not ok|^# (pass|fail)|error:' >&2
+  echo "pre-push: offline contract tests failed; fix them or push with --no-verify" >&2
+  exit 1
+fi
+exit 0

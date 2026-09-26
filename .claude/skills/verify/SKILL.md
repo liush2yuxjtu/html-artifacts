@@ -12,6 +12,14 @@ Upstream behavior reference:
 
 Verify the exact commit and exact Vercel Preview/Pages candidate. Local PASS does not substitute for the deployed candidate.
 
+## Offline contract tests first (every change)
+
+```bash
+sh scripts/test-fast.sh   # ChatCut v3 + mirror-src + production-mirror contracts; offline, about 1s
+```
+
+It must pass before any browser step, push or PR. `.githooks/pre-push` runs the same command, so an installed clone cannot push a red contract. These suites once went unrun for days: a guard pinned to `ccPlayableVersion = '2'` broke the Vercel build on `main` after the playable moved to v3. Keep every new offline test inside `scripts/test-fast.sh` rather than adding a separate command.
+
 ## Build the actual Vercel output
 
 From repo root:
@@ -20,7 +28,7 @@ From repo root:
 node chatcut-mirror-src/vercel-build.mjs
 ```
 
-This writes `.vercel/output`.
+This writes `.vercel/output`. It needs the network (it captures the feature routes from chatcut.io) and must end with `{"ok":true,...}`. Its input is the checked-in `chatcut-playable/`, which `chatcut-mirror-src/normalize-playable.mjs` keeps portable: no preview-only `/_media/` paths, root assets under `/editor-scene/` and `/codex-plugin/` pointed at chatcut.io, the motion template feed vendored, and the transcript guard on "v2 or later". To drive the legacy playable's own QA behind the agent proxy, preload a launch wrapper that adds the SPKI flag below; the QA rewrites `chatcut-snapshots/`, so restore it afterwards (`git checkout -- chatcut-snapshots && git clean -fd chatcut-snapshots`) unless new snapshots are the point.
 
 For local serving of that exact output:
 
@@ -135,6 +143,8 @@ Once the `Publish HTML Artifacts to GitHub Pages` run for the merge commit succe
 - the legacy review surfaces listed in the Pages section above.
 
 The first visit installs `sw.js` and reloads once; measure after that reload.
+
+**Two Pages publishers race.** The repository also has branch-based GitHub Pages ("pages build and deployment", Jekyll), which rebuilds on every push to `main`, including the `[skip ci]` commit that `chatcut-playable-mirror.yml` pushes right after a merge. Whichever finishes last is live. The branch build has no `chatcut-v3/site` at `/chatcut-v3/`, so `/chatcut-v3/` turns into the rendered `chatcut-v3/README.md` (title "ChatCut v3 · playable homepage on the 2026-09 variant", no `#editor-demo`). Chosen policy: publish manually. When the deployed check finds that README page, dispatch `Publish HTML Artifacts to GitHub Pages` on `main` (Actions → the workflow → Run workflow, or `actions_run_trigger` `run_workflow` `pages.yml`), wait until `/chatcut-v3/` serves `ccV3` again, then run the checks. Report which publisher you verified.
 
 ### 5. Show the human a claude.ai Artifact, not a GitHub Pages link
 
