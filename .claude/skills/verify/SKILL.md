@@ -54,7 +54,7 @@ For timing-sensitive hydration changes, add `--cpu 4`.
 
 ## Drive the GitHub Pages review layer when it is in scope
 
-Changes to `.github/workflows/pages.yml`, `chatcut-interaction-review/**`, `original-homepages-2026-09-15/chatcut/**`, or `chatcut-production-mirror/intent-assets/**` require a separate deployed Pages check. This path exists because the review UI can be HTTP 200 while a nested baseline or proof asset is still missing.
+Changes to `.github/workflows/pages.yml`, `chatcut-v3/**` (see the ChatCut v3 section), `chatcut-interaction-review/**`, `original-homepages-2026-09-15/chatcut/**`, or `chatcut-production-mirror/intent-assets/**` require a separate deployed Pages check. This path exists because the review UI can be HTTP 200 while a nested baseline or proof asset is still missing.
 
 After the exact Pages deployment completes, verify these public surfaces from the same deployed candidate:
 
@@ -74,6 +74,103 @@ When browser automation is available, additionally:
 5. drive at least one safe Preview interaction and observe the visible state change.
 
 If the deployed browser surface cannot be reached from the current verifier environment, keep the runtime verdict **BLOCKED**. HTTP/content fetches may support diagnosis but do not upgrade a browser-required acceptance to PASS.
+
+## ChatCut v3 (`chatcut-v3/**`)
+
+The v3 playable covers chatcut.io homepage **experiment variant B** (cookie `chatcut_homepage_415_20260920_id`, ~50/50 with the legacy variant A the steps above cover). It has no Vercel preview: the candidate is the Pages artifact. Verified end to end on PR #19; run every step below before opening a PR that touches `chatcut-v3/**`, `.githooks/**` or the v3 lines of `.github/workflows/pages.yml`.
+
+### 0. Local hooks (soft gate, never blocks)
+
+```bash
+sh chatcut-v3/scripts/check-hooks.sh     # silent = installed
+```
+
+If it warns about a missing hook, run `sh chatcut-v3/scripts/install-hooks.sh` and say so in the report; never override a different existing `core.hooksPath`. Record the hook state in the report either way. A missing hook is not a reason to report FAIL or BLOCKED.
+
+### 1. Offline gate
+
+```bash
+node chatcut-v3/scripts/build.mjs          # must leave git clean: index.html, sw.js, compare.html are generated
+git diff --exit-code -- chatcut-v3/site/index.html chatcut-v3/site/sw.js chatcut-v3/site/compare.html
+node --test chatcut-v3/tests/build.test.mjs
+```
+
+### 2. Local browser acceptance on the served site
+
+```bash
+(cd chatcut-v3/site && python3 -m http.server 8777 --bind 127.0.0.1) &
+node chatcut-v3/tests/qa.cjs http://127.0.0.1:8777/
+```
+
+`qa.cjs` drives desktop 1440 and mobile 390 and must print `PASS`: no overflow, patch injected once, B01 (`#editor-demo`) held → Send overlay on the demo video (must cover `.hve-viewer` within 1px, receive the center click, stay aligned after a resize) → production reply + timeline revealed, B02 (`#connect` Codex window) held at frame 0 → Send → all production steps done and destination editor revealed, patch idle afterwards (0 self-mutations), no page/console/HTTP errors except the dm-sans font that 404s on chatcut.io too. B01 clicks the video overlay on both viewports; B02 clicks the product's own Send on desktop, the full-size status Send on mobile. Evidence lands in `chatcut-v3/evidence/` (or `QA_OUT=`).
+
+### 3. Exact Pages artifact under the real path prefix
+
+Pages serves the site at `/html-artifacts/chatcut-v3/`, which changes the service-worker scope and how root-relative media resolve. Assemble `_site` with the workflow's own step, not by hand:
+
+```bash
+V=/tmp/chatcut-verify/pages && rm -rf $V && mkdir -p $V
+python3 -c "import yaml;[print(s['run']) for s in yaml.safe_load(open('.github/workflows/pages.yml'))['jobs']['deploy']['steps'] if s.get('name')=='Build public Pages artifact']" > $V/assemble.sh
+sed -i 's|rm -rf _site|rm -rf "$OUT"|; s|mkdir -p _site$|mkdir -p "$OUT"|; s|_site|"$OUT"|g' $V/assemble.sh
+OUT=$V/root/html-artifacts bash $V/assemble.sh
+(cd $V/root && python3 -m http.server 8790 --bind 127.0.0.1) &
+QA_OUT=$V/evidence node chatcut-v3/tests/qa.cjs http://127.0.0.1:8790/html-artifacts/chatcut-v3/
+```
+
+Probes on the same server (browser, not curl):
+- every `<img>` on `/html-artifacts/chatcut-v3/` has `naturalWidth > 0` after a full scroll (proves `sw.js` forwards 404 media to chatcut.io under the prefix; last run 132/132);
+- a full scroll makes **zero** requests to `chatcut.io/ingest`, `api.chatcut.io` or posthog (the mirror must not report experiment exposure);
+- `compare.html` loads `baseline.html` (no `script[data-cc-v3-patch]`) next to `index.html` (patched, `ccV3.session.editor === 'idle'`), the B02 jump scrolls both frames to `#connect`, and the 390 layout has no overflow;
+- the legacy review surfaces still assemble: `chatcut-interaction-review/`, its `../original-homepages-2026-09-15/chatcut/` iframe, and `chatcut-production-mirror/intent-assets/11-video-before.png`.
+
+Before merge this is the strongest candidate available: Pages only deploys from `main`. State that explicitly in the PR; do not call it the deployed check.
+
+### 4. After merge: the deployed candidate
+
+Once the `Publish HTML Artifacts to GitHub Pages` run for the merge commit succeeds, repeat the step-3 browser checks against:
+
+- `https://liush2yuxjtu.github.io/html-artifacts/chatcut-v3/`
+- `https://liush2yuxjtu.github.io/html-artifacts/chatcut-v3/baseline.html`
+- `https://liush2yuxjtu.github.io/html-artifacts/chatcut-v3/compare.html`
+- the legacy review surfaces listed in the Pages section above.
+
+The first visit installs `sw.js` and reloads once; measure after that reload.
+
+### 5. Show the human a claude.ai Artifact, not a GitHub Pages link
+
+When you present a candidate for human review, publish a **claude.ai Artifact** and give that link. Do not hand over GitHub Pages URLs as the preview. Before merge they return 404, since Pages deploys only from `main`, and after merge they show whatever `main` holds rather than the exact candidate. Pages links can be listed next to the Artifact as "live after merge".
+
+The live v3 runtime cannot run inside an Artifact: the Artifact CSP blocks chatcut.io / cdn.chatcut.dev images and media, service workers are unavailable, and the site's ~110 `_astro` files plus media exceed the 255-file limit. Preview it with real evidence from the candidate instead:
+
+```bash
+(cd chatcut-v3/site && python3 -m http.server 8777 --bind 127.0.0.1) &
+node chatcut-v3/tests/record-preview.cjs http://127.0.0.1:8777/ /tmp/chatcut-verify/preview
+# qa.cjs already wrote before/after stills to chatcut-v3/evidence/
+```
+
+Build one HTML page in the scratchpad that shows, per flow (B01, B02): original vs playable desktop recordings side by side, the mobile recording, and the `qa.cjs` before/after stills. Publish it with the Artifact tool, passing the `.webm` files (`contentType: video/webm`) and `.jpg` stills through `files`. On the page, state the candidate commit, how the clips were made, and that it is a recording rather than the live site. Before publishing, pull a couple of frames with `/opt/pw-browsers/ffmpeg-1011/ffmpeg-linux -ss <t> -i clip.webm -frames:v 1 out.png` and check that each clip shows the held state and then the result.
+
+Headless Chromium here cannot decode H.264, so product videos inside the mocks stay on their poster frame in recordings. Say so on the page; it is a recorder limitation, not a product defect.
+
+### Re-capturing the original
+
+`node chatcut-v3/scripts/snapshot.mjs` refetches chatcut.io (retrying until variant B is served), rewrites `baseline/`, `site/_astro/**` and `site/baseline.html`, then `build.mjs` regenerates the playable. Review that diff like any product change and rerun steps 1–3; a changed baseline can silently move the patch's anchors.
+
+### Local post-merge preview
+
+`sh chatcut-v3/scripts/install-hooks.sh` sets `core.hooksPath=.githooks`. After any `git pull`/`git merge` that changes `chatcut-v3/`, `.githooks/post-merge` rebuilds and serves `http://127.0.0.1:8777/compare.html` (`CHATCUT_V3_PORT`, `CHATCUT_V3_OPEN=0`, `CHATCUT_V3_ALWAYS=1`; stop with `sh chatcut-v3/scripts/preview.sh stop`). Verified in a scratch clone: a merge of the v3 branch served compare/baseline with HTTP 200 and left the tree clean; an unrelated merge stayed silent.
+
+### Behind the Claude Code web agent proxy
+
+Chromium does not trust the proxy CA by default. Trust only that key; never disable verification:
+
+```bash
+SPKI=$(openssl x509 -in /root/.ccr/agent-proxy-ca.crt -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64)
+PLAYWRIGHT_MODULE=/opt/node22/lib/node_modules/playwright CHROMIUM_PATH=/opt/pw-browsers/chromium \
+CHROMIUM_ARGS="--ignore-certificate-errors-spki-list=$SPKI" node chatcut-v3/tests/qa.cjs <url>
+```
+
+Do not pass a Playwright `proxy` option: Chromium already uses the environment proxy and bypasses loopback, while an explicit proxy sends `127.0.0.1` through the agent proxy (HTTP 405). `snapshot.mjs` needs `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`. Stop preview servers in a separate shell command from the one that started them: `pkill -f "http.server <port>"` (even with the `[h]ttp` bracket trick) also matches any shell whose own command line contains `http.server <port>`, and kills it.
 
 ## Evidence
 

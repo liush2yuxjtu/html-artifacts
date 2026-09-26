@@ -1,0 +1,1 @@
+import{l as r}from"./index.BUoT5_Es.js";function e(t){return t?t.endsWith("/")?t:`${t}/`:"/"}function s(t,n,i){return!t||t.startsWith("/")||!/^https?:\/\//.test(t)?r(n,i):new URL(r(n,i),e(t)).toString()}export{s as l};

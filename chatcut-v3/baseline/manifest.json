@@ -1,0 +1,39 @@
+{
+  "capturedAt": "2026-09-24T21:16:21.800Z",
+  "source": "https://chatcut.io/",
+  "experimentCookie": "chatcut_homepage_415_20260920_id",
+  "variants": {
+    "a": {
+      "sections": "legacy: best-moments / transcript-captions / image-to-video / music-generation",
+      "bytes": 510943,
+      "sha256": "4662666ab106dbe513de27d45f69debfcd38742539c334a49aa76f396a51a811"
+    },
+    "b": {
+      "sections": [
+        "editor-demo",
+        "creator-wall",
+        "creative-workflow",
+        "skills-styles",
+        "connect",
+        "had-codex-panel",
+        "had-claude-panel",
+        "features-gallery",
+        "more-tools",
+        "pricing",
+        "faq",
+        "final-cta"
+      ],
+      "bytes": 542629,
+      "sha256": "f1be03bcad73689bca8ec66c3c12130a4aef6b70eba98f0cd6782d663d628c86"
+    }
+  },
+  "localized": 112,
+  "localizedBytes": 2827651,
+  "missing": [
+    {
+      "path": "/_astro/waveform.svg",
+      "error": "fetch failed 404 https://chatcut.io/_astro/waveform.svg"
+    }
+  ],
+  "remote": "Images and videos stay on https://chatcut.io and https://cdn.chatcut.dev."
+}

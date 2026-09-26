@@ -14,6 +14,7 @@ on:
       - 'chatcut-latest/**'
       - 'chatcut-playable/**'
       - 'chatcut-snapshots/**'
+      - 'chatcut-v3/**'
       - 'original-homepages-2026-09-15/**'
       - 'chatcut-production-mirror/**'
       - 'chatcut-product-thesis-v2/**'
@@ -84,6 +85,15 @@ jobs:
           if [ -d chatcut-snapshots ]; then
             cp -R chatcut-snapshots _site/
           fi
+          if [ -d chatcut-v3/site ]; then
+            mkdir -p _site/chatcut-v3
+            cp -R chatcut-v3/site/. _site/chatcut-v3/
+            cp -R chatcut-v3/evidence _site/chatcut-v3/evidence
+            test -s _site/chatcut-v3/index.html
+            test -s _site/chatcut-v3/baseline.html
+            test -s _site/chatcut-v3/sw.js
+            test -s _site/chatcut-v3/compare.html
+          fi
           if [ -d chatcut-product-thesis-v2 ]; then
             cp -R chatcut-product-thesis-v2 _site/
           fi
@@ -114,6 +124,9 @@ jobs:
             <a href="./chatcut-interaction-review/">ChatCut · 首页 Demo 交互评审</a>
             <a href="./chatcut-interaction-review-a06-v2/">ChatCut · A06 单 Reference 评审</a>
             <a href="./chatcut-latest/">ChatCut · Latest Playable Homepage</a>
+            <a href="./chatcut-v3/">ChatCut v3 · 新版首页（实验 B）可玩版</a>
+            <a href="./chatcut-v3/baseline.html">ChatCut v3 · 新版首页原样基线 2026-09-24</a>
+            <a href="./chatcut-v3/compare.html">ChatCut v3 · 原版 vs 改版 对比</a>
             <a href="./chatcut-product-thesis-v2/">ChatCut · 产品与商业化思考（多页版）</a>
             <a href="./telemetry-observatory-v2/">Telemetry · 安装来源与转化看板</a>
           </main></body>

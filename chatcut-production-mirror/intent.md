@@ -41,7 +41,9 @@ Change: the copied page is reset from its already-finished production demo state
 
 ### 4. Auto AI Captions
 
-**No redesign.** Keep the original caption video, word-level overlay, preset rail, and previous/next controls. The current section already communicates the feature well.
+**No redesign, one gate.** Keep the original caption video, word-level overlay, preset rail, and previous/next controls exactly as production renders them.
+
+Change (since 2026-09-22, `73eb191` / `00f7a07` / `04958bd`): the caption video is held on its first frame until the visitor's first action in the section, which is choosing a caption style, pressing previous/next, or clicking the video card. From then on the original video and word-level overlay play as in production. This matches the same **original state → one user action → original result** rule as every other demo. There is no added status line or button; the production controls are the trigger.
 
 ### 5. AI Image Generation
 
@@ -77,7 +79,9 @@ The work is delivered as a **Draft PR**. Human-facing changes **do not merge** a
 
 ## Intent version and traceability
 
-**Intent contract:** `chatcut-homepage-causal-demo-v2` · 2026-09-17.
+**Intent contract:** `chatcut-homepage-causal-demo-v2` · 2026-09-17 · revised 2026-09-25 (captions moved from KEEP to gated flow F07).
+
+This contract describes the shipped playable: `chatcut-mirror-src/` → `chatcut-playable/`, packaged for Vercel by `chatcut-mirror-src/vercel-build.mjs`, which also ships this document's `intent.html`. The earlier v1 patch in `chatcut-production-mirror/patches/home.js` predates the caption gate and still leaves captions native; treat it as historical, not as the reference.
 
 The canonical review chain is:
 
@@ -91,7 +95,8 @@ The canonical review chain is:
 | F04 | Understand image source→result causality | Image generation story | Show production before image, then restore existing production generated asset | `09-image-before.png` → `10-image-after.png` |
 | F05 | Understand reference→video causality | Video generation story | Hold the original preview video behind the reference image, then reveal it | `11-video-before.png` → `12-video-after.png` |
 | F06 | Understand silent source→music-result causality | Music generator | Add the explicit silent-source/prompt step, then reveal existing waveform/music UI | `13-music-before.png` → `14-music-after.png` |
-| KEEP | Preserve already-clear native behavior | Captions + Pricing | No redesign | `08-captions-native.png`, `15-pricing.png` |
+| F07 | See captions start on demand | Captions block (`#transcript-captions [data-tc-part="captions"]`) | Hold the original video on its first frame until the first style / previous-next / video-card click, then let the original video and overlay play | `08a-captions-before.png` → `08-captions-native.png` |
+| KEEP | Preserve already-clear native behavior | Pricing | No redesign | `15-pricing.png` |
 
 `intent.html` is the human-facing Screens + Flows preview and uses these real runtime screenshots directly. It must not regress into a text-only flowchart or an ELI5 document that describes the product without showing it.
 
@@ -112,9 +117,9 @@ Every final acceptance must independently verify all of the following against th
 
 1. The build raw snapshot still records `https://chatcut.io` as source origin.
 2. Homepage patch injection occurs exactly once.
-3. Every interactive demo has exactly one current `.cc-demo-status` and, where applicable, one local trigger/overlay.
-4. F01–F06 complete their intended before→action→after behavior in a real browser.
-5. Captions and Pricing remain production behavior rather than replacement mock UI.
+3. Every interactive demo that uses a `.cc-demo-status` has exactly one current `.cc-demo-status` and, where applicable, one local trigger/overlay.
+4. F01–F07 complete their intended before→action→after behavior in a real browser.
+5. Pricing remains production behavior, and Captions keep the production video, overlay, presets and controls; the only caption change is the first-frame hold until the first user action (F07). Neither is replaced by mock UI.
 6. Desktop and mobile have no horizontal overflow caused by the patch.
 7. No uncaught page errors are produced by the patched flows.
 8. `intent.html` still shows the real Screen sequence for every flow and not merely documentation about it.

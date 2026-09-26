@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh \"$CLAUDE_PROJECT_DIR/chatcut-v3/scripts/check-hooks.sh\" --claude 2>/dev/null || true",
+            "timeout": 10,
+            "statusMessage": "Checking git hooks"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -55,7 +55,7 @@ Only `/` gets `patches/home.css` + `patches/home.js`:
 - Best Moments: Send → original final clip continues.
 - Motion Graphics: Generate → existing generated cards resolve in place.
 - Text-Based Editing: prompt → original filler-word nodes collapse.
-- Captions: untouched.
+- Captions: untouched in this v1 patch. The shipped playable (`chatcut-mirror-src/` → `chatcut-playable/`) holds the caption video on its first frame until the first style / previous-next / video click; see `intent.md` flow F07.
 - Image Generation: original source state → Generate → original output.
 - Video Generation: original reference → Generate → original preview video.
 - Music: silent source → prompt → original waveform/music result state.

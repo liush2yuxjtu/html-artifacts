@@ -58,3 +58,15 @@ test('README documents preview/full mirror modes, raw snapshots, and media prove
   assert.match(readme, /font/i);
   assert.match(readme, /feature/i);
 });
+
+test('captions contract matches the shipped first-frame gate (F07), not KEEP', async () => {
+  const text = await read('intent.md');
+  const html = await read('intent.html');
+  assert.match(text, /\| F07 \|[^\n]*first frame/i);
+  assert.doesNotMatch(text, /\| KEEP \|[^\n]*Captions/, 'captions must not be listed as KEEP while the playable gates them');
+  assert.match(text, /F01–F07 complete/);
+  assert.match(html, /F07 · Auto AI Captions/);
+  assert.match(html, /08a-captions-before\.png/);
+  const build = await fs.readFile(new URL('../../chatcut-mirror-src/build.mjs', import.meta.url), 'utf8');
+  assert.match(build, /lockCaptionFirstFrame/, 'if the gate is removed from build.mjs, revise intent.md F07 in the same change');
+});
