@@ -1,9 +1,14 @@
 # html-artifacts — a Claude skill
 
+**Claude Code / Agent Skill** for self-contained interactive HTML artifacts.
+
 > Build a single **self-contained, interactive HTML artifact** — a report, slide
 > deck, flowchart, design system, clickable prototype, code-review writeup,
 > research explainer, or a throwaway editor UI — then save it to
 > `~/.claude/artifacts/` and pop it open in the browser.
+
+<!-- Screenshot note: add a GIF/PNG of one reference artifact under docs/media/
+     e.g. reference/01 or a triage board — improves social cards and GitHub browse. -->
 
 Markdown flattens things that are inherently spatial or interactive: a diff, a
 module graph, a four-screen flow, a 30-ticket backlog. One self-contained HTML
@@ -59,6 +64,11 @@ Just ask for something you'd rather *see* than read:
 
 The skill picks the matching genre, builds one self-contained `.html`, saves it
 to `~/.claude/artifacts/<slug>.html`, and opens it in your browser.
+
+## Related projects
+
+- [atelier](https://github.com/liush2yuxjtu/atelier) — open-source Claude Design / Artifacts alternative (full studio: chat + infinite canvas + Tweaks). Use **html-artifacts** when you want a single offline HTML file from Claude Code; use **atelier** when you want a multi-artboard design studio.
+- [pi-debug-mode](https://github.com/liush2yuxjtu/pi-debug-mode) — evidence-first Debug Mode for the Pi coding agent
 
 ## Design language
 
